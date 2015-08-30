@@ -1,5 +1,5 @@
-src/.js
-test/.js
+src/*.js
+test/*.js
 # Logs
 logs
 *.log

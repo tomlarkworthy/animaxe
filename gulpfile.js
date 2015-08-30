@@ -32,7 +32,7 @@ gulp.task('compile', function() {
                     .pipe(ts(tsProject));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
         tsResult.dts.pipe(gulp.dest('compiled/definitions')),
-        tsResult.js.pipe(gulp.dest('compiled/js'))
+        tsResult.js.pipe(gulp.dest('compiled/src'))
     ]);
 });
 
@@ -44,7 +44,7 @@ var tsTestProject = ts.createProject({
 
 gulp.task('compile-test', function() {
     var tsResult = gulp.src('test/*.ts')
-                    .pipe(ts(tsProject));
+                    .pipe(ts(tsTestProject));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
         tsResult.js.pipe(gulp.dest('compiled/test'))
     ]);
@@ -57,9 +57,9 @@ gulp.task('test', function() {
 });
 
 
-gulp.task('watch', ['compile', 'compile-test', 'browserify'], function() {
+gulp.task('watch', ['compile', 'compile-test', 'browserify', 'test'], function() {
     gulp.watch('src/*.ts', ['compile']);
     gulp.watch('test/*.ts', ['compile-test']);
-    gulp.watch('compiled/js/*.js', ['browserify']);
-    gulp.watch(['compiled/js/*.js', 'compiled/test/*.js'], ['test']);
+    gulp.watch('compiled/src/*.js', ['browserify']);
+    gulp.watch(['compiled/src/*.js', 'compiled/test/*.js'], ['test']);
 });
