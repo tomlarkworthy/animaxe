@@ -1,0 +1,65 @@
+var gulp = require('gulp');
+var ts = require('gulp-typescript');
+var merge = require('merge2');
+var mocha = require('gulp-mocha');
+var gutil = require('gulp-util');
+var browserify = require('browserify');
+var transform = require('vinyl-transform');
+
+gulp.task('browserify', function () {
+  var browserified = transform(function(filename) {
+    console.log("browserfy", filename);
+    //browserify._ignore.push("canvas");
+    var b = browserify(filename);
+    b.ignore("canvas");
+    return b.bundle();
+  });
+  
+  return gulp.src(['./compiled/js/*.js'])
+    .pipe(browserified)
+    .pipe(gulp.dest('./dist'));
+});
+
+
+var tsProject = ts.createProject({
+    declarationFiles: true,
+    noExternalResolve: false,
+    module: 'commonjs'
+});
+
+gulp.task('compile', function() {
+    var tsResult = gulp.src('src/*.ts')
+                    .pipe(ts(tsProject));
+    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
+        tsResult.dts.pipe(gulp.dest('compiled/definitions')),
+        tsResult.js.pipe(gulp.dest('compiled/js'))
+    ]);
+});
+
+var tsTestProject = ts.createProject({
+    declarationFiles: false,
+    noExternalResolve: false,
+    module: 'commonjs'
+});
+
+gulp.task('compile-test', function() {
+    var tsResult = gulp.src('test/*.ts')
+                    .pipe(ts(tsProject));
+    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
+        tsResult.js.pipe(gulp.dest('compiled/test'))
+    ]);
+});
+
+gulp.task('test', function() {
+    return gulp.src(['compiled/test/*.js'], { read: false })
+        .pipe(mocha({ reporter: 'list' }))
+        .on('error', gutil.log);
+});
+
+
+gulp.task('watch', ['compile', 'compile-test', 'browserify'], function() {
+    gulp.watch('src/*.ts', ['compile']);
+    gulp.watch('test/*.ts', ['compile-test']);
+    gulp.watch('compiled/js/*.js', ['browserify']);
+    gulp.watch(['compiled/js/*.js', 'compiled/test/*.js'], ['test']);
+});
