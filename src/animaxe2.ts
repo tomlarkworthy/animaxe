@@ -1,6 +1,5 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
-/// <reference path="../types/lib.d.ts" />
 require('source-map-support').install();
 import Rx = require("rx");
 

@@ -1,5 +1,4 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
-/// <reference path="../types/lib.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
 /// <reference path="../types/should.d.ts" />
 require("should");
