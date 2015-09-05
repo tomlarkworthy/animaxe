@@ -37,6 +37,7 @@ describe('toStreamNumber', function() {
 });
 
 describe('then', function() {
+
   it('stops on time', function() {
       counterA = 0;
       counterB = 0;
@@ -54,6 +55,7 @@ describe('then', function() {
       var downstream = new Rx.ReplaySubject();
       var anim = countAthenCountB().then(countAthenCountB());
       counterA.should.equal(0);
+      counterA.should.equal(0);
       var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0)).repeat(10);
       anim.attach(upstream).subscribe(downstream);
       counterA.should.equal(2);
@@ -61,15 +63,19 @@ describe('then', function() {
   });
 
   it('thens do not over draw', function() {
-    console.log("thens do not overdraw")
+    console.log("thens do not overdraw");
     counterA = 0;
     counterB = 0;
     var downstream = new Rx.ReplaySubject();
     var anim = countAthenCountB();
     counterA.should.equal(0);
     counterB.should.equal(0);
-    var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0));
-    anim.attach(upstream).subscribe(downstream);
+    var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0)).repeat(1);
+    anim.attach(upstream.tap(function(next) {
+      console.log("upstream");
+    })).tap(function(next){
+      console.log("downstream");
+    }).subscribe(downstream);
     counterA.should.equal(1);
     counterB.should.equal(0);
   });
@@ -77,6 +83,7 @@ describe('then', function() {
 
 
 describe('loop', function() {
+
   it('repeats finite sequence', function() {
     counterA = 0;
     counterB = 0;

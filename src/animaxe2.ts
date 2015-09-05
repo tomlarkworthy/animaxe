@@ -30,53 +30,75 @@ export class Animation2 {
      */
     then(follower: Animation2): Animation2 {
         var self = this;
-        //return new Animation2(self.attach.bind(self));
-
-        var subscription = null;
+        /*
+        return new Animation2(function (prev: DrawStream) : DrawStream {
+            var after = new Rx.Subject<DrawTick>();
+            return self.attach(prev.tap(
+                function(next) {console.log("then, first, next");},
+                console.log,
+                function () {
+                    console.log("attaching")
+                    follower.attach(prev).tap(
+                        function(next) {console.log("then, second, next");},
+                        console.log,
+                        console.log
+                    ).subscribe(after);
+                }
+            )).concat(after);
+        });*/
 
         return new Animation2(function (prev: DrawStream) : DrawStream {
-            console.log("then: init");
-            var join = new Rx.Subject<DrawTick>();
-            var path1 = new Rx.Subject<DrawTick>();
-            var path2 = new Rx.Subject<DrawTick>();
 
-            var current = path1;
+            return Rx.Observable.create<DrawTick>(function (observer) {
+                var first  = new Rx.Subject<DrawTick>();
+                var second = new Rx.Subject<DrawTick>();
 
+                var firstTurn = true;
 
-            var first = self.attach.call(self, path1).subscribe(
-                join.onNext.bind(join),
-                join.onError.bind(join),
-                function() {
-                    console.log("then: first complete");
-                    current = path2;
-                }
-            );
-            var second = follower.attach.call(follower, path2).subscribe(
-                join.onNext.bind(join),
-                join.onError.bind(join),
-                function() {
-                    console.log("then: second complete");
-                    current = null;
-                    join.onCompleted();
-                }
-            );
+                var current = first;
 
-            if (!subscription) {
-                subscription = prev.subscribe(
+                var firstAttach  = self.attach(first).subscribe(
                     function(next) {
-                        console.log("then: prev next");
-                        current.onNext(next);},
-                    function(err) {
-                        console.log("then: prev error");
-                        current.onError(err);},
-                    function() {
-                        console.log("then: prev complete");
-                        current.onCompleted();
-                });
-            }
+                        console.log("then: first got a message, passing to downstream");
+                        observer.onNext(next);
+                    },
+                    observer.onError.bind(observer),
+                    function(){
+                        firstTurn = false;
+                    }
+                );
+                var secondAttach = follower.attach(second).subscribe(
+                    function(next) {
+                        console.log("then: second got a message, passing to downstream");
+                        observer.onNext(next);
+                    },
+                    observer.onError.bind(observer),
+                    observer.onCompleted.bind(observer)
+                );
 
-            return self.attach(prev).concat(follower.attach(prev));
-            //return join;
+                var prevSubscription = prev.subscribe(
+                    function(next) {
+                        console.log("then: prev upstream next");
+                        if (firstTurn) {
+                            first.onNext(next);
+                        } else {
+                            second.onNext(next);
+                        }
+                    },
+                    observer.onError,
+                    function () {
+                        console.log("then: prev error");
+                        observer.onCompleted();
+                    }
+                );
+                // on dispose
+                return function () {
+                    console.log("then: disposer");
+                    prevSubscription.dispose();
+                    firstAttach.dispose();
+                    secondAttach.dispose();
+                };
+            });
         });
     }
 }
