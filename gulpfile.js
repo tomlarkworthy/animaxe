@@ -4,6 +4,7 @@ var merge = require('merge2');
 var mocha = require('gulp-mocha');
 var gutil = require('gulp-util');
 var browserify = require('browserify');
+//var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 
 gulp.task('browserify', function () {

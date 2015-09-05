@@ -10,12 +10,32 @@ var DrawTick = (function () {
     return DrawTick;
 })();
 exports.DrawTick = DrawTick;
+var I = (function () {
+    function I() {
+    }
+    I.map = function (base, map) {
+        return {
+            next: function () {
+                return map(base.next());
+            }
+        };
+    };
+    return I;
+})();
+var Fixed = (function () {
+    function Fixed(val) {
+        this.val = val;
+    }
+    Fixed.prototype.next = function () { return this.val; };
+    return Fixed;
+})();
+exports.Fixed = Fixed;
 function toStreamNumber(x) {
-    return typeof x === 'number' ? Rx.Observable.return(x) : x;
+    return typeof x === 'number' ? new Fixed(x) : x;
 }
 exports.toStreamNumber = toStreamNumber;
 function toStreamPoint(x) {
-    return (typeof x.concatMap === 'function' ? x : Rx.Observable.return(x));
+    return (typeof x.next === 'function' ? x : new Fixed(x));
 }
 exports.toStreamPoint = toStreamPoint;
 var Animation2 = (function () {
@@ -33,40 +53,31 @@ var Animation2 = (function () {
      */
     Animation2.prototype.then = function (follower) {
         var self = this;
-        /*
-        return new Animation2(function (prev: DrawStream) : DrawStream {
-            var after = new Rx.Subject<DrawTick>();
-            return self.attach(prev.tap(
-                function(next) {console.log("then, first, next");},
-                console.log,
-                function () {
-                    console.log("attaching")
-                    follower.attach(prev).tap(
-                        function(next) {console.log("then, second, next");},
-                        console.log,
-                        console.log
-                    ).subscribe(after);
-                }
-            )).concat(after);
-        });*/
         return new Animation2(function (prev) {
             return Rx.Observable.create(function (observer) {
                 var first = new Rx.Subject();
                 var second = new Rx.Subject();
                 var firstTurn = true;
                 var current = first;
-                var firstAttach = self.attach(first).subscribe(function (next) {
-                    console.log("then: first got a message, passing to downstream");
+                console.log("then: attach");
+                var firstAttach = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
+                    console.log("then: first to downstream");
                     observer.onNext(next);
                 }, observer.onError.bind(observer), function () {
+                    console.log("then: first complete");
                     firstTurn = false;
                 });
-                var secondAttach = follower.attach(second).subscribe(function (next) {
-                    console.log("then: second got a message, passing to downstream");
+                var secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
+                    console.log("then: second to downstream");
                     observer.onNext(next);
-                }, observer.onError.bind(observer), observer.onCompleted.bind(observer));
-                var prevSubscription = prev.subscribe(function (next) {
-                    console.log("then: prev upstream next");
+                }, observer.onError.bind(observer), function () {
+                    console.log("then: second complete");
+                    observer.onCompleted();
+                });
+                var prevSubscription = prev.subscribeOn(Rx.Scheduler.immediate).tapOnNext(function () {
+                    console.log("then: pre upstream");
+                }).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
+                    console.log("then: upstream to first OR second");
                     if (firstTurn) {
                         first.onNext(next);
                     }
@@ -74,7 +85,7 @@ var Animation2 = (function () {
                         second.onNext(next);
                     }
                 }, observer.onError, function () {
-                    console.log("then: prev error");
+                    console.log("then: upstream complete");
                     observer.onCompleted();
                 });
                 // on dispose
@@ -84,7 +95,7 @@ var Animation2 = (function () {
                     firstAttach.dispose();
                     secondAttach.dispose();
                 };
-            });
+            }).subscribeOn(Rx.Scheduler.immediate);
         });
     };
     return Animation2;
@@ -95,64 +106,84 @@ var Animator2 = (function () {
         this.drawingContext = drawingContext;
         this.tickerSubscription = null;
         this.animationSubscriptions = [];
+        this.t = 0;
         this.root = new Rx.Subject();
     }
     Animator2.prototype.ticker = function (tick) {
         var self = this;
         this.tickerSubscription = tick.map(function (dt) {
-            return new DrawTick(self.drawingContext, dt);
+            self.t += dt;
+            var tick = new DrawTick(self.drawingContext, dt);
+            return tick;
         }).subscribe(this.root);
     };
     Animator2.prototype.play = function (animation) {
-        console.log("play");
+        console.log("animator: play");
         var saveBeforeFrame = this.root.tapOnNext(function (tick) { tick.ctx.save(); });
         var doAnimation = animation.attach(saveBeforeFrame);
         var restoreAfterFrame = doAnimation.tapOnNext(function (tick) { tick.ctx.restore(); });
         this.animationSubscriptions.push(restoreAfterFrame.subscribe());
     };
+    Animator2.prototype.clock = function () {
+        var self = this;
+        return { next: function () { return self.t; } };
+    };
     return Animator2;
 })();
 exports.Animator2 = Animator2;
 function point(x, y) {
-    console.log("point: init");
     var x_stream = toStreamNumber(x);
     var y_stream = toStreamNumber(y);
-    return Rx.Observable.combineLatest([x_stream, y_stream], function (x, y) {
-        var result = [x, y];
-        return result;
-    });
+    console.log("point: init", x_stream, y_stream);
+    return {
+        next: function () {
+            var result = [x_stream.next(), y_stream.next()];
+            console.log("point: next", result);
+            return result;
+        }
+    };
 }
 exports.point = point;
 function rnd() {
-    return Rx.Observable.create(function (observer) {
-        console.log('rnd: onNext');
-        observer.onNext(Math.random());
-        return function () {
-            console.log('rnd: disposed');
-        };
-    });
+    return {
+        next: function () {
+            return Math.random();
+        }
+    };
 }
 exports.rnd = rnd;
-function sin(period, trigger) {
-    var t = 0;
+function sin(period, clock) {
+    console.log("sin: new");
     var period_stream = toStreamNumber(period);
-    return trigger.root.withLatestFrom(period_stream, function (tick, period) {
-        t += tick.dt;
-        while (t > period)
-            t -= period;
-        return Math.sin(t * (Math.PI * 2) / period);
-    });
+    return {
+        next: function () {
+            var period = period_stream.next();
+            var t = clock.next() % period;
+            console.log("sin: t", t);
+            return Math.sin(t * (Math.PI * 2) / period);
+        }
+    };
+    /*
+    return trigger.pre
+        .tapOnNext(function(){console.log("sin: trigger upstream fire");})
+        .withLatestFrom(period_stream, function(dt: number, period: number) {
+            t += dt;
+            while (t > period) t -= period;
+
+        })
+        .tapOnNext(function() { console.log("sin: emit");});*/
 }
 exports.sin = sin;
-function cos(period, trigger) {
-    var t = 0;
+function cos(period, clock) {
+    console.log("cos: new");
     var period_stream = toStreamNumber(period);
-    return trigger.root.withLatestFrom(period_stream, function (tick, period) {
-        t += tick.dt;
-        while (t > period)
-            t -= period;
-        return Math.cos(t * (Math.PI * 2) / period);
-    });
+    return {
+        next: function () {
+            var period = period_stream.next();
+            var t = clock.next() % period;
+            return Math.cos(t * (Math.PI * 2) / period);
+        }
+    };
 }
 exports.cos = cos;
 function scale_x(scale, x) { return 0; }
@@ -165,30 +196,54 @@ function parallel(//rename layer?
     animation) { return null; }
 function sequence(animation) { return null; }
 function loop(animation) {
-    console.log("loop: initializing");
-    var input = new Rx.Subject();
-    var output = new Rx.Subject();
-    var passthoughSubscription = null;
-    var attachNext = true;
-    return new Animation2(function (previous) {
-        function attachPassthrouh() {
-            console.log("loop: passthrough, attach");
-            passthoughSubscription = animation.attach(input).subscribe(function (next) {
-                console.log("loop next");
-                output.onNext(next);
-            }, output.onError.bind(output), function () {
-                //onComplete
-                console.log("loop: passthrough, complete");
-                passthoughSubscription.dispose(); //todo, check for mem leaks in loop, and maybe get rid of this line
-                if (attachNext)
-                    attachPassthrouh();
-            });
-        }
-        attachPassthrouh();
-        previous.tapOnCompleted(function () {
-            attachNext = false;
-        }).subscribe(input);
-        return output;
+    return new Animation2(function (prev) {
+        console.log("loop: initializing");
+        return Rx.Observable.create(function (observer) {
+            console.log("loop: create new loop");
+            var loopStart = null;
+            var loopSubscription = null;
+            function attachLoop(next) {
+                console.log("loop: new inner loop");
+                //loopStart = new Rx.BehaviorSubject<DrawTick>(next);
+                loopStart = new Rx.Subject();
+                loopSubscription = animation.attach(loopStart.tapOnNext(function () {
+                    console.log("loop: pre-inner loop");
+                })).subscribe(function (next) {
+                    console.log("loop: post-inner loop to downstream");
+                    observer.onNext(next);
+                }, function (err) {
+                    console.log("loop: post-inner loop err to downstream");
+                    observer.onError(err);
+                }, function () {
+                    console.log("loop: post-inner completed");
+                    loopStart = null;
+                });
+                console.log("loop: new inner loop finished construction");
+            }
+            prev.tapOnNext(function () {
+                console.log("loop pre: upstream");
+            }).subscribe(function (next) {
+                if (loopStart == null) {
+                    console.log("loop: no inner loop");
+                    attachLoop(next);
+                    console.log("loop: upstream to inner loop (after construction)");
+                    loopStart.onNext(next);
+                }
+                else {
+                    console.log("loop: upstream to inner loop");
+                    loopStart.onNext(next);
+                }
+            }, function (err) {
+                console.log("loop: upstream error to inner loop");
+                loopStart.onError(err);
+            }, observer.onCompleted.bind(observer));
+            return function () {
+                //dispose
+                console.log("loop: dispose");
+                if (loopStart)
+                    loopStart.dispose();
+            };
+        }).subscribeOn(Rx.Scheduler.immediate);
     });
 }
 exports.loop = loop;
@@ -199,13 +254,14 @@ function draw(fn, animation) {
 }
 exports.draw = draw;
 function move(delta, animation) {
+    console.log("move: attached");
     var pointStream = toStreamPoint(delta);
-    return new Animation2(function (prev) {
-        return prev.withLatestFrom(pointStream, function (tick, point) {
-            console.log("move: transform", point);
+    return draw(function (tick) {
+        var point = pointStream.next();
+        console.log("move:", point);
+        if (tick)
             tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
-            return tick;
-        });
+        return tick;
     }, animation);
 }
 exports.move = move;
@@ -213,7 +269,8 @@ function velocity(velocity, animation) {
     var velocityStream = toStreamPoint(velocity);
     return new Animation2(function (prev) {
         var pos = [0.0, 0.0];
-        return prev.withLatestFrom(velocityStream, function (tick, velocity) {
+        return prev.map(function (tick) {
+            var velocity = velocityStream.next();
             pos[0] += velocity[0] * tick.dt;
             pos[1] += velocity[1] * tick.dt;
             tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
@@ -225,16 +282,17 @@ exports.velocity = velocity;
 function tween_linear(from, to, time, animation /* copies */) {
     var from_stream = toStreamPoint(from);
     var to_stream = toStreamPoint(to);
-    var combined = from_stream.combineLatest(to_stream, function (a, b) { return [a, b]; });
     var scale = 1.0 / time;
     return new Animation2(function (prev) {
         var t = 0;
-        return prev.withLatestFrom(combined, function (tick, points) {
+        return prev.map(function (tick) {
+            var from = from_stream.next();
+            var to = to_stream.next();
             t = t + tick.dt;
             if (t > time)
                 t = time;
-            var x = points[0][0] + (points[1][0] - points[0][0]) * t * scale;
-            var y = points[0][1] + (points[1][1] - points[0][1]) * t * scale;
+            var x = from[0] + (to[0] - from[0]) * t * scale;
+            var y = from[1] + (to[1] - from[1]) * t * scale;
             tick.ctx.transform(1, 0, 0, 1, x, y);
             return tick;
         }).takeWhile(function (tick) { return t < time; });
@@ -338,13 +396,13 @@ function sparkLong(css_color) {
     });
 }
 //single spark
-var bigRnd = rnd().map(function (x) { return x * 50; });
-var bigSin = sin(1, animator).map(function (x) { return x * 45 + 50; });
-var bigCos = cos(1, animator).map(function (x) { return x * 45 + 50; });
+var bigRnd = I.map(rnd(), function (x) { return x * 50; });
+var bigSin = I.map(sin(1, animator.clock()), function (x) { return x * 40 + 50; });
+var bigCos = I.map(cos(1, animator.clock()), function (x) { return x * 40 + 50; });
 animator.play(color("#000000", rect([0, 0], [100, 100])));
 animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
-//animator.play(move([50,50], velocity([50,0], loop(spark("#FFFFFF")))));
-//animator.play(tween_linear([50,50], point(bigSin, bigCos), 1, loop(spark("red"))));
+animator.play(move([50, 50], velocity([50, 0], loop(spark("#FFFFFF")))));
+animator.play(tween_linear([50, 50], point(bigSin, bigCos), 1, loop(spark("red"))));
 try {
     var time;
     var render = function () {
@@ -357,7 +415,7 @@ try {
 }
 catch (err) {
     animator.play(save(100, 100, "spark.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(15));
+    animator.ticker(Rx.Observable.return(0.1).repeat(5));
 }
 //todo
 // INVEST IN BUILD AND TESTING

@@ -6,9 +6,17 @@ export declare class DrawTick {
     dt: number;
     constructor(ctx: CanvasRenderingContext2D, dt: number);
 }
+export interface Iterable<T> {
+    next(): T;
+}
+export declare type NumberStream = Iterable<number>;
+export declare type PointStream = Iterable<Point>;
 export declare type DrawStream = Rx.Observable<DrawTick>;
-export declare type NumberStream = Rx.Observable<number>;
-export declare type PointStream = Rx.Observable<Point>;
+export declare class Fixed<T> implements Iterable<T> {
+    val: T;
+    constructor(val: T);
+    next(): T;
+}
 export declare function toStreamNumber(x: number | NumberStream): NumberStream;
 export declare function toStreamPoint(x: Point | PointStream): PointStream;
 export declare class Animation2 {
@@ -27,15 +35,17 @@ export declare class Animator2 {
     tickerSubscription: Rx.Disposable;
     root: Rx.Subject<DrawTick>;
     animationSubscriptions: Rx.IDisposable[];
+    t: number;
     constructor(drawingContext: CanvasRenderingContext2D);
-    ticker(tick: NumberStream): void;
+    ticker(tick: Rx.Observable<number>): void;
     play(animation: Animation2): void;
+    clock(): NumberStream;
 }
 export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
 export declare function rnd(): NumberStream;
-export declare function sin(period: number | NumberStream, trigger: Animator2): NumberStream;
-export declare function cos(period: number | NumberStream, trigger: Animator2): NumberStream;
+export declare function sin(period: number | NumberStream, clock: NumberStream): NumberStream;
+export declare function cos(period: number | NumberStream, clock: NumberStream): NumberStream;
 export declare function loop(animation: Animation2): Animation2;
 export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation2): Animation2;
 export declare function move(delta: Point | PointStream, animation?: Animation2): Animation2;
