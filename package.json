@@ -15,6 +15,7 @@
     "gifencoder": "^1.0.6",
     "gulp": "^3.9.0",
     "gulp-util": "^3.0.6",
+    "immutable": "^3.7.5",
     "merge2": "^0.3.6",
     "optimist": "~0.6.1",
     "rx": "^3.1.1",

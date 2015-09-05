@@ -29,7 +29,7 @@ describe('toStreamNumber', function () {
 });
 describe('point', function () {
     it('should return a point', function () {
-        Ax.point(5, 5).next().should.equal([5, 5]);
+        Ax.point(5, 5).next().toString().should.equal([5, 5].toString());
     });
 });
 describe('then', function () {

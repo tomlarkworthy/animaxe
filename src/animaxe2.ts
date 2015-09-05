@@ -7,18 +7,25 @@ export class DrawTick {
     constructor (public ctx: CanvasRenderingContext2D, public dt: number) {}
 }
 
-
-export interface Iterable<T> {
-    next(): T;
+function stackTrace() {
+    var err = new Error();
+    return (<any>err).stack;
 }
 
-class I {
-    static map<T, V>(base: Iterable<T>, map: (T) => V): Iterable<V> {
-        return {
-            next: function(): V {
-                return map(base.next());
-            }
-        }
+export class Iterable<T> {
+    // tried immutable.js but it only supports 2 dimensionable iterables
+    constructor(_next: () => T) {
+        this.next = _next;
+    }
+
+    next(): T {throw new Error('This method is abstract');}
+    map<T, V>(fn: (T) => V): Iterable<V> {
+        var base = this;
+        return new Iterable(function(): V {
+            console.log("Iterable: next");
+            //console.log(stackTrace());
+            return fn(base.next());
+        });
     }
 }
 
@@ -26,9 +33,13 @@ export type NumberStream = Iterable<number>;
 export type PointStream = Iterable<Point>;
 export type DrawStream = Rx.Observable<DrawTick>;
 
-export class Fixed<T> implements Iterable<T> {
-    constructor(public val: T) {}
-    next(): T { return this.val;}
+export class Fixed<T> extends Iterable<T> {
+    constructor(public val: T) {
+        super(function(){
+            console.log("fixed", this.val);
+            return this.val;
+        });
+    }
 }
 
 export function toStreamNumber(x: number | NumberStream): NumberStream {
@@ -60,7 +71,7 @@ export class Animation2 {
                 var firstTurn = true;
 
                 var current = first;
-                console.log("then: attach")
+                console.log("then: attach");
 
                 var firstAttach  = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
                     function(next) {
@@ -145,7 +156,7 @@ export class Animator2 {
 
     clock(): NumberStream {
         var self = this;
-        return {next: function() {return self.t}}
+        return new Iterable(function() {return self.t})
     }
 }
 
@@ -159,35 +170,29 @@ export function point(
     var y_stream = toStreamNumber(y);
 
     console.log("point: init", x_stream, y_stream);
-    return {
-        next: function() {
+    return new Iterable(function() {
             var result: [number, number] = [x_stream.next(), y_stream.next()];
             console.log("point: next", result);
             return result;
-        }
-    };
+        });
 }
 
 export function rnd(): NumberStream {
-    return {
-        next: function () {
+    return new Iterable(function () {
             return Math.random();
-        }
-    };
+        });
 }
 
 export function sin(period: number| NumberStream, clock: NumberStream): NumberStream {
     console.log("sin: new");
     var period_stream = toStreamNumber(period);
 
-    return {
-        next: function() {
+    return new Iterable(function() {
             var period = period_stream.next();
             var t = clock.next() % period;
             console.log("sin: t", t);
             return Math.sin(t * (Math.PI * 2) / period);
-        }
-    }
+        });
     /*
     return trigger.pre
         .tapOnNext(function(){console.log("sin: trigger upstream fire");})
@@ -202,13 +207,12 @@ export function cos(period: number| NumberStream, clock: NumberStream): NumberSt
     console.log("cos: new");
     var period_stream = toStreamNumber(period);
 
-    return {
-        next: function() {
+    return new Iterable(function() {
             var period = period_stream.next();
             var t = clock.next() % period;
+            console.log("cos: t", t);
             return Math.cos(t * (Math.PI * 2) / period);
-        }
-    }
+        });
 }
 
 function scale_x(
@@ -254,12 +258,12 @@ export function loop(
 
 
         return Rx.Observable.create<DrawTick>(function(observer) {
-            console.log("loop: create new loop")
+            console.log("loop: create new loop");
             var loopStart = null;
             var loopSubscription = null;
 
             function attachLoop(next) { //todo I feel like we can remove a level from this somehow
-                console.log("loop: new inner loop")
+                console.log("loop: new inner loop");
                 //loopStart = new Rx.BehaviorSubject<DrawTick>(next);
                 loopStart = new Rx.Subject<DrawTick>();
 
@@ -298,7 +302,7 @@ export function loop(
 
                 },
                 function(err){
-                    console.log("loop: upstream error to inner loop")
+                    console.log("loop: upstream error to inner loop", err);
                     loopStart.onError(err);
                 },
                 observer.onCompleted.bind(observer)
@@ -512,9 +516,9 @@ function sparkLong(css_color: string): Animation2 { //we could be clever and let
 }
 
 //single spark
-var bigRnd = I.map(rnd(), x => x * 50);
-var bigSin = I.map(sin(1, animator.clock()), x => x * 40 + 50);
-var bigCos = I.map(cos(1, animator.clock()), x => x * 40 + 50);
+var bigRnd = rnd().map(x => x * 50);
+var bigSin = sin(1, animator.clock()).map(x => x * 40 + 50);
+var bigCos = cos(1, animator.clock()).map(x => x * 40 + 50);
 
 animator.play(color("#000000", rect([0,0],[100,100])));
 animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));

@@ -1,3 +1,9 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
 require('source-map-support').install();
@@ -10,25 +16,38 @@ var DrawTick = (function () {
     return DrawTick;
 })();
 exports.DrawTick = DrawTick;
-var I = (function () {
-    function I() {
+function stackTrace() {
+    var err = new Error();
+    return err.stack;
+}
+var Iterable = (function () {
+    // tried immutable.js but it only supports 2 dimensionable iterables
+    function Iterable(_next) {
+        this.next = _next;
     }
-    I.map = function (base, map) {
-        return {
-            next: function () {
-                return map(base.next());
-            }
-        };
+    Iterable.prototype.next = function () { throw new Error('This method is abstract'); };
+    Iterable.prototype.map = function (fn) {
+        var base = this;
+        return new Iterable(function () {
+            console.log("Iterable: next");
+            //console.log(stackTrace());
+            return fn(base.next());
+        });
     };
-    return I;
+    return Iterable;
 })();
-var Fixed = (function () {
+exports.Iterable = Iterable;
+var Fixed = (function (_super) {
+    __extends(Fixed, _super);
     function Fixed(val) {
+        _super.call(this, function () {
+            console.log("fixed", this.val);
+            return this.val;
+        });
         this.val = val;
     }
-    Fixed.prototype.next = function () { return this.val; };
     return Fixed;
-})();
+})(Iterable);
 exports.Fixed = Fixed;
 function toStreamNumber(x) {
     return typeof x === 'number' ? new Fixed(x) : x;
@@ -126,7 +145,7 @@ var Animator2 = (function () {
     };
     Animator2.prototype.clock = function () {
         var self = this;
-        return { next: function () { return self.t; } };
+        return new Iterable(function () { return self.t; });
     };
     return Animator2;
 })();
@@ -135,34 +154,28 @@ function point(x, y) {
     var x_stream = toStreamNumber(x);
     var y_stream = toStreamNumber(y);
     console.log("point: init", x_stream, y_stream);
-    return {
-        next: function () {
-            var result = [x_stream.next(), y_stream.next()];
-            console.log("point: next", result);
-            return result;
-        }
-    };
+    return new Iterable(function () {
+        var result = [x_stream.next(), y_stream.next()];
+        console.log("point: next", result);
+        return result;
+    });
 }
 exports.point = point;
 function rnd() {
-    return {
-        next: function () {
-            return Math.random();
-        }
-    };
+    return new Iterable(function () {
+        return Math.random();
+    });
 }
 exports.rnd = rnd;
 function sin(period, clock) {
     console.log("sin: new");
     var period_stream = toStreamNumber(period);
-    return {
-        next: function () {
-            var period = period_stream.next();
-            var t = clock.next() % period;
-            console.log("sin: t", t);
-            return Math.sin(t * (Math.PI * 2) / period);
-        }
-    };
+    return new Iterable(function () {
+        var period = period_stream.next();
+        var t = clock.next() % period;
+        console.log("sin: t", t);
+        return Math.sin(t * (Math.PI * 2) / period);
+    });
     /*
     return trigger.pre
         .tapOnNext(function(){console.log("sin: trigger upstream fire");})
@@ -177,13 +190,12 @@ exports.sin = sin;
 function cos(period, clock) {
     console.log("cos: new");
     var period_stream = toStreamNumber(period);
-    return {
-        next: function () {
-            var period = period_stream.next();
-            var t = clock.next() % period;
-            return Math.cos(t * (Math.PI * 2) / period);
-        }
-    };
+    return new Iterable(function () {
+        var period = period_stream.next();
+        var t = clock.next() % period;
+        console.log("cos: t", t);
+        return Math.cos(t * (Math.PI * 2) / period);
+    });
 }
 exports.cos = cos;
 function scale_x(scale, x) { return 0; }
@@ -234,7 +246,7 @@ function loop(animation) {
                     loopStart.onNext(next);
                 }
             }, function (err) {
-                console.log("loop: upstream error to inner loop");
+                console.log("loop: upstream error to inner loop", err);
                 loopStart.onError(err);
             }, observer.onCompleted.bind(observer));
             return function () {
@@ -396,9 +408,9 @@ function sparkLong(css_color) {
     });
 }
 //single spark
-var bigRnd = I.map(rnd(), function (x) { return x * 50; });
-var bigSin = I.map(sin(1, animator.clock()), function (x) { return x * 40 + 50; });
-var bigCos = I.map(cos(1, animator.clock()), function (x) { return x * 40 + 50; });
+var bigRnd = rnd().map(function (x) { return x * 50; });
+var bigSin = sin(1, animator.clock()).map(function (x) { return x * 40 + 50; });
+var bigCos = cos(1, animator.clock()).map(function (x) { return x * 40 + 50; });
 animator.play(color("#000000", rect([0, 0], [100, 100])));
 animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
 animator.play(move([50, 50], velocity([50, 0], loop(spark("#FFFFFF")))));

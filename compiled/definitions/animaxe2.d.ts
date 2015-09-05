@@ -6,16 +6,17 @@ export declare class DrawTick {
     dt: number;
     constructor(ctx: CanvasRenderingContext2D, dt: number);
 }
-export interface Iterable<T> {
+export declare class Iterable<T> {
+    constructor(_next: () => T);
     next(): T;
+    map<T, V>(fn: (T) => V): Iterable<V>;
 }
 export declare type NumberStream = Iterable<number>;
 export declare type PointStream = Iterable<Point>;
 export declare type DrawStream = Rx.Observable<DrawTick>;
-export declare class Fixed<T> implements Iterable<T> {
+export declare class Fixed<T> extends Iterable<T> {
     val: T;
     constructor(val: T);
-    next(): T;
 }
 export declare function toStreamNumber(x: number | NumberStream): NumberStream;
 export declare function toStreamPoint(x: Point | PointStream): PointStream;
