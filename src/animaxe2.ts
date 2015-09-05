@@ -24,21 +24,59 @@ export class Animation2 {
         var processed = this._attach(obs);
         return this.after? this.after.attach(processed): processed;
     }
+    /**
+     * delivers events to this first, then when that animation is finished
+     * the follower consumers events and the values are used as output, until the follower animation completes
+     */
     then(follower: Animation2): Animation2 {
         var self = this;
         //return new Animation2(self.attach.bind(self));
+
+        var subscription = null;
+
         return new Animation2(function (prev: DrawStream) : DrawStream {
+            console.log("then: init");
             var join = new Rx.Subject<DrawTick>();
-            var dispose_first = self.attach.call(self, prev).subscribe(
+            var path1 = new Rx.Subject<DrawTick>();
+            var path2 = new Rx.Subject<DrawTick>();
+
+            var current = path1;
+
+
+            var first = self.attach.call(self, path1).subscribe(
                 join.onNext.bind(join),
                 join.onError.bind(join),
-                function () {
-                    console.log("then: complete");
-                    follower.attach.call(follower, prev).subscribe(join);
+                function() {
+                    console.log("then: first complete");
+                    current = path2;
+                }
+            );
+            var second = follower.attach.call(follower, path2).subscribe(
+                join.onNext.bind(join),
+                join.onError.bind(join),
+                function() {
+                    console.log("then: second complete");
+                    current = null;
+                    join.onCompleted();
                 }
             );
 
-            return join;
+            if (!subscription) {
+                subscription = prev.subscribe(
+                    function(next) {
+                        console.log("then: prev next");
+                        current.onNext(next);},
+                    function(err) {
+                        console.log("then: prev error");
+                        current.onError(err);},
+                    function() {
+                        console.log("then: prev complete");
+                        current.onCompleted();
+                });
+            }
+
+            return self.attach(prev).concat(follower.attach(prev));
+            //return join;
         });
     }
 }
@@ -146,7 +184,7 @@ function sequence(
 ): Animation2
 { return null;}
 
-function loop(
+export function loop(
     animation: Animation2
 ): Animation2
 {
@@ -156,30 +194,35 @@ function loop(
     var passthoughSubscription: Rx.Disposable = null;
     var attachNext = true;
     return new Animation2(function (previous: DrawStream): DrawStream {
-        previous.tapOnCompleted(function(){
-            attachNext = false;
-        }).subscribe(input);
 
         function attachPassthrouh() { //todo I feel like we can remove a level from this somehow
             console.log("loop: passthrough, attach");
             passthoughSubscription = animation.attach(input).subscribe(
-            output.onNext.bind(output),
-            output.onError.bind(output),
-            function() {
-                //onComplete
-                console.log("loop: passthrough, complete");
-                passthoughSubscription.dispose(); //todo, check for mem leaks in loop, and maybe get rid of this line
-                if (attachNext) attachPassthrouh();
-            }
-        )};
+                function(next) {
+                    console.log("loop next");
+                    output.onNext(next)
+                },
+                output.onError.bind(output),
+                function() {
+                    //onComplete
+                    console.log("loop: passthrough, complete");
+                    passthoughSubscription.dispose(); //todo, check for mem leaks in loop, and maybe get rid of this line
+                    if (attachNext) attachPassthrouh();
+                }
+            )
+        }
 
         attachPassthrouh();
+
+        previous.tapOnCompleted(function(){
+            attachNext = false;
+        }).subscribe(input);
 
         return output;
     });
 }
 
-function draw(
+export function draw(
     fn: (tick: DrawTick) => void,
     animation?: Animation2
 ): Animation2
@@ -189,7 +232,7 @@ function draw(
     }, animation);
 }
 
-function move(
+export function move(
     delta: Point | PointStream,
     animation?: Animation2
 ): Animation2 {
@@ -203,7 +246,7 @@ function move(
     }, animation);
 }
 
-function velocity(
+export function velocity(
     velocity: Point | PointStream,
     animation?: Animation2
 ): Animation2 {
@@ -272,7 +315,7 @@ function map(
     }, animation)
 }
 
-function take(
+export function take(
     iterations: number,
     animation?: Animation2
 ): Animation2
@@ -379,12 +422,11 @@ var bigRnd = rnd().map(x => x * 50);
 var bigSin = sin(1, animator).map(x => x * 45 + 50);
 var bigCos = cos(1, animator).map(x => x * 45 + 50);
 
-/*
 animator.play(color("#000000", rect([0,0],[100,100])));
-animator.play(move(point(bigSin, bigCos), loop(spark("#FFFFFF"))));
-animator.play(move([50,50], velocity([50,0], loop(spark("#FFFFFF")))));
-animator.play(tween_linear([50,50], point(bigSin, bigCos), 1, loop(spark("red"))));
-*/
+animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
+//animator.play(move([50,50], velocity([50,0], loop(spark("#FFFFFF")))));
+//animator.play(tween_linear([50,50], point(bigSin, bigCos), 1, loop(spark("red"))));
+
 
 try {
     var time;

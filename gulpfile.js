@@ -51,9 +51,13 @@ gulp.task('compile-test', function() {
 });
 
 gulp.task('test', function() {
+    function handleError(err) {
+        console.log(err.toString());
+        this.emit('end');
+    }
     return gulp.src(['compiled/test/*.js'], { read: false })
         .pipe(mocha({ reporter: 'list' }))
-        .on('error', gutil.log);
+        .on('error', handleError);
 });
 
 
