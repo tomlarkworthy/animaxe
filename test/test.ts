@@ -111,9 +111,9 @@ describe('loop', function() {
     var downstream = new Rx.ReplaySubject();
     var anim = Ax.loop(countAthenCountB());
     counterA.should.equal(0);
-    var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0)).repeat(10);
+    var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0)).repeat(5);
     anim.attach(upstream).subscribe(downstream);
-    counterA.should.equal(5);
-    counterB.should.equal(5);
+    counterA.should.equal(3);
+    counterB.should.equal(2);
   });
 });

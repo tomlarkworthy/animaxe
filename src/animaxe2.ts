@@ -30,22 +30,6 @@ export class Animation2 {
      */
     then(follower: Animation2): Animation2 {
         var self = this;
-        /*
-        return new Animation2(function (prev: DrawStream) : DrawStream {
-            var after = new Rx.Subject<DrawTick>();
-            return self.attach(prev.tap(
-                function(next) {console.log("then, first, next");},
-                console.log,
-                function () {
-                    console.log("attaching")
-                    follower.attach(prev).tap(
-                        function(next) {console.log("then, second, next");},
-                        console.log,
-                        console.log
-                    ).subscribe(after);
-                }
-            )).concat(after);
-        });*/
 
         return new Animation2(function (prev: DrawStream) : DrawStream {
 
@@ -441,8 +425,8 @@ function sparkLong(css_color: string): Animation2 { //we could be clever and let
 
 //single spark
 var bigRnd = rnd().map(x => x * 50);
-var bigSin = sin(1, animator).map(x => x * 45 + 50);
-var bigCos = cos(1, animator).map(x => x * 45 + 50);
+var bigSin = sin(1, animator).map(x => x * 40 + 50);
+var bigCos = cos(1, animator).map(x => x * 40 + 50);
 
 animator.play(color("#000000", rect([0,0],[100,100])));
 animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
