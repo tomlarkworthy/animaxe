@@ -3,6 +3,10 @@
 require('source-map-support').install();
 import Rx = require("rx");
 
+export var DEBUG_LOOP = false;
+export var DEBUG_THEN = false;
+
+
 export class DrawTick {
     constructor (public ctx: CanvasRenderingContext2D, public dt: number) {}
 }
@@ -71,37 +75,35 @@ export class Animation2 {
                 var firstTurn = true;
 
                 var current = first;
-                console.log("then: attach");
+                if (DEBUG_THEN) console.log("then: attach");
 
                 var firstAttach  = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
                     function(next) {
-                        console.log("then: first to downstream");
+                        if (DEBUG_THEN) console.log("then: first to downstream");
                         observer.onNext(next);
                     },
                     observer.onError.bind(observer),
                     function(){
-                        console.log("then: first complete");
+                        if (DEBUG_THEN) console.log("then: first complete");
                         firstTurn = false;
                     }
                 );
                 var secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
                     function(next) {
-                        console.log("then: second to downstream");
+                        if (DEBUG_THEN) console.log("then: second to downstream");
                         observer.onNext(next);
                     },
                     observer.onError.bind(observer),
                     function(){
-                        console.log("then: second complete");
+                        if (DEBUG_THEN) console.log("then: second complete");
                         observer.onCompleted()
                     }
 
                 );
 
-                var prevSubscription = prev.subscribeOn(Rx.Scheduler.immediate).tapOnNext(function() {
-                    console.log("then: pre upstream")
-                }).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                var prevSubscription = prev.subscribeOn(Rx.Scheduler.immediate).subscribe(
                     function(next) {
-                        console.log("then: upstream to first OR second");
+                        if (DEBUG_THEN) console.log("then: upstream to first OR second");
                         if (firstTurn) {
                             first.onNext(next);
                         } else {
@@ -110,13 +112,13 @@ export class Animation2 {
                     },
                     observer.onError,
                     function () {
-                        console.log("then: upstream complete");
+                        if (DEBUG_THEN) console.log("then: upstream complete");
                         observer.onCompleted();
                     }
                 );
                 // on dispose
                 return function () {
-                    console.log("then: disposer");
+                    if (DEBUG_THEN) console.log("then: disposer");
                     prevSubscription.dispose();
                     firstAttach.dispose();
                     secondAttach.dispose();
@@ -132,7 +134,7 @@ export class Animator2 {
     animationSubscriptions: Rx.IDisposable[] = [];
     t: number = 0;
 
-    constructor(public drawingContext: CanvasRenderingContext2D) {
+    constructor(public ctx: CanvasRenderingContext2D) {
         this.root = new Rx.Subject<DrawTick>()
     }
     ticker(tick: Rx.Observable<number>): void {
@@ -140,15 +142,28 @@ export class Animator2 {
 
         this.tickerSubscription = tick.map(function(dt: number) { //map the ticker onto any -> context
             self.t += dt;
-            var tick = new DrawTick(self.drawingContext, dt);
+            var tick = new DrawTick(self.ctx, dt);
             return tick;
         }).subscribe(this.root);
     }
     play (animation: Animation2): void {
+        var self = this;
         console.log("animator: play");
-        var saveBeforeFrame = this.root.tapOnNext(function(tick){tick.ctx.save();});
+        var saveBeforeFrame = this.root.tapOnNext(function(tick){
+            console.log("animator: ctx save");
+            tick.ctx.save();
+        });
         var doAnimation = animation.attach(saveBeforeFrame);
-        var restoreAfterFrame = doAnimation.tapOnNext(function(tick){tick.ctx.restore();});
+        var restoreAfterFrame = doAnimation.tap(
+            function(tick){
+                console.log("animator: ctx next restore");
+                tick.ctx.restore();
+            },function(err){
+                console.log("animator: ctx err restore");
+                self.ctx.restore();
+            },function(){
+                self.ctx.restore();
+            });
         this.animationSubscriptions.push(
             restoreAfterFrame.subscribe()
         );
@@ -254,7 +269,7 @@ export function loop(
 ): Animation2
 {
     return new Animation2(function (prev: DrawStream): DrawStream {
-        console.log("loop: initializing");
+        if (DEBUG_LOOP) console.log("loop: initializing");
 
 
         return Rx.Observable.create<DrawTick>(function(observer) {
@@ -263,46 +278,39 @@ export function loop(
             var loopSubscription = null;
 
             function attachLoop(next) { //todo I feel like we can remove a level from this somehow
-                console.log("loop: new inner loop");
-                //loopStart = new Rx.BehaviorSubject<DrawTick>(next);
+                if (DEBUG_LOOP) console.log("loop: new inner loop");
+
                 loopStart = new Rx.Subject<DrawTick>();
 
-                loopSubscription = animation.attach(loopStart.tapOnNext(function(){
-                    console.log("loop: pre-inner loop")
-                })).subscribe(
+                loopSubscription = animation.attach(loopStart).subscribe(
                     function(next) {
-                        console.log("loop: post-inner loop to downstream")
+                        if (DEBUG_LOOP) console.log("loop: post-inner loop to downstream");
                         observer.onNext(next);
                     },
                     function(err) {
-                        console.log("loop: post-inner loop err to downstream")
+                        if (DEBUG_LOOP) console.log("loop: post-inner loop err to downstream")
                         observer.onError(err);
                     },
                     function() {
-                        console.log("loop: post-inner completed");
+                        if (DEBUG_LOOP) console.log("loop: post-inner completed");
                         loopStart = null;
                     }
                 );
-                console.log("loop: new inner loop finished construction")
+                if (DEBUG_LOOP) console.log("loop: new inner loop finished construction")
             }
 
-            prev.tapOnNext(function(){
-                console.log("loop pre: upstream");
-            }).subscribe(
+            prev.subscribe(
                 function(next) {
                     if (loopStart == null) {
-                        console.log("loop: no inner loop")
+                        if (DEBUG_LOOP) console.log("loop: no inner loop");
                         attachLoop(next);
-                        console.log("loop: upstream to inner loop (after construction)")
-                        loopStart.onNext(next);
-                    } else {
-                        console.log("loop: upstream to inner loop")
-                        loopStart.onNext(next);
                     }
+                    if (DEBUG_LOOP) console.log("loop: upstream to inner loop");
+                    loopStart.onNext(next);
 
                 },
                 function(err){
-                    console.log("loop: upstream error to inner loop", err);
+                    if (DEBUG_LOOP) console.log("loop: upstream error to inner loop", err);
                     loopStart.onError(err);
                 },
                 observer.onCompleted.bind(observer)
@@ -310,7 +318,7 @@ export function loop(
 
             return function() {
                 //dispose
-                console.log("loop: dispose")
+                if (DEBUG_LOOP) console.log("loop: dispose");
                 if (loopStart) loopStart.dispose();
             }
         }).subscribeOn(Rx.Scheduler.immediate);
@@ -373,9 +381,11 @@ function tween_linear(
     return new Animation2(function(prev: DrawStream): DrawStream {
         var t = 0;
         return prev.map(function(tick: DrawTick) {
+            console.log("tween: inner")
             var from = from_stream.next();
             var to   = to_stream.next();
-            t = t+tick.dt;
+
+            t = t + tick.dt;
             if (t > time) t = time;
             var x = from[0] + (to[0] - from[0]) * t * scale;
             var y = from[1] + (to[1] - from[1]) * t * scale;
@@ -521,24 +531,27 @@ var bigSin = sin(1, animator.clock()).map(x => x * 40 + 50);
 var bigCos = cos(1, animator.clock()).map(x => x * 40 + 50);
 
 animator.play(color("#000000", rect([0,0],[100,100])));
+animator.play(move(point(bigSin, bigCos), sparkLong("#FFFFFF")));
 animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
 animator.play(move([50,50], velocity([50,0], loop(spark("#FFFFFF")))));
 animator.play(tween_linear([50,50], point(bigSin, bigCos), 1, loop(spark("red"))));
 
 
 try {
+    //browser
     var time;
     var render = function() {
         window.requestAnimationFrame(render);
         var now = new Date().getTime(),
             dt = now - (time || now);
         time = now;
-        animator.root.onNext(new DrawTick(animator.drawingContext, dt/1000));
+        animator.root.onNext(new DrawTick(animator.ctx, dt/1000));
     };
     render();
 } catch(err) {
+    //node.js
     animator.play(save(100, 100, "spark.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(5));
+    animator.ticker(Rx.Observable.return(0.1).repeat(15));
 }
 
 
@@ -546,8 +559,6 @@ try {
 // INVEST IN BUILD AND TESTING
 
 //why loop pos matters, unit tests
-// animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
-// Vs. animator.play(move(point(bigSin, bigCos), loop(spark("#FFFFFF"))));
 //emitter
 // rand normal
 

@@ -1,6 +1,8 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
 import Rx = require("rx");
+export declare var DEBUG_LOOP: boolean;
+export declare var DEBUG_THEN: boolean;
 export declare class DrawTick {
     ctx: CanvasRenderingContext2D;
     dt: number;
@@ -32,12 +34,12 @@ export declare class Animation2 {
     then(follower: Animation2): Animation2;
 }
 export declare class Animator2 {
-    drawingContext: CanvasRenderingContext2D;
+    ctx: CanvasRenderingContext2D;
     tickerSubscription: Rx.Disposable;
     root: Rx.Subject<DrawTick>;
     animationSubscriptions: Rx.IDisposable[];
     t: number;
-    constructor(drawingContext: CanvasRenderingContext2D);
+    constructor(ctx: CanvasRenderingContext2D);
     ticker(tick: Rx.Observable<number>): void;
     play(animation: Animation2): void;
     clock(): NumberStream;

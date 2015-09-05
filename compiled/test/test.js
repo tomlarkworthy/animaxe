@@ -14,10 +14,10 @@ function countA(time) {
 }
 function countAthenCountB() {
     return Ax.take(1, Ax.draw(function (tick) {
-        console.log("countA");
+        //console.log("countA");
         counterA++;
     })).then(Ax.take(1, Ax.draw(function (tick) {
-        console.log("countB");
+        //console.log("countB");
         counterB++;
     })));
 }
@@ -111,80 +111,8 @@ describe('sin', function () {
     var animator = new Ax.Animator2(null);
     var ticker = new Rx.Subject();
     animator.ticker(ticker);
-    /*
-    it('should return a number immediately next tick', function() {
-      var gotNumber = false;
-      Ax.sin(1, animator).subscribe(function(next){
-        gotNumber = true;
-      })
-      gotNumber.should.equal(false);
-      ticker.onNext(1);
-      gotNumber.should.equal(true);
-    });*/
-});
-describe('point', function () {
-    /*
-    var animator = new Ax.Animator2(null);
-    var ticker = new Rx.Subject<number>();
-    animator.ticker(ticker);
-  
-    it('should return a number immediately next tick', function() {
-      var gotNumber = false;
-      Ax.point(Ax.sin(1, animator), Ax.cos(1, animator)).subscribe(function(next){
-        gotNumber = true;
-      })
-      //gotNumber.should.equal(false);
-      ticker.onNext(1);
-      gotNumber.should.equal(true);
+    it('should return a number immediately next tick', function () {
+        var gotNumber = false;
+        Ax.sin(1, animator.clock()).next().should.equal(0);
     });
-  
-    it('should return a number immediately next tick', function() {
-      var gotNumber = false;
-      Ax.point(Ax.sin(Ax.rnd(), animator), Ax.cos(Ax.rnd(), animator)).subscribe(function(next){
-        gotNumber = true;
-      })
-      //gotNumber.should.equal(false);
-      ticker.onNext(1);
-      gotNumber.should.equal(true);
-    });
-    it('should be nestable', function() {
-      var gotNumber = false;
-      Ax.sin(Ax.sin(Ax.rnd(), animator), animator).subscribe(function(next){
-        gotNumber = true;
-      });
-      //gotNumber.should.equal(false, "tick too early");
-      ticker.onNext(1);
-      gotNumber.should.equal(true, "did not take");
-    });*/
-});
-describe('Move', function () {
-    /*
-    var animator = new Ax.Animator2(null);
-    var ticker = new Rx.Subject<number>();
-    animator.ticker(ticker);
-  
-    it('should return a number immediately next tick (fixed)', function() {
-      var gotNumber = false;
-      console.log("should return a number immediately")
-  
-      animator.play(Ax.move(Ax.point(1, 2).tapOnNext(function() {
-        console.log("point has been drawn")
-        gotNumber = true;
-      }), null))
-      //ticker.onNext(1);
-      gotNumber.should.equal(true, "did not take");
-    });
-  
-    it('should return a number immediately next tick (sin)', function() {
-      var gotNumber = false;
-      console.log("should return a number immediately")
-  
-      animator.play(Ax.move(Ax.point(Ax.sin(1, animator), Ax.cos(1, animator)).tapOnNext(function() {
-        console.log("point has been drawn")
-        gotNumber = true;
-      }), null))
-      //ticker.onNext(1);
-      gotNumber.should.equal(true, "did not take");
-    });
-    */
 });
