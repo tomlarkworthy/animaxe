@@ -474,7 +474,7 @@ try {
 }
 catch (err) {
     //node.js
-    animator.play(save(100, 100, "spark.gif"));
+    animator.play(save(100, 100, "images/tutorial1.gif"));
     animator.ticker(Rx.Observable.return(0.1).repeat(15));
 }
 //todo
