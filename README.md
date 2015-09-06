@@ -90,7 +90,7 @@ animator.ticker(Rx.Observable.return(0.1).repeat(20));
 Voila, the result:
 
 Inline-style:
-![alt text](images/icon48.png "images/tutorial1.gif")
+![alt text](images/icon48.png "../blob/master/images/tutorial1.gif?raw=true")
 
 
 If we are in a browser environment the delta time stream is useful for rendering as fast as possible! Temporal push streams like sin, or temporal animations like velocity use the time delta to produce framerate independant renderings.
