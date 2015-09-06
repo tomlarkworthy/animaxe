@@ -83,8 +83,8 @@ animator.play(save(100, 100, "tutorial1.gif"));
 
 Finally an RxJS stream is used to drive the animators time ticker. The numbers represent the time (in seconds) between frames.
 ```
-// sumulating 1.5 seconds of time
-animator.ticker(Rx.Observable.return(0.1).repeat(15));
+// sumulating 2 seconds of time
+animator.ticker(Rx.Observable.return(0.1).repeat(20));
 ```
 
 Voila, the result:

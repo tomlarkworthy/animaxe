@@ -384,7 +384,7 @@ function save(width, height, path) {
     var fs = require('fs');
     var encoder = new GIFEncoder(width, height);
     encoder.createReadStream()
-        .pipe(encoder.createWriteStream({ repeat: -1, delay: 500, quality: 1 }))
+        .pipe(encoder.createWriteStream({ repeat: -1, delay: 100, quality: 1 }))
         .pipe(fs.createWriteStream(path));
     encoder.start();
     return new Animation2(function (parent) {
@@ -475,7 +475,7 @@ try {
 catch (err) {
     //node.js
     animator.play(save(100, 100, "images/tutorial1.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(15));
+    animator.ticker(Rx.Observable.return(0.1).repeat(20));
 }
 //todo
 // INVEST IN BUILD AND TESTING
