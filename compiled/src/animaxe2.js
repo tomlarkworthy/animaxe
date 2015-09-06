@@ -59,6 +59,10 @@ function toStreamPoint(x) {
     return (typeof x.next === 'function' ? x : new Fixed(x));
 }
 exports.toStreamPoint = toStreamPoint;
+function toStreamColor(x) {
+    return (typeof x.next === 'function' ? x : new Fixed(x));
+}
+exports.toStreamColor = toStreamColor;
 var Animation2 = (function () {
     function Animation2(_attach, after) {
         this._attach = _attach;
@@ -181,6 +185,24 @@ function point(x, y) {
     });
 }
 exports.point = point;
+/*
+    RGB between 0 and 255
+    a between 0 - 1
+ */
+function color(r, g, b, a) {
+    var r_stream = toStreamNumber(r);
+    var g_stream = toStreamNumber(g);
+    var b_stream = toStreamNumber(b);
+    var a_stream = toStreamNumber(a);
+    return new Iterable(function () {
+        var r = Math.floor(r_stream.next());
+        var g = Math.floor(g_stream.next());
+        var b = Math.floor(b_stream.next());
+        var a = Math.floor(a_stream.next());
+        return "rgb(" + r + "," + g + "," + b + ")";
+    });
+}
+exports.color = color;
 function rnd() {
     return new Iterable(function () {
         return Math.random();
@@ -340,7 +362,7 @@ function rect(p1, //todo
         tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
     }, animation);
 }
-function color(color, //todo
+function changeColor(color, //todo
     animation) {
     return draw(function (tick) {
         tick.ctx.fillStyle = color;
@@ -412,13 +434,14 @@ var animator = new Animator2(context); /*should be based on context*/
 //GLOW EXAMPLES
 //2 frame animated glow
 function spark(css_color) {
+    var css = toStreamColor(css_color);
     return take(1, draw(function (tick) {
-        console.log("spark: frame1", css_color);
-        tick.ctx.fillStyle = css_color;
+        console.log("spark: frame1", css.next());
+        tick.ctx.fillStyle = css.next();
         tick.ctx.fillRect(-2, -2, 5, 5);
     })).then(take(1, draw(function (tick) {
-        console.log("spark: frame2", css_color);
-        tick.ctx.fillStyle = css_color;
+        console.log("spark: frame2", css.next());
+        tick.ctx.fillStyle = css.next();
         tick.ctx.fillRect(-1, -1, 3, 3);
     })));
 }
@@ -429,15 +452,15 @@ function sparkLong(css_color) {
         tick.ctx.fillRect(-1, -1, 3, 3);
     });
 }
-//single spark
-var bigRnd = rnd().map(function (x) { return x * 50; });
+//large circle funcitons
 var bigSin = sin(1, animator.clock()).map(function (x) { return x * 40 + 50; });
 var bigCos = cos(1, animator.clock()).map(function (x) { return x * 40 + 50; });
-animator.play(color("#000000", rect([0, 0], [100, 100])));
-animator.play(move(point(bigSin, bigCos), sparkLong("#FFFFFF")));
-animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
-animator.play(move([50, 50], velocity([50, 0], loop(spark("#FFFFFF")))));
-animator.play(tween_linear([50, 50], point(bigSin, bigCos), 1, loop(spark("red"))));
+var red = sin(2, animator.clock()).map(function (x) { return x * 125 + 125; });
+var green = sin(2, animator.clock()).map(function (x) { return x * 55 + 200; });
+animator.play(changeColor("#000000", rect([0, 0], [100, 100]))); //draw black background
+animator.play(loop(move(point(bigSin, bigCos), spark(color(red, green, 0, 0.5))))); //spinning spark forever
+animator.play(move([50, 50], velocity([50, 0], loop(spark("#FFFFFF"))))); //constant move
+animator.play(tween_linear([50, 50], point(bigSin, bigCos), 1, loop(spark("red")))); //spiral 1 second
 try {
     //browser
     var time;

@@ -15,6 +15,7 @@ export declare class Iterable<T> {
 }
 export declare type NumberStream = Iterable<number>;
 export declare type PointStream = Iterable<Point>;
+export declare type ColorStream = Iterable<string>;
 export declare type DrawStream = Rx.Observable<DrawTick>;
 export declare class Fixed<T> extends Iterable<T> {
     val: T;
@@ -22,6 +23,7 @@ export declare class Fixed<T> extends Iterable<T> {
 }
 export declare function toStreamNumber(x: number | NumberStream): NumberStream;
 export declare function toStreamPoint(x: Point | PointStream): PointStream;
+export declare function toStreamColor(x: string | ColorStream): ColorStream;
 export declare class Animation2 {
     _attach: (DrawStream) => DrawStream;
     after: Animation2;
@@ -46,6 +48,7 @@ export declare class Animator2 {
 }
 export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
+export declare function color(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
 export declare function rnd(): NumberStream;
 export declare function sin(period: number | NumberStream, clock: NumberStream): NumberStream;
 export declare function cos(period: number | NumberStream, clock: NumberStream): NumberStream;

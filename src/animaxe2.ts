@@ -35,6 +35,7 @@ export class Iterable<T> {
 
 export type NumberStream = Iterable<number>;
 export type PointStream = Iterable<Point>;
+export type ColorStream = Iterable<string>;
 export type DrawStream = Rx.Observable<DrawTick>;
 
 export class Fixed<T> extends Iterable<T> {
@@ -51,6 +52,9 @@ export function toStreamNumber(x: number | NumberStream): NumberStream {
 }
 export function toStreamPoint(x: Point | PointStream): PointStream {
     return <PointStream> (typeof (<any>x).next === 'function' ? x: new Fixed(x));
+}
+export function toStreamColor(x: string | ColorStream): ColorStream {
+    return <ColorStream> (typeof (<any>x).next === 'function' ? x: new Fixed(x));
 }
 
 export class Animation2 {
@@ -190,6 +194,30 @@ export function point(
             console.log("point: next", result);
             return result;
         });
+}
+
+/*
+    RGB between 0 and 255
+    a between 0 - 1
+ */
+export function color(
+    r: number | NumberStream,
+    g: number | NumberStream,
+    b: number | NumberStream,
+    a: number | NumberStream
+): ColorStream
+{
+    var r_stream = toStreamNumber(r);
+    var g_stream = toStreamNumber(g);
+    var b_stream = toStreamNumber(b);
+    var a_stream = toStreamNumber(a);
+    return new Iterable(function() {
+        var r = Math.floor(r_stream.next());
+        var g = Math.floor(g_stream.next());
+        var b = Math.floor(b_stream.next());
+        var a = Math.floor(a_stream.next());
+        return "rgb(" + r + "," + g + "," + b + ")";
+    });
 }
 
 export function rnd(): NumberStream {
@@ -405,7 +433,7 @@ function rect(
         tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
     }, animation);
 }
-function color(
+function changeColor(
     color: string, //todo
     animation?: Animation2
 ): Animation2 {
@@ -503,15 +531,16 @@ var animator: Animator2 = new Animator2(context); /*should be based on context*/
 
 //GLOW EXAMPLES
 //2 frame animated glow
-function spark(css_color: string): Animation2 { //we could be clever and let spark take a seq, but user functions should be simple
+function spark(css_color: string | ColorStream): Animation2 { //we could be clever and let spark take a seq, but user functions should be simple
+    var css = toStreamColor(css_color);
     return take(1, draw(function(tick: DrawTick) {
-            console.log("spark: frame1", css_color);
-            tick.ctx.fillStyle = css_color;
+            console.log("spark: frame1", css.next());
+            tick.ctx.fillStyle = css.next();
             tick.ctx.fillRect(-2,-2,5,5);
     })).then(
         take(1, draw(function(tick: DrawTick) {
-            console.log("spark: frame2", css_color);
-            tick.ctx.fillStyle = css_color;
+            console.log("spark: frame2", css.next());
+            tick.ctx.fillStyle = css.next();
             tick.ctx.fillRect(-1,-1,3,3);
         }))
     );
@@ -525,16 +554,17 @@ function sparkLong(css_color: string): Animation2 { //we could be clever and let
     });
 }
 
-//single spark
-var bigRnd = rnd().map(x => x * 50);
+//large circle funcitons
 var bigSin = sin(1, animator.clock()).map(x => x * 40 + 50);
 var bigCos = cos(1, animator.clock()).map(x => x * 40 + 50);
 
-animator.play(color("#000000", rect([0,0],[100,100])));
-animator.play(move(point(bigSin, bigCos), sparkLong("#FFFFFF")));
-animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
-animator.play(move([50,50], velocity([50,0], loop(spark("#FFFFFF")))));
-animator.play(tween_linear([50,50], point(bigSin, bigCos), 1, loop(spark("red"))));
+var red   = sin(2, animator.clock()).map(x => x * 125 + 125);
+var green = sin(2, animator.clock()).map(x => x * 55 + 200);
+
+animator.play(changeColor("#000000", rect([0,0],[100,100]))); //draw black background
+animator.play(loop(move(point(bigSin, bigCos), spark(color(red,green,0,0.5))))); //spinning spark forever
+animator.play(move([50,50], velocity([50,0], loop(spark("#FFFFFF"))))); //constant move
+animator.play(tween_linear([50,50], point(bigSin, bigCos), 1, loop(spark("red")))); //spiral 1 second
 
 
 try {
