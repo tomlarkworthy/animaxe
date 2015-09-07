@@ -1,9 +1,10 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
+/// <reference path="../types/node.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
-/// <reference path="../types/should.d.ts" />
+/// <reference path="../types/should.d.ts" /> 
 require('source-map-support').install();
 require("should");
-var Ax = require("../src/animaxe2");
+var Ax = require("../src/animaxe");
 var Rx = require("rx");
 var counterA = 0;
 var counterB = 0;
@@ -108,7 +109,7 @@ describe('loop', function () {
     });
 });
 describe('sin', function () {
-    var animator = new Ax.Animator2(null);
+    var animator = new Ax.Animator(null);
     var ticker = new Rx.Subject();
     animator.ticker(ticker);
     it('should return a number immediately next tick', function () {

@@ -1,21 +1,22 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
+/// <reference path="../types/node.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
-/// <reference path="../types/should.d.ts" />
+/// <reference path="../types/should.d.ts" /> 
 require('source-map-support').install();
 require("should");
 
-import Ax = require("../src/animaxe2");
+import Ax = require("../src/animaxe");
 import Rx = require("rx");
 
 var counterA = 0;
 var counterB = 0;
-function countA(time: number): Ax.Animation2 { //we could be clever and let spark take a seq, but user functions should be simple
+function countA(time: number): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
   return Ax.take(time, Ax.draw(function (tick: Ax.DrawTick) {
     counterA++;
   }));
 }
 
-function countAthenCountB(): Ax.Animation2 { //we could be clever and let spark take a seq, but user functions should be simple
+function countAthenCountB(): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
   return Ax.take(1, Ax.draw(function (tick: Ax.DrawTick) {
     //console.log("countA");
     counterA++;
@@ -122,7 +123,7 @@ describe('loop', function() {
 });
 
 describe('sin', function() {
-  var animator = new Ax.Animator2(null);
+  var animator = new Ax.Animator(null);
   var ticker = new Rx.Subject<number>();
   animator.ticker(ticker);
 
