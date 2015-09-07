@@ -39,6 +39,15 @@ var Iterable = (function () {
     return Iterable;
 })();
 exports.Iterable = Iterable;
+var StatefulIterable = (function (_super) {
+    __extends(StatefulIterable, _super);
+    function StatefulIterable(initialState, _next) {
+        _super.call(this, _next);
+        this.state = initialState;
+    }
+    return StatefulIterable;
+})(Iterable);
+exports.StatefulIterable = StatefulIterable;
 var Fixed = (function (_super) {
     __extends(Fixed, _super);
     function Fixed(val) {
@@ -209,6 +218,26 @@ function rnd() {
     });
 }
 exports.rnd = rnd;
+function previous(value, clock) {
+    return new StatefulIterable({ currentClock: 0, currentValue: 0, prevValue: 0 }, function () {
+        var nextClock = clock.next();
+        var nextValue = value.next();
+        if (nextClock == this.state.currentClock) {
+            if (this.currentValue != nextValue) {
+                console.error("Warning: input source to previous() is not temporally stable");
+                console.error(stackTrace());
+            }
+        }
+        else {
+            this.state.prevValue = this.state.currentValue;
+            // new value
+            this.state.currentClock = nextClock;
+            this.state.currentValue = nextValue;
+        }
+        return this.state.prevValue;
+    });
+}
+exports.previous = previous;
 function sin(period, clock) {
     console.log("sin: new");
     var period_stream = toStreamNumber(period);
@@ -459,6 +488,7 @@ var red = sin(2, animator.clock()).map(function (x) { return x * 125 + 125; });
 var green = sin(2, animator.clock()).map(function (x) { return x * 55 + 200; });
 animator.play(changeColor("#000000", rect([0, 0], [100, 100]))); //draw black background
 animator.play(loop(move(point(bigSin, bigCos), spark(color(red, green, 0, 0.5))))); //spinning spark forever
+animator.play(loop(move(point(previous(bigSin, animator.clock()), previous(bigCos, animator.clock())), spark(color(red, green, 0, 0.5))))); //spinning spark forever
 animator.play(move([50, 50], velocity([50, 0], loop(spark("#FFFFFF"))))); //constant move
 animator.play(tween_linear([50, 50], point(bigSin, bigCos), 1, loop(spark("red")))); //spiral 1 second
 try {
@@ -479,9 +509,8 @@ catch (err) {
 }
 //todo
 // INVEST IN BUILD AND TESTING
-//why loop pos matters, unit tests
 //emitter
-// rand normal
+//rand normal
 //animator.play(
 //    //clone is a parrallel execution the same animation
 //    parallel([clone(n, linear_tween(/*fixed point*/CENTRE,

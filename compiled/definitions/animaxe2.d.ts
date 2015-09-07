@@ -13,6 +13,10 @@ export declare class Iterable<T> {
     next(): T;
     map<T, V>(fn: (T) => V): Iterable<V>;
 }
+export declare class StatefulIterable<T, S> extends Iterable<T> {
+    state: S;
+    constructor(initialState: S, _next: () => T);
+}
 export declare type NumberStream = Iterable<number>;
 export declare type PointStream = Iterable<Point>;
 export declare type ColorStream = Iterable<string>;
@@ -50,6 +54,7 @@ export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
 export declare function color(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
 export declare function rnd(): NumberStream;
+export declare function previous(value: NumberStream, clock: NumberStream): NumberStream;
 export declare function sin(period: number | NumberStream, clock: NumberStream): NumberStream;
 export declare function cos(period: number | NumberStream, clock: NumberStream): NumberStream;
 export declare function loop(animation: Animation2): Animation2;

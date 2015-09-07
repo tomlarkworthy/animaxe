@@ -33,6 +33,15 @@ export class Iterable<T> {
     }
 }
 
+export class StatefulIterable<T, S> extends Iterable<T>{
+    // tried immutable.js but it only supports 2 dimensionable iterables
+    state: S;
+    constructor(initialState: S, _next: () => T) {
+        super(_next);
+        this.state = initialState;
+    }
+}
+
 export type NumberStream = Iterable<number>;
 export type PointStream = Iterable<Point>;
 export type ColorStream = Iterable<string>;
@@ -223,6 +232,29 @@ export function color(
 export function rnd(): NumberStream {
     return new Iterable(function () {
             return Math.random();
+        });
+}
+
+
+export function previous(value: NumberStream, clock: NumberStream): NumberStream {
+    return new StatefulIterable(
+        {currentClock: 0, currentValue:0, prevValue: 0},
+        function () {
+            var nextClock = clock.next();
+            var nextValue = value.next();
+
+            if (nextClock == this.state.currentClock) {
+                if (this.currentValue != nextValue){
+                    console.error("Warning: input source to previous() is not temporally stable")
+                    console.error(stackTrace());
+                }
+            } else {
+                this.state.prevValue = this.state.currentValue;
+                // new value
+                this.state.currentClock = nextClock;
+                this.state.currentValue = nextValue;
+            }
+            return this.state.prevValue;
         });
 }
 
@@ -563,6 +595,7 @@ var green = sin(2, animator.clock()).map(x => x * 55 + 200);
 
 animator.play(changeColor("#000000", rect([0,0],[100,100]))); //draw black background
 animator.play(loop(move(point(bigSin, bigCos), spark(color(red,green,0,0.5))))); //spinning spark forever
+animator.play(loop(move(point(previous(bigSin, animator.clock()), previous(bigCos, animator.clock())), spark(color(red,green,0,0.5))))); //spinning spark forever
 animator.play(move([50,50], velocity([50,0], loop(spark("#FFFFFF"))))); //constant move
 animator.play(tween_linear([50,50], point(bigSin, bigCos), 1, loop(spark("red")))); //spiral 1 second
 
@@ -588,9 +621,8 @@ try {
 //todo
 // INVEST IN BUILD AND TESTING
 
-//why loop pos matters, unit tests
 //emitter
-// rand normal
+//rand normal
 
 
 //animator.play(
