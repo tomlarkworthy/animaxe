@@ -39,10 +39,10 @@ function sparkLong(css_color) {
     });
 }
 //large circle funcitons
-var bigSin = Ax.sin(1, animator.clock()).map(function (x) { return x * 40 + 50; });
-var bigCos = Ax.cos(1, animator.clock()).map(function (x) { return x * 40 + 50; });
-var red = Ax.sin(2, animator.clock()).map(function (x) { return x * 125 + 125; });
-var green = Ax.sin(2, animator.clock()).map(function (x) { return x * 55 + 200; });
+var bigSin = Ax.sin(1).map(function (x) { return x * 40 + 50; });
+var bigCos = Ax.cos(1).map(function (x) { return x * 40 + 50; });
+var red = Ax.sin(2).map(function (x) { return x * 125 + 125; });
+var green = Ax.sin(2).map(function (x) { return x * 55 + 200; });
 animator.play(Ax.changeColor("#000000", Ax.rect([0, 0], [100, 100]))); //draw black background
 animator.play(Ax.loop(Ax.move(Ax.point(bigSin, bigCos), spark(Ax.color(red, green, 0, 0.5))))); //spinning spark forever
 animator.play(Ax.move([50, 50], Ax.velocity([50, 0], Ax.loop(spark("#FFFFFF"))))); //constant move

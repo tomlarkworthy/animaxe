@@ -65,23 +65,42 @@ gulp.task('test', function() {
 });
 
 
-// create a compile and watch task for each example
-for (var i = 1; i<= num_examples; i++ ) { // (counting from 1)
+projects = {};
+
+function exampleTask(i) {
     var exampleName = 'example' + i;
     var exampleNameJS = 'example' + i + '.js';
+    var exampleNameTS = 'example' + i + '.ts';
 
-    gulp.task(exampleName, ['compile', 'compile-test'], function() {
+    projects[exampleName] = ts.createProject({
+        declarationFiles: false,
+        noExternalResolve: false,
+        module: 'commonjs'
+    });
+
+    gulp.task('compile-' + exampleName, ["compile"], function() {
+        var tsResult = gulp.src("test/" + exampleNameTS)
+                        .pipe(ts(projects[exampleName]));
+        return tsResult.js.pipe(gulp.dest('compiled/test'));
+    });
+
+    gulp.task('test-' + exampleName, ['compile-' + exampleName], function() {
         return gulp.src(['compiled/test/' + exampleNameJS], { read: false })
             .pipe(mocha({ reporter: 'list' }));
     });
 
-    gulp.task(exampleName + '-watch', ['compile', 'compile-test', 'browserify', exampleName], function() {
+    gulp.task('watch-' + exampleName, ['compile', 'compile-' + exampleName, 'test-' + exampleName], function() {
         gulp.watch('src/*.ts', ['compile']);
-        gulp.watch('test/example1.ts', ['compile-test']);
-        gulp.watch('compiled/src/' +  + exampleNameJS, ['browserify']);
-        gulp.watch(['compiled/src/*.js', 'compiled/test/' +  + exampleNameJS], [exampleName]);
+        gulp.watch('test/' + exampleNameTS, ['compile-' + exampleName]);
+        gulp.watch(['compiled/src/*.js', 'compiled/test/' +  + exampleNameJS], ['test-' + exampleName]);
     });
 }
+
+// create a compile and watch task for each example
+for (var i = 1; i<= num_examples; i++ ) { // (counting from 1)
+    exampleTask(i);
+}
+
 
 
 

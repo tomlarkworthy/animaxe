@@ -19,7 +19,6 @@ try {
 console.log("context", context);
 var context: CanvasRenderingContext2D = canvas.getContext('2d');
 
-
 var animator: Ax.Animator = new Ax.Animator(context); /*should be based on context*/
 
 
@@ -44,42 +43,60 @@ function thickLine1tick(
         ctx.lineTo(endVal[0], endVal[1]);
         ctx.closePath();
         ctx.stroke();
-    }));
+    }, null, [start, end]));
 }
 
-function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string | Ax.ColorStream, clock: Ax.NumberStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
+function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string | Ax.ColorStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
+    /*
     return thickLine1tick(6,
             start,
             end, css_color)
         .then(thickLine1tick(2,
-            Ax.previous(start, clock), // todo, this method does not get called every round
-            Ax.previous(end, clock),
+            Ax.previous(start), // todo, this method does not get called every round
+            Ax.previous(end),
             css_color))
         .then(thickLine1tick(1,
-            Ax.previous(Ax.previous(start, clock), clock),
-            Ax.previous(Ax.previous(end, clock), clock),
+            Ax.previous(Ax.previous(start)),
+            Ax.previous(Ax.previous(end)),
             css_color));
+    */
+    /*
+    return thickLine1tick(6,
+            start,
+            end, css_color)
+        .then(thickLine1tick(2,
+            start,
+            end, css_color))
+        .then(thickLine1tick(1,
+            start,
+            end, css_color));
+    */
+
+    return thickLine1tick(6,
+            start,
+            end, css_color);
 }
 
 //large circle funcitons
-var bigSin = Ax.sin(1, animator.clock()).map(x => x * 40 + 50);
-var bigCos = Ax.cos(1, animator.clock()).map(x => x * 40 + 50);
+var bigSin = Ax.sin(1).map(x => x * 40 + 50);
+var bigCos = Ax.cos(1).map(x => x * 40 + 50);
 
-var red   = Ax.sin(2, animator.clock()).map(x => x * 125 + 125);
-var green = Ax.sin(2, animator.clock()).map(x => x * 55 + 200);
+var red   = Ax.sin(2).map(x => x * 125 + 125);
+var green = Ax.sin(2).map(x => x * 55 + 200);
 
-animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
+
+//animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
 animator.play(
         Ax.loop(
             sparkLine(
                 Ax.point(
-                    Ax.previous(bigSin, animator.clock()),
-                    Ax.previous(bigCos, animator.clock())),
+                    Ax.previous(Ax.sin(1).map(x => x * 40 + 50)),
+                    Ax.previous(Ax.cos(1).map(x => x * 40 + 50))
+                ),
                 Ax.point(
                     bigSin,
                     bigCos),
-                Ax.color(red,green,0,0.5),
-                animator.clock()
+                Ax.color(red,green,0,0.5)
             )
         )
     );
@@ -98,5 +115,5 @@ try {
 } catch(err) {
     //node.js
     animator.play(Ax.save(100, 100, "images/tutorial2.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(20));
+    animator.ticker(Rx.Observable.return(0.1).repeat(4));
 }

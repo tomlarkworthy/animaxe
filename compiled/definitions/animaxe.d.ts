@@ -8,14 +8,19 @@ export declare class DrawTick {
     dt: number;
     constructor(ctx: CanvasRenderingContext2D, dt: number);
 }
-export declare class Iterable<T> {
-    constructor(_next: () => T);
-    next(): T;
-    map<T, V>(fn: (T) => V): Iterable<V>;
+export declare class Iterable<Value> {
+    private predecessors;
+    constructor(predecessors: Iterable<any>[], next: () => Value);
+    upstreamTick(t: number): void;
+    next(): Value;
+    map<V>(fn: (Value) => V): Iterable<V>;
+    clone(): Iterable<Value>;
 }
-export declare class StatefulIterable<T, S> extends Iterable<T> {
-    state: S;
-    constructor(initialState: S, _next: () => T);
+export declare class IterableStateful<State, Value> extends Iterable<Value> {
+    state: State;
+    private tick;
+    constructor(initial: State, predecessors: Iterable<any>[], tick: (t: number, state: State) => State, value: (State) => Value);
+    upstreamTick(t: number): void;
 }
 export declare type NumberStream = Iterable<number>;
 export declare type PointStream = Iterable<Point>;
@@ -31,8 +36,9 @@ export declare function toStreamColor(x: string | ColorStream): ColorStream;
 export declare class Animation {
     _attach: (DrawStream) => DrawStream;
     after: Animation;
-    constructor(_attach: (DrawStream) => DrawStream, after?: Animation);
-    attach(obs: DrawStream): DrawStream;
+    private predecessors;
+    constructor(_attach: (DrawStream) => DrawStream, after?: Animation, predecessors?: Iterable<any>[]);
+    attach(clock: number, upstream: DrawStream): DrawStream;
     /**
      * delivers events to this first, then when that animation is finished
      * the follower consumers events and the values are used as output, until the follower animation completes
@@ -54,11 +60,11 @@ export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
 export declare function color(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
 export declare function rnd(): NumberStream;
-export declare function previous<T>(value: Iterable<T>, clock: NumberStream): Iterable<T>;
-export declare function sin(period: number | NumberStream, clock: NumberStream): NumberStream;
-export declare function cos(period: number | NumberStream, clock: NumberStream): NumberStream;
+export declare function previous<T>(value: Iterable<T>): Iterable<T>;
+export declare function sin(period: number | NumberStream): NumberStream;
+export declare function cos(period: number | NumberStream): NumberStream;
 export declare function loop(animation: Animation): Animation;
-export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation): Animation;
+export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation, predecessors?: Iterable<any>[]): Animation;
 export declare function move(delta: Point | PointStream, animation?: Animation): Animation;
 export declare function velocity(velocity: Point | PointStream, animation?: Animation): Animation;
 export declare function tween_linear(from: Point | PointStream, to: Point | PointStream, time: number, animation: Animation): Animation;

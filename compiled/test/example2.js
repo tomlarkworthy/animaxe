@@ -33,20 +33,42 @@ function thickLine1tick(thickness, start, end, css_color) {
         ctx.lineTo(endVal[0], endVal[1]);
         ctx.closePath();
         ctx.stroke();
-    }));
+    }, null, [start, end]));
 }
-function sparkLine(start, end, css_color, clock) {
-    return thickLine1tick(6, start, end, css_color)
-        .then(thickLine1tick(2, Ax.previous(start, clock), Ax.previous(end, clock), css_color))
-        .then(thickLine1tick(1, Ax.previous(Ax.previous(start, clock), clock), Ax.previous(Ax.previous(end, clock), clock), css_color));
+function sparkLine(start, end, css_color) {
+    /*
+    return thickLine1tick(6,
+            start,
+            end, css_color)
+        .then(thickLine1tick(2,
+            Ax.previous(start), // todo, this method does not get called every round
+            Ax.previous(end),
+            css_color))
+        .then(thickLine1tick(1,
+            Ax.previous(Ax.previous(start)),
+            Ax.previous(Ax.previous(end)),
+            css_color));
+    */
+    /*
+    return thickLine1tick(6,
+            start,
+            end, css_color)
+        .then(thickLine1tick(2,
+            start,
+            end, css_color))
+        .then(thickLine1tick(1,
+            start,
+            end, css_color));
+    */
+    return thickLine1tick(6, start, end, css_color);
 }
 //large circle funcitons
-var bigSin = Ax.sin(1, animator.clock()).map(function (x) { return x * 40 + 50; });
-var bigCos = Ax.cos(1, animator.clock()).map(function (x) { return x * 40 + 50; });
-var red = Ax.sin(2, animator.clock()).map(function (x) { return x * 125 + 125; });
-var green = Ax.sin(2, animator.clock()).map(function (x) { return x * 55 + 200; });
-animator.play(Ax.changeColor("#000000", Ax.rect([0, 0], [100, 100]))); //draw black background
-animator.play(Ax.loop(sparkLine(Ax.point(Ax.previous(bigSin, animator.clock()), Ax.previous(bigCos, animator.clock())), Ax.point(bigSin, bigCos), Ax.color(red, green, 0, 0.5), animator.clock())));
+var bigSin = Ax.sin(1).map(function (x) { return x * 40 + 50; });
+var bigCos = Ax.cos(1).map(function (x) { return x * 40 + 50; });
+var red = Ax.sin(2).map(function (x) { return x * 125 + 125; });
+var green = Ax.sin(2).map(function (x) { return x * 55 + 200; });
+//animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
+animator.play(Ax.loop(sparkLine(Ax.point(Ax.previous(Ax.sin(1).map(function (x) { return x * 40 + 50; })), Ax.previous(Ax.cos(1).map(function (x) { return x * 40 + 50; }))), Ax.point(bigSin, bigCos), Ax.color(red, green, 0, 0.5))));
 try {
     //browser
     var time;
@@ -61,5 +83,5 @@ try {
 catch (err) {
     //node.js
     animator.play(Ax.save(100, 100, "images/tutorial2.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(20));
+    animator.ticker(Rx.Observable.return(0.1).repeat(4));
 }

@@ -24,34 +24,54 @@ function stackTrace() {
 }
 var Iterable = (function () {
     // tried immutable.js but it only supports 2 dimensionable iterables
-    function Iterable(_next) {
-        this.next = _next;
+    function Iterable(predecessors, next) {
+        this.predecessors = predecessors;
+        this.next = next;
     }
+    Iterable.prototype.upstreamTick = function (t) {
+        //console.log("Iterable: upstreamTick", t);
+        // first let upstream update first
+        this.predecessors.forEach(function (predecessor) {
+            predecessor.upstreamTick(t);
+        });
+    };
     Iterable.prototype.next = function () { throw new Error('This method is abstract'); };
     Iterable.prototype.map = function (fn) {
         var base = this;
-        return new Iterable(function () {
+        return new Iterable([base], function () {
             //console.log("Iterable: next");
             return fn(base.next());
         });
     };
+    Iterable.prototype.clone = function () {
+        return this.map(function (x) { return x; });
+    };
     return Iterable;
 })();
 exports.Iterable = Iterable;
-var StatefulIterable = (function (_super) {
-    __extends(StatefulIterable, _super);
-    function StatefulIterable(initialState, _next) {
-        _super.call(this, _next);
-        this.state = initialState;
+var IterableStateful = (function (_super) {
+    __extends(IterableStateful, _super);
+    // tried immutable.js but it only supports 2 dimensionable iterables
+    function IterableStateful(initial, predecessors, tick, value) {
+        _super.call(this, predecessors, function () {
+            return value(this.state);
+        });
+        this.state = initial;
+        this.tick = tick;
     }
-    return StatefulIterable;
+    IterableStateful.prototype.upstreamTick = function (t) {
+        // first let upstream update first
+        _super.prototype.upstreamTick.call(this, t);
+        // now call internal state change\
+        this.state = this.tick(t, this.state);
+    };
+    return IterableStateful;
 })(Iterable);
-exports.StatefulIterable = StatefulIterable;
+exports.IterableStateful = IterableStateful;
 var Fixed = (function (_super) {
     __extends(Fixed, _super);
     function Fixed(val) {
-        _super.call(this, function () {
-            //console.log("fixed", this.val);
+        _super.call(this, [], function () {
             return this.val;
         });
         this.val = val;
@@ -72,13 +92,30 @@ function toStreamColor(x) {
 }
 exports.toStreamColor = toStreamColor;
 var Animation = (function () {
-    function Animation(_attach, after) {
+    function Animation(_attach, after, predecessors) {
         this._attach = _attach;
         this.after = after;
+        this.predecessors = predecessors;
     }
-    Animation.prototype.attach = function (obs) {
-        var processed = this._attach(obs);
-        return this.after ? this.after.attach(processed) : processed;
+    Animation.prototype.attach = function (clock, upstream) {
+        var self = this;
+        var t = clock;
+        var instream = null;
+        if (this.predecessors == null) {
+            instream = upstream;
+        }
+        else {
+            instream = upstream.tap(function (tick) {
+                //console.log("animation: sending upstream tick", self.t);
+                //we update params of clock before
+                self.predecessors.forEach(function (pred) {
+                    pred.upstreamTick(t);
+                });
+                t += tick.dt;
+            });
+        }
+        var processed = this._attach(instream);
+        return this.after ? this.after.attach(t, processed) : processed;
     };
     /**
      * delivers events to this first, then when that animation is finished
@@ -87,6 +124,7 @@ var Animation = (function () {
     Animation.prototype.then = function (follower) {
         var self = this;
         return new Animation(function (prev) {
+            var t = 0;
             return Rx.Observable.create(function (observer) {
                 var first = new Rx.Subject();
                 var second = new Rx.Subject();
@@ -94,7 +132,7 @@ var Animation = (function () {
                 var current = first;
                 if (exports.DEBUG_THEN)
                     console.log("then: attach");
-                var firstAttach = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
+                var firstAttach = self.attach(t, first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
                     if (exports.DEBUG_THEN)
                         console.log("then: first to downstream");
                     observer.onNext(next);
@@ -103,7 +141,8 @@ var Animation = (function () {
                         console.log("then: first complete");
                     firstTurn = false;
                 });
-                var secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
+                //todo second attach is zeroed in time
+                var secondAttach = follower.attach(t, second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
                     if (exports.DEBUG_THEN)
                         console.log("then: second to downstream");
                     observer.onNext(next);
@@ -121,6 +160,7 @@ var Animation = (function () {
                     else {
                         second.onNext(next);
                     }
+                    t += next.dt;
                 }, observer.onError, function () {
                     if (exports.DEBUG_THEN)
                         console.log("then: upstream complete");
@@ -134,7 +174,7 @@ var Animation = (function () {
                     firstAttach.dispose();
                     secondAttach.dispose();
                 };
-            }).subscribeOn(Rx.Scheduler.immediate);
+            }).subscribeOn(Rx.Scheduler.immediate); //todo remove subscribeOns
         });
     };
     return Animation;
@@ -163,7 +203,7 @@ var Animator = (function () {
             console.log("animator: ctx save");
             tick.ctx.save();
         });
-        var doAnimation = animation.attach(saveBeforeFrame);
+        var doAnimation = animation.attach(0, saveBeforeFrame);
         var restoreAfterFrame = doAnimation.tap(function (tick) {
             console.log("animator: ctx next restore");
             tick.ctx.restore();
@@ -177,7 +217,7 @@ var Animator = (function () {
     };
     Animator.prototype.clock = function () {
         var self = this;
-        return new Iterable(function () { return self.t; });
+        return new Iterable([], function () { return self.t; });
     };
     return Animator;
 })();
@@ -186,7 +226,7 @@ function point(x, y) {
     var x_stream = toStreamNumber(x);
     var y_stream = toStreamNumber(y);
     //console.log("point: init", x_stream, y_stream);
-    return new Iterable(function () {
+    return new Iterable([x_stream, y_stream], function () {
         var result = [x_stream.next(), y_stream.next()];
         //console.log("point: next", result);
         return result;
@@ -202,7 +242,7 @@ function color(r, g, b, a) {
     var g_stream = toStreamNumber(g);
     var b_stream = toStreamNumber(b);
     var a_stream = toStreamNumber(a);
-    return new Iterable(function () {
+    return new Iterable([r_stream, g_stream, b_stream, a_stream], function () {
         var r = Math.floor(r_stream.next());
         var g = Math.floor(g_stream.next());
         var b = Math.floor(b_stream.next());
@@ -212,50 +252,45 @@ function color(r, g, b, a) {
 }
 exports.color = color;
 function rnd() {
-    return new Iterable(function () {
+    return new Iterable([], function () {
         return Math.random();
     });
 }
 exports.rnd = rnd;
-function previous(value, clock) {
-    return new StatefulIterable({ currentClock: -1, currentValue: value.next(), prevValue: value.next() }, function () {
-        var nextClock = clock.next();
-        var nextValue = value.next();
-        if (nextClock == this.state.currentClock) {
-            if (this.currentValue != nextValue) {
-                console.error("Warning: input source to previous() is not temporally stable");
-                console.error(stackTrace());
-            }
-        }
-        else {
-            this.state.prevValue = this.state.currentValue;
-            // new value
-            this.state.currentClock = nextClock;
-            this.state.currentValue = nextValue;
-        }
-        return this.state.prevValue;
+function previous(value) {
+    return new IterableStateful({ currentValue: value.next(), prevValue: value.next() }, [value], function (t, state) {
+        var newState = { currentValue: value.next(), prevValue: state.currentValue };
+        console.log("previous: tick ", t, state, "->", newState);
+        return newState;
+    }, function (state) {
+        console.log("previous: value", state.prevValue);
+        return state.prevValue;
     });
 }
 exports.previous = previous;
-function sin(period, clock) {
-    //console.log("sin: new");
+function sin(period) {
+    console.log("sin: new");
     var period_stream = toStreamNumber(period);
-    return new Iterable(function () {
-        var period = period_stream.next();
-        var t = clock.next() % period;
-        //console.log("sin: t", t);
-        return Math.sin(t * (Math.PI * 2) / period);
+    return new IterableStateful(0, [period_stream], function (t, state) {
+        console.log("sin: tick", t);
+        return t;
+    }, function (state) {
+        var value = Math.sin(state * (Math.PI * 2) / period_stream.next());
+        console.log("sin: ", value, state);
+        return value;
     });
 }
 exports.sin = sin;
-function cos(period, clock) {
+function cos(period) {
     //console.log("cos: new");
     var period_stream = toStreamNumber(period);
-    return new Iterable(function () {
-        var period = period_stream.next();
-        var t = clock.next() % period;
-        //console.log("cos: t", t);
-        return Math.cos(t * (Math.PI * 2) / period);
+    return new IterableStateful(0, [period_stream], function (t, state) {
+        console.log("cos: tick");
+        return t;
+    }, function (state) {
+        var value = Math.cos(state * (Math.PI * 2) / period_stream.next());
+        console.log("cos: ", value, state);
+        return value;
     });
 }
 exports.cos = cos;
@@ -276,11 +311,12 @@ function loop(animation) {
             console.log("loop: create new loop");
             var loopStart = null;
             var loopSubscription = null;
+            var t = 0;
             function attachLoop(next) {
                 if (exports.DEBUG_LOOP)
-                    console.log("loop: new inner loop");
+                    console.log("loop: new inner loop starting at", t);
                 loopStart = new Rx.Subject();
-                loopSubscription = animation.attach(loopStart).subscribe(function (next) {
+                loopSubscription = animation.attach(t, loopStart).subscribe(function (next) {
                     if (exports.DEBUG_LOOP)
                         console.log("loop: post-inner loop to downstream");
                     observer.onNext(next);
@@ -305,6 +341,7 @@ function loop(animation) {
                 if (exports.DEBUG_LOOP)
                     console.log("loop: upstream to inner loop");
                 loopStart.onNext(next);
+                t += next.dt;
             }, function (err) {
                 if (exports.DEBUG_LOOP)
                     console.log("loop: upstream error to inner loop", err);
@@ -321,10 +358,10 @@ function loop(animation) {
     });
 }
 exports.loop = loop;
-function draw(fn, animation) {
+function draw(fn, animation, predecessors) {
     return new Animation(function (previous) {
         return previous.tapOnNext(fn);
-    }, animation);
+    }, animation, predecessors);
 }
 exports.draw = draw;
 function move(delta, animation) {
@@ -336,7 +373,7 @@ function move(delta, animation) {
         if (tick)
             tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
         return tick;
-    }, animation);
+    }, animation, [pointStream]);
 }
 exports.move = move;
 function velocity(velocity, animation) {
@@ -441,6 +478,9 @@ function drawBigExplosion() { return null; }
 //What do we want it to look like
 //todo
 // INVEST IN BUILD AND TESTING
+// fix time
+// then and loop resets time each use?
+// reaplce with loop? see uncommenting example2
 //emitter
 //rand normal
 //animator.play(

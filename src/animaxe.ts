@@ -16,29 +16,83 @@ function stackTrace() {
     return (<any>err).stack;
 }
 
-export class Iterable<T> {
+export class Iterable<Value> {
+    private predecessors: Iterable<any>[];
+
     // tried immutable.js but it only supports 2 dimensionable iterables
-    constructor(_next: () => T) {
-        this.next = _next;
+    constructor(predecessors: Iterable<any>[], next: () => Value) {
+        this.predecessors = predecessors;
+        this.next = next;
     }
 
-    next(): T {throw new Error('This method is abstract');}
-    map<T, V>(fn: (T) => V): Iterable<V> {
-        var base = this;
-        return new Iterable(function(): V {
-            //console.log("Iterable: next");
-            return fn(base.next());
+    upstreamTick(t: number): void {
+        //console.log("Iterable: upstreamTick", t);
+        // first let upstream update first
+        this.predecessors.forEach(function (predecessor) {
+            predecessor.upstreamTick(t);
         });
+    }
+
+    next(): Value {throw new Error('This method is abstract');}
+
+    map<V>(fn: (Value) => V): Iterable<V> {
+        var base = this;
+        return new Iterable(
+            [base],
+            function(): V {
+                //console.log("Iterable: next");
+                return fn(base.next());
+            }
+        );
+    }
+
+    clone(): Iterable<Value> {
+        return this.map(x => x);
     }
 }
 
-export class StatefulIterable<T, S> extends Iterable<T>{
+export class IterableStateful<State, Value> extends Iterable<Value>{
+
+    state: State;
+    private tick: (t: number, state: State) => State;
     // tried immutable.js but it only supports 2 dimensionable iterables
-    state: S;
-    constructor(initialState: S, _next: () => T) {
-        super(_next);
-        this.state = initialState;
+    constructor(
+        initial: State,
+        predecessors: Iterable<any>[],
+        tick: (t: number, state: State) => State,
+        value: (State) => Value) {
+
+        super(
+            predecessors,
+            function () {
+                return value(this.state);
+            }
+        )
+        this.state = initial;
+        this.tick  = tick;
     }
+
+    upstreamTick(t: number) {
+        // first let upstream update first
+        super.upstreamTick(t);
+        // now call internal state change\
+        this.state = this.tick(t, this.state);
+    }
+
+
+    /**
+     * TODO, we could map state here maybe
+    map<V>(fn: (Value) => V): IterableStateful<any, V> {
+        var base = this;
+        return new IterableStateful(
+            null,
+            [base],
+            function() {},
+            function(): V {
+                return fn(base.next());
+            }
+        );
+    }**/
 }
 
 export type NumberStream = Iterable<number>;
@@ -48,10 +102,12 @@ export type DrawStream = Rx.Observable<DrawTick>;
 
 export class Fixed<T> extends Iterable<T> {
     constructor(public val: T) {
-        super(function(){
-            //console.log("fixed", this.val);
-            return this.val;
-        });
+        super(
+            [], //no dependants
+            function(){
+                return this.val;
+            }
+        );
     }
 }
 
@@ -66,10 +122,32 @@ export function toStreamColor(x: string | ColorStream): ColorStream {
 }
 
 export class Animation {
-    constructor(public _attach: (DrawStream) => DrawStream, public after?: Animation) {}
-    attach(obs: DrawStream): DrawStream {
-        var processed = this._attach(obs);
-        return this.after? this.after.attach(processed): processed;
+    private predecessors: Iterable<any>[];
+
+    constructor(public _attach: (DrawStream) => DrawStream, public after?: Animation, predecessors?: Iterable<any>[]) {
+        this.predecessors = predecessors
+    }
+    attach(clock: number, upstream: DrawStream): DrawStream {
+        var self = this;
+        var t = clock;
+
+
+        var instream = null;
+        if (this.predecessors == null) {
+            instream = upstream;
+        } else {
+            instream = upstream.tap(function (tick: DrawTick) {
+                //console.log("animation: sending upstream tick", self.t);
+                //we update params of clock before
+                self.predecessors.forEach(function(pred){
+                    pred.upstreamTick(t);
+                });
+                t += tick.dt;
+            });
+        }
+
+        var processed = this._attach(instream);
+        return this.after? this.after.attach(t, processed): processed;
     }
     /**
      * delivers events to this first, then when that animation is finished
@@ -80,6 +158,8 @@ export class Animation {
 
         return new Animation(function (prev: DrawStream) : DrawStream {
 
+            var t = 0;
+
             return Rx.Observable.create<DrawTick>(function (observer) {
                 var first  = new Rx.Subject<DrawTick>();
                 var second = new Rx.Subject<DrawTick>();
@@ -89,7 +169,7 @@ export class Animation {
                 var current = first;
                 if (DEBUG_THEN) console.log("then: attach");
 
-                var firstAttach  = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                var firstAttach  = self.attach(t, first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
                     function(next) {
                         if (DEBUG_THEN) console.log("then: first to downstream");
                         observer.onNext(next);
@@ -100,7 +180,8 @@ export class Animation {
                         firstTurn = false;
                     }
                 );
-                var secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                //todo second attach is zeroed in time
+                var secondAttach = follower.attach(t, second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
                     function(next) {
                         if (DEBUG_THEN) console.log("then: second to downstream");
                         observer.onNext(next);
@@ -121,6 +202,7 @@ export class Animation {
                         } else {
                             second.onNext(next);
                         }
+                        t += next.dt;
                     },
                     observer.onError,
                     function () {
@@ -135,7 +217,7 @@ export class Animation {
                     firstAttach.dispose();
                     secondAttach.dispose();
                 };
-            }).subscribeOn(Rx.Scheduler.immediate);
+            }).subscribeOn(Rx.Scheduler.immediate); //todo remove subscribeOns
         });
     }
 }
@@ -165,7 +247,7 @@ export class Animator {
             console.log("animator: ctx save");
             tick.ctx.save();
         });
-        var doAnimation = animation.attach(saveBeforeFrame);
+        var doAnimation = animation.attach(0, saveBeforeFrame);
         var restoreAfterFrame = doAnimation.tap(
             function(tick){
                 console.log("animator: ctx next restore");
@@ -183,7 +265,7 @@ export class Animator {
 
     clock(): NumberStream {
         var self = this;
-        return new Iterable(function() {return self.t})
+        return new Iterable([], function() {return self.t})
     }
 }
 
@@ -197,11 +279,14 @@ export function point(
     var y_stream = toStreamNumber(y);
 
     //console.log("point: init", x_stream, y_stream);
-    return new Iterable(function() {
+    return new Iterable(
+        [x_stream, y_stream],
+        function() {
             var result: [number, number] = [x_stream.next(), y_stream.next()];
             //console.log("point: next", result);
             return result;
-        });
+        }
+    );
 }
 
 /*
@@ -219,64 +304,69 @@ export function color(
     var g_stream = toStreamNumber(g);
     var b_stream = toStreamNumber(b);
     var a_stream = toStreamNumber(a);
-    return new Iterable(function() {
-        var r = Math.floor(r_stream.next());
-        var g = Math.floor(g_stream.next());
-        var b = Math.floor(b_stream.next());
-        var a = Math.floor(a_stream.next());
-        return "rgb(" + r + "," + g + "," + b + ")";
-    });
+    return new Iterable(
+        [r_stream, g_stream, b_stream, a_stream],
+        function() {
+            var r = Math.floor(r_stream.next());
+            var g = Math.floor(g_stream.next());
+            var b = Math.floor(b_stream.next());
+            var a = Math.floor(a_stream.next());
+            return "rgb(" + r + "," + g + "," + b + ")";
+        }
+    );
 }
 
 export function rnd(): NumberStream {
-    return new Iterable(function () {
+    return new Iterable([], function () {
             return Math.random();
+        }
+    );
+}
+
+export function previous<T>(value: Iterable<T>): Iterable<T> {
+    return new IterableStateful<{currentValue:T; prevValue:T}, T> (
+        {currentValue: value.next(), prevValue: value.next()},
+        [value],
+        function (t, state) {
+            var newState =  {currentValue: value.next(), prevValue: state.currentValue};
+            console.log("previous: tick ", t, state, "->", newState);
+            return newState;
+        }, function(state) {
+            console.log("previous: value", state.prevValue);
+            return <T>state.prevValue;
         });
 }
 
-
-export function previous<T>(value: Iterable<T>, clock: NumberStream): Iterable<T> {
-    return new StatefulIterable(
-        {currentClock: -1, currentValue: value.next(), prevValue: value.next()},
-        function () {
-            var nextClock = clock.next();
-            var nextValue = value.next();
-
-            if (nextClock == this.state.currentClock) {
-                if (this.currentValue != nextValue){
-                    console.error("Warning: input source to previous() is not temporally stable");
-                    console.error(stackTrace());
-                }
-            } else {
-                this.state.prevValue = this.state.currentValue;
-                // new value
-                this.state.currentClock = nextClock;
-                this.state.currentValue = nextValue;
-            }
-            return this.state.prevValue;
-        });
-}
-
-export function sin(period: number| NumberStream, clock: NumberStream): NumberStream {
-    //console.log("sin: new");
+export function sin(period: number| NumberStream): NumberStream {
+    console.log("sin: new");
     var period_stream = toStreamNumber(period);
 
-    return new Iterable(function() {
-            var period = period_stream.next();
-            var t = clock.next() % period;
-            //console.log("sin: t", t);
-            return Math.sin(t * (Math.PI * 2) / period);
+    return new IterableStateful<number, number>(
+        0,
+        [period_stream],
+        function(t, state: number) {
+            console.log("sin: tick", t);
+            return t;
+        }, function(state: number) {
+            var value = Math.sin(state * (Math.PI * 2) / period_stream.next());
+            console.log("sin: ", value, state);
+            return value;
         });
 }
-export function cos(period: number| NumberStream, clock: NumberStream): NumberStream {
+export function cos(period: number| NumberStream): NumberStream {
     //console.log("cos: new");
     var period_stream = toStreamNumber(period);
 
-    return new Iterable(function() {
-            var period = period_stream.next();
-            var t = clock.next() % period;
-            //console.log("cos: t", t);
-            return Math.cos(t * (Math.PI * 2) / period);
+    return new IterableStateful<number, number>(
+        0,
+        [period_stream],
+        function(t, state: number) {
+            console.log("cos: tick");
+            return t;
+        }, function(state: number) {
+            var value = Math.cos(state * (Math.PI * 2) / period_stream.next());
+            console.log("cos: ", value, state);
+            return value;
         });
 }
 
@@ -326,13 +416,14 @@ export function loop(
             console.log("loop: create new loop");
             var loopStart = null;
             var loopSubscription = null;
+            var t = 0;
 
             function attachLoop(next) { //todo I feel like we can remove a level from this somehow
-                if (DEBUG_LOOP) console.log("loop: new inner loop");
+                if (DEBUG_LOOP) console.log("loop: new inner loop starting at", t);
 
                 loopStart = new Rx.Subject<DrawTick>();
 
-                loopSubscription = animation.attach(loopStart).subscribe(
+                loopSubscription = animation.attach(t, loopStart).subscribe(
                     function(next) {
                         if (DEBUG_LOOP) console.log("loop: post-inner loop to downstream");
                         observer.onNext(next);
@@ -358,6 +449,7 @@ export function loop(
                     if (DEBUG_LOOP) console.log("loop: upstream to inner loop");
                     loopStart.onNext(next);
 
+                    t += next.dt;
                 },
                 function(err){
                     if (DEBUG_LOOP) console.log("loop: upstream error to inner loop", err);
@@ -377,12 +469,13 @@ export function loop(
 
 export function draw(
     fn: (tick: DrawTick) => void,
-    animation?: Animation
+    animation?: Animation,
+    predecessors?: Iterable<any>[]
 ): Animation
 {
     return new Animation(function (previous: DrawStream): DrawStream {
         return previous.tapOnNext(fn);
-    }, animation);
+    }, animation, predecessors);
 }
 
 export function move(
@@ -390,14 +483,14 @@ export function move(
     animation?: Animation
 ): Animation {
     console.log("move: attached");
-    var pointStream: PointStream = toStreamPoint(delta)
+    var pointStream: PointStream = toStreamPoint(delta);
     return draw(function(tick) {
         var point = pointStream.next();
         console.log("move:", point);
         if (tick)
             tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
         return tick;
-    }, animation);
+    }, animation, [pointStream]);
 }
 
 export function velocity(
@@ -537,6 +630,10 @@ function drawBigExplosion(): Animation {return null;}
 
 //todo
 // INVEST IN BUILD AND TESTING
+
+// fix time
+// then and loop resets time each use?
+// reaplce with loop? see uncommenting example2
 
 //emitter
 //rand normal
