@@ -12,8 +12,11 @@
   "dependencies": {
     "browserify": "9.0.4",
     "canvas": "^1.2.7",
+    "chai": "^3.2.0",
+    "expect": "^1.9.0",
     "gifencoder": "^1.0.6",
     "gulp": "^3.9.0",
+    "gulp-sourcemaps": "^1.5.2",
     "gulp-util": "^3.0.6",
     "immutable": "^3.7.5",
     "merge2": "^0.3.6",

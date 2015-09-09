@@ -34,10 +34,10 @@ export declare function toStreamNumber(x: number | NumberStream): NumberStream;
 export declare function toStreamPoint(x: Point | PointStream): PointStream;
 export declare function toStreamColor(x: string | ColorStream): ColorStream;
 export declare class Animation {
-    _attach: (DrawStream) => DrawStream;
+    _attach: (upstream: DrawStream) => DrawStream;
     after: Animation;
     private predecessors;
-    constructor(_attach: (DrawStream) => DrawStream, after?: Animation, predecessors?: Iterable<any>[]);
+    constructor(_attach: (upstream: DrawStream) => DrawStream, after?: Animation, predecessors?: Iterable<any>[]);
     attach(clock: number, upstream: DrawStream): DrawStream;
     /**
      * delivers events to this first, then when that animation is finished
@@ -60,6 +60,7 @@ export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
 export declare function color(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
 export declare function rnd(): NumberStream;
+export declare function assertDt(assertDt: Rx.Observable<number>, after?: Animation): Animation;
 export declare function previous<T>(value: Iterable<T>): Iterable<T>;
 export declare function sin(period: number | NumberStream): NumberStream;
 export declare function cos(period: number | NumberStream): NumberStream;

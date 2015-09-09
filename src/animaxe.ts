@@ -3,7 +3,7 @@
 require('source-map-support').install();
 import Rx = require("rx");
 
-export var DEBUG_LOOP = false;
+export var DEBUG_LOOP = true;
 export var DEBUG_THEN = false;
 
 
@@ -124,18 +124,18 @@ export function toStreamColor(x: string | ColorStream): ColorStream {
 export class Animation {
     private predecessors: Iterable<any>[];
 
-    constructor(public _attach: (DrawStream) => DrawStream, public after?: Animation, predecessors?: Iterable<any>[]) {
+    constructor(public _attach: (upstream: DrawStream) => DrawStream, public after?: Animation, predecessors?: Iterable<any>[]) {
         this.predecessors = predecessors
     }
     attach(clock: number, upstream: DrawStream): DrawStream {
         var self = this;
         var t = clock;
 
-
         var instream = null;
         if (this.predecessors == null) {
             instream = upstream;
         } else {
+            // if we have dependant parameters we update their clock before attaching
             instream = upstream.tap(function (tick: DrawTick) {
                 //console.log("animation: sending upstream tick", self.t);
                 //we update params of clock before
@@ -145,7 +145,7 @@ export class Animation {
                 t += tick.dt;
             });
         }
-
+        //console.log("animation: instream", instream, "upstream", upstream);
         var processed = this._attach(instream);
         return this.after? this.after.attach(t, processed): processed;
     }
@@ -323,6 +323,15 @@ export function rnd(): NumberStream {
     );
 }
 
+export function assertDt(assertDt: Rx.Observable<number>, after?: Animation): Animation {
+    return new Animation(function(upstream) {
+        return upstream.zip(assertDt, function(tick: DrawTick, expectedDt: number) {
+            if (tick.dt != expectedDt) throw new Error("unexpected clock observed: " + tick.dt + ", expected:" + expectedDt);
+            return tick;
+        });
+    }, after);
+}
+
 export function previous<T>(value: Iterable<T>): Iterable<T> {
     return new IterableStateful<{currentValue:T; prevValue:T}, T> (
         {currentValue: value.next(), prevValue: value.next()},
@@ -413,7 +422,7 @@ export function loop(
 
 
         return Rx.Observable.create<DrawTick>(function(observer) {
-            console.log("loop: create new loop");
+            if (DEBUG_LOOP) console.log("loop: create new loop");
             var loopStart = null;
             var loopSubscription = null;
             var t = 0;
@@ -429,7 +438,7 @@ export function loop(
                         observer.onNext(next);
                     },
                     function(err) {
-                        if (DEBUG_LOOP) console.log("loop: post-inner loop err to downstream")
+                        if (DEBUG_LOOP) console.log("loop: post-inner loop err to downstream");
                         observer.onError(err);
                     },
                     function() {
@@ -452,8 +461,8 @@ export function loop(
                     t += next.dt;
                 },
                 function(err){
-                    if (DEBUG_LOOP) console.log("loop: upstream error to inner loop", err);
-                    loopStart.onError(err);
+                    if (DEBUG_LOOP) console.log("loop: upstream error to downstream", err);
+                    observer.onError(err);
                 },
                 observer.onCompleted.bind(observer)
             );
@@ -524,7 +533,7 @@ export function tween_linear(
     return new Animation(function(prev: DrawStream): DrawStream {
         var t = 0;
         return prev.map(function(tick: DrawTick) {
-            console.log("tween: inner")
+            console.log("tween: inner");
             var from = from_stream.next();
             var to   = to_stream.next();
 
@@ -539,8 +548,8 @@ export function tween_linear(
 }
 
 export function rect(
-    p1: Point, //todo
-    p2: Point, //todo
+    p1: Point, //todo dynamic params instead
+    p2: Point, //todo dynamic params instead
     animation?: Animation
 ): Animation {
     return draw(function (tick: DrawTick) {
@@ -633,7 +642,7 @@ function drawBigExplosion(): Animation {return null;}
 
 // fix time
 // then and loop resets time each use?
-// reaplce with loop? see uncommenting example2
+// example in loop? see uncommenting example2
 
 //emitter
 //rand normal

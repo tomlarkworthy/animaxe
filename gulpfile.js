@@ -4,7 +4,7 @@ var merge = require('merge2');
 var mocha = require('gulp-mocha');
 var gutil = require('gulp-util');
 var browserify = require('browserify');
-//var sourcemaps = require('gulp-sourcemaps');
+var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 
 var num_examples = 2;
@@ -25,6 +25,7 @@ gulp.task('browserify', function () {
 
 
 var tsProject = ts.createProject({
+    sortOutput: true,
     declarationFiles: true,
     noExternalResolve: false,
     module: 'commonjs'
@@ -32,14 +33,18 @@ var tsProject = ts.createProject({
 
 gulp.task('compile', function() {
     var tsResult = gulp.src('src/*.ts')
+                    .pipe(sourcemaps.init())
                     .pipe(ts(tsProject));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
         tsResult.dts.pipe(gulp.dest('compiled/definitions')),
-        tsResult.js.pipe(gulp.dest('compiled/src'))
+        tsResult.js
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('compiled/src'))
     ]);
 });
 
-var tsTestProject = ts.createProject({
+var tsTestProject = ts.createProject({ //todo stop repeating config
+    sortOutput: true,
     declarationFiles: false,
     noExternalResolve: false,
     module: 'commonjs'
@@ -47,19 +52,20 @@ var tsTestProject = ts.createProject({
 
 gulp.task('compile-test', function() {
     var tsResult = gulp.src('test/*.ts')
+                    .pipe(sourcemaps.init())
                     .pipe(ts(tsTestProject));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
-        tsResult.js.pipe(gulp.dest('compiled/test'))
+        tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('compiled/test'))
     ]);
 });
 
 
-gulp.task('test', function() {
+gulp.task('test', ['compile-test', 'compile'], function() {
     function handleError(err) {
         console.log(err.toString());
         this.emit('end');
     }
-    return gulp.src(['compiled/test/*.js'], { read: false })
+    return gulp.src(['compiled/test/test.js'], { read: false })
         .pipe(mocha({ reporter: 'list' }))
         .on('error', handleError);
 });
@@ -73,6 +79,7 @@ function exampleTask(i) {
     var exampleNameTS = 'example' + i + '.ts';
 
     projects[exampleName] = ts.createProject({
+        sortOutput: true,
         declarationFiles: false,
         noExternalResolve: false,
         module: 'commonjs'
@@ -81,7 +88,7 @@ function exampleTask(i) {
     gulp.task('compile-' + exampleName, ["compile"], function() {
         var tsResult = gulp.src("test/" + exampleNameTS)
                         .pipe(ts(projects[exampleName]));
-        return tsResult.js.pipe(gulp.dest('compiled/test'));
+        return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('compiled/test'));
     });
 
     gulp.task('test-' + exampleName, ['compile-' + exampleName], function() {
@@ -106,8 +113,6 @@ for (var i = 1; i<= num_examples; i++ ) { // (counting from 1)
 
 
 gulp.task('watch', ['compile', 'compile-test', 'browserify', 'test'], function() {
-    gulp.watch('src/*.ts', ['compile']);
-    gulp.watch('test/*.ts', ['compile-test']);
-    gulp.watch('compiled/src/*.js', ['browserify']);
-    gulp.watch(['compiled/src/*.js', 'compiled/test/*.js'], ['test']);
+    gulp.watch(['src/*.ts', 'test/*.ts'], ['test']);
+    gulp.watch('compiled/src/*.js', ['browserify']);;
 });
