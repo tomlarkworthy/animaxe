@@ -60,7 +60,6 @@ function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string
             Ax.previous(Ax.previous(end)),
             css_color));
     */
-    /*
     return thickLine1tick(6,
             start,
             end, css_color)
@@ -70,11 +69,10 @@ function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string
         .then(thickLine1tick(1,
             start,
             end, css_color));
-    */
-
+    /*
     return thickLine1tick(6,
             start,
-            end, css_color);
+            end, css_color);*/
 }
 
 //large circle funcitons
@@ -88,15 +86,18 @@ var green = Ax.sin(2).map(x => x * 55 + 200);
 //animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
 animator.play(
         Ax.loop(
-            sparkLine(
-                Ax.point(
-                    Ax.previous(Ax.sin(1).map(x => x * 40 + 50)),
-                    Ax.previous(Ax.cos(1).map(x => x * 40 + 50))
-                ),
-                Ax.point(
-                    bigSin,
-                    bigCos),
-                Ax.color(red,green,0,0.5)
+            Ax.assertClock(
+                [0, 0.1, 0.2, 0.3, 0.4],
+                sparkLine(
+                    Ax.point(
+                        Ax.previous(Ax.sin(1).map(x => x * 40 + 50)),
+                        Ax.previous(Ax.cos(1).map(x => x * 40 + 50))
+                    ),
+                    Ax.point(
+                        bigSin,
+                        bigCos),
+                    Ax.color(red,green,0,0.5)
+                )
             )
         )
     );

@@ -3,7 +3,7 @@
 require('source-map-support').install();
 import Rx = require("rx");
 
-export var DEBUG_LOOP = true;
+export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
 
 
@@ -60,7 +60,7 @@ export class IterableStateful<State, Value> extends Iterable<Value>{
         initial: State,
         predecessors: Iterable<any>[],
         tick: (t: number, state: State) => State,
-        value: (State) => Value) {
+        value: (state: State) => Value) {
 
         super(
             predecessors,
@@ -131,13 +131,15 @@ export class Animation {
         var self = this;
         var t = clock;
 
+        //console.log("animation initialized ", clock);
+
         var instream = null;
         if (this.predecessors == null) {
             instream = upstream;
         } else {
             // if we have dependant parameters we update their clock before attaching
             instream = upstream.tap(function (tick: DrawTick) {
-                //console.log("animation: sending upstream tick", self.t);
+                //console.log("animation: sending upstream tick", t);
                 //we update params of clock before
                 self.predecessors.forEach(function(pred){
                     pred.upstreamTick(t);
@@ -323,13 +325,45 @@ export function rnd(): NumberStream {
     );
 }
 
-export function assertDt(assertDt: Rx.Observable<number>, after?: Animation): Animation {
+/**
+ * NOTE: currently fails if the streams are different lengths
+ * @param assertDt the expected clock tick values
+ * @param after
+ * @returns {Animation}
+ */
+export function assertDt(expectedDt: Rx.Observable<number>, after?: Animation): Animation {
     return new Animation(function(upstream) {
-        return upstream.zip(assertDt, function(tick: DrawTick, expectedDt: number) {
-            if (tick.dt != expectedDt) throw new Error("unexpected clock observed: " + tick.dt + ", expected:" + expectedDt);
+        return upstream.zip(expectedDt, function(tick: DrawTick, expectedDtValue: number) {
+            if (tick.dt != expectedDtValue) throw new Error("unexpected dt observed: " + tick.dt + ", expected:" + expectedDtValue);
             return tick;
         });
     }, after);
+}
+
+//todo would be nice if this took an iterable or some other type of simple pull stream
+export function assertClock(assertClock: number[], after?: Animation): Animation {
+    var error = null;
+    var tester = new IterableStateful(
+        0,
+        [],
+        function(clock: number, index: number) {
+            console.log("assertClock: tick", clock);
+            if (clock != assertClock[index])
+                error = "unexpected clock observed: " + clock + ", expected:" + assertClock[index];
+
+            return index + 1;
+        },
+        function(index: number) {
+            return null; //we don't need a value
+        }
+    );
+
+    return new Animation(function(upstream) {
+        return upstream.tapOnNext(function() {
+            console.log("assertClock error", error);
+            if (error) throw new Error(error);
+        });
+    }, after, [tester]);
 }
 
 export function previous<T>(value: Iterable<T>): Iterable<T> {
@@ -640,10 +674,8 @@ function drawBigExplosion(): Animation {return null;}
 //todo
 // INVEST IN BUILD AND TESTING
 
-// fix time
-// then and loop resets time each use?
-// example in loop? see uncommenting example2
-
+// fix then
+// test case shows time is reset
 //emitter
 //rand normal
 

@@ -19,7 +19,7 @@ export declare class Iterable<Value> {
 export declare class IterableStateful<State, Value> extends Iterable<Value> {
     state: State;
     private tick;
-    constructor(initial: State, predecessors: Iterable<any>[], tick: (t: number, state: State) => State, value: (State) => Value);
+    constructor(initial: State, predecessors: Iterable<any>[], tick: (t: number, state: State) => State, value: (state: State) => Value);
     upstreamTick(t: number): void;
 }
 export declare type NumberStream = Iterable<number>;
@@ -60,7 +60,14 @@ export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
 export declare function color(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
 export declare function rnd(): NumberStream;
-export declare function assertDt(assertDt: Rx.Observable<number>, after?: Animation): Animation;
+/**
+ * NOTE: currently fails if the streams are different lengths
+ * @param assertDt the expected clock tick values
+ * @param after
+ * @returns {Animation}
+ */
+export declare function assertDt(expectedDt: Rx.Observable<number>, after?: Animation): Animation;
+export declare function assertClock(assertClock: number[], after?: Animation): Animation;
 export declare function previous<T>(value: Iterable<T>): Iterable<T>;
 export declare function sin(period: number | NumberStream): NumberStream;
 export declare function cos(period: number | NumberStream): NumberStream;
