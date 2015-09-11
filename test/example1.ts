@@ -68,7 +68,7 @@ try {
         var now = new Date().getTime(),
             dt = now - (time || now);
         time = now;
-        animator.root.onNext(new Ax.DrawTick(animator.ctx, dt/1000));
+        animator.root.onNext(new Ax.DrawTick(animator.ctx, dt/1000, 0));
     };
     render();
 } catch(err) {

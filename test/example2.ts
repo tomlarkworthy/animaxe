@@ -47,7 +47,6 @@ function thickLine1tick(
 }
 
 function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string | Ax.ColorStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
-    /*
     return thickLine1tick(6,
             start,
             end, css_color)
@@ -59,7 +58,8 @@ function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string
             Ax.previous(Ax.previous(start)),
             Ax.previous(Ax.previous(end)),
             css_color));
-    */
+
+    /*
     return thickLine1tick(6,
             start,
             end, css_color)
@@ -68,7 +68,7 @@ function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string
             end, css_color))
         .then(thickLine1tick(1,
             start,
-            end, css_color));
+            end, css_color));*/
     /*
     return thickLine1tick(6,
             start,
@@ -87,15 +87,15 @@ var green = Ax.sin(2).map(x => x * 55 + 200);
 animator.play(
         Ax.loop(
             Ax.assertClock(
-                [0, 0.1, 0.2, 0.3, 0.4],
+                [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
                 sparkLine(
                     Ax.point(
                         Ax.previous(Ax.sin(1).map(x => x * 40 + 50)),
                         Ax.previous(Ax.cos(1).map(x => x * 40 + 50))
                     ),
                     Ax.point(
-                        bigSin,
-                        bigCos),
+                        Ax.sin(1).map(x => x * 40 + 50),
+                        Ax.cos(1).map(x => x * 40 + 50)),
                     Ax.color(red,green,0,0.5)
                 )
             )
@@ -110,11 +110,11 @@ try {
         var now = new Date().getTime(),
             dt = now - (time || now);
         time = now;
-        animator.root.onNext(new Ax.DrawTick(animator.ctx, dt/1000));
+        animator.root.onNext(new Ax.DrawTick(animator.ctx, 0, dt/1000));
     };
     render();
 } catch(err) {
     //node.js
     animator.play(Ax.save(100, 100, "images/tutorial2.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(4));
+    animator.ticker(Rx.Observable.return(0.1).repeat(10));
 }

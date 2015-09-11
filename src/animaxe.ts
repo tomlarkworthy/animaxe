@@ -6,9 +6,8 @@ import Rx = require("rx");
 export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
 
-
 export class DrawTick {
-    constructor (public ctx: CanvasRenderingContext2D, public dt: number) {}
+    constructor (public ctx: CanvasRenderingContext2D, public clock: number, public dt: number) {}
 }
 
 function stackTrace() {
@@ -67,7 +66,7 @@ export class IterableStateful<State, Value> extends Iterable<Value>{
             function () {
                 return value(this.state);
             }
-        )
+        );
         this.state = initial;
         this.tick  = tick;
     }
@@ -127,10 +126,8 @@ export class Animation {
     constructor(public _attach: (upstream: DrawStream) => DrawStream, public after?: Animation, predecessors?: Iterable<any>[]) {
         this.predecessors = predecessors
     }
-    attach(clock: number, upstream: DrawStream): DrawStream {
+    attach(upstream: DrawStream): DrawStream {
         var self = this;
-        var t = clock;
-
         //console.log("animation initialized ", clock);
 
         var instream = null;
@@ -142,14 +139,13 @@ export class Animation {
                 //console.log("animation: sending upstream tick", t);
                 //we update params of clock before
                 self.predecessors.forEach(function(pred){
-                    pred.upstreamTick(t);
+                    pred.upstreamTick(tick.clock);
                 });
-                t += tick.dt;
             });
         }
         //console.log("animation: instream", instream, "upstream", upstream);
         var processed = this._attach(instream);
-        return this.after? this.after.attach(t, processed): processed;
+        return this.after? this.after.attach(processed): processed;
     }
     /**
      * delivers events to this first, then when that animation is finished
@@ -159,9 +155,6 @@ export class Animation {
         var self = this;
 
         return new Animation(function (prev: DrawStream) : DrawStream {
-
-            var t = 0;
-
             return Rx.Observable.create<DrawTick>(function (observer) {
                 var first  = new Rx.Subject<DrawTick>();
                 var second = new Rx.Subject<DrawTick>();
@@ -171,29 +164,31 @@ export class Animation {
                 var current = first;
                 if (DEBUG_THEN) console.log("then: attach");
 
-                var firstAttach  = self.attach(t, first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                var secondAttach = null;
+
+                var firstAttach  = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
                     function(next) {
                         if (DEBUG_THEN) console.log("then: first to downstream");
                         observer.onNext(next);
                     },
                     observer.onError.bind(observer),
                     function(){
-                        if (DEBUG_THEN) console.log("then: first complete");
+                        if (DEBUG_THEN) console.log("then: first complete", t);
                         firstTurn = false;
-                    }
-                );
-                //todo second attach is zeroed in time
-                var secondAttach = follower.attach(t, second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
-                    function(next) {
-                        if (DEBUG_THEN) console.log("then: second to downstream");
-                        observer.onNext(next);
-                    },
-                    observer.onError.bind(observer),
-                    function(){
-                        if (DEBUG_THEN) console.log("then: second complete");
-                        observer.onCompleted()
-                    }
 
+                        secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                            function(next) {
+                                if (DEBUG_THEN) console.log("then: second to downstream");
+                                observer.onNext(next);
+                            },
+                            observer.onError.bind(observer),
+                            function(){
+                                if (DEBUG_THEN) console.log("then: second complete");
+                                observer.onCompleted()
+                            }
+
+                        );
+                    }
                 );
 
                 var prevSubscription = prev.subscribeOn(Rx.Scheduler.immediate).subscribe(
@@ -204,7 +199,6 @@ export class Animation {
                         } else {
                             second.onNext(next);
                         }
-                        t += next.dt;
                     },
                     observer.onError,
                     function () {
@@ -237,8 +231,8 @@ export class Animator {
         var self = this;
 
         this.tickerSubscription = tick.map(function(dt: number) { //map the ticker onto any -> context
+            var tick = new DrawTick(self.ctx, self.t, dt);
             self.t += dt;
-            var tick = new DrawTick(self.ctx, dt);
             return tick;
         }).subscribe(this.root);
     }
@@ -249,7 +243,7 @@ export class Animator {
             console.log("animator: ctx save");
             tick.ctx.save();
         });
-        var doAnimation = animation.attach(0, saveBeforeFrame);
+        var doAnimation = animation.attach(saveBeforeFrame);
         var restoreAfterFrame = doAnimation.tap(
             function(tick){
                 console.log("animator: ctx next restore");
@@ -348,7 +342,7 @@ export function assertClock(assertClock: number[], after?: Animation): Animation
         [],
         function(clock: number, index: number) {
             console.log("assertClock: tick", clock);
-            if (clock != assertClock[index])
+            if (clock < assertClock[index] - 0.00001 || clock > assertClock[index] + 0.00001)
                 error = "unexpected clock observed: " + clock + ", expected:" + assertClock[index];
 
             return index + 1;
@@ -466,7 +460,7 @@ export function loop(
 
                 loopStart = new Rx.Subject<DrawTick>();
 
-                loopSubscription = animation.attach(t, loopStart).subscribe(
+                loopSubscription = animation.attach(loopStart).subscribe(
                     function(next) {
                         if (DEBUG_LOOP) console.log("loop: post-inner loop to downstream");
                         observer.onNext(next);
@@ -676,11 +670,11 @@ function drawBigExplosion(): Animation {return null;}
 
 // fix then
 // test case shows time is reset
-//emitter
-//rand normal
+// emitter
+// rand normal
 
 
-//animator.play(
+// animator.play(
 //    //clone is a parrallel execution the same animation
 //    parallel([clone(n, linear_tween(/*fixed point*/CENTRE,
 //                   /*generative point*/ point(splatter, splatter),

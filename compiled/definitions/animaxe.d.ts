@@ -5,8 +5,9 @@ export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare class DrawTick {
     ctx: CanvasRenderingContext2D;
+    clock: number;
     dt: number;
-    constructor(ctx: CanvasRenderingContext2D, dt: number);
+    constructor(ctx: CanvasRenderingContext2D, clock: number, dt: number);
 }
 export declare class Iterable<Value> {
     private predecessors;
@@ -38,7 +39,7 @@ export declare class Animation {
     after: Animation;
     private predecessors;
     constructor(_attach: (upstream: DrawStream) => DrawStream, after?: Animation, predecessors?: Iterable<any>[]);
-    attach(clock: number, upstream: DrawStream): DrawStream;
+    attach(upstream: DrawStream): DrawStream;
     /**
      * delivers events to this first, then when that animation is finished
      * the follower consumers events and the values are used as output, until the follower animation completes

@@ -49,8 +49,10 @@ describe('then', function () {
         var downstream = new Rx.ReplaySubject();
         var anim = countA(2).then(countA(1));
         counterA.should.equal(0);
-        var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0)).repeat(10);
-        anim.attach(0, upstream).subscribe(downstream);
+        var upstream =
+            Rx.Observable.from([0, 0.1, 0.2, 0.3, 0.4, 0.5])
+            .map(x => new Ax.DrawTick(null, x, x));
+        anim.attach(upstream).subscribe(downstream);
         counterA.should.equal(3);
     });
 
@@ -61,8 +63,8 @@ describe('then', function () {
         var anim = countAthenCountB().then(countAthenCountB());
         counterA.should.equal(0);
         counterA.should.equal(0);
-        var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0)).repeat(10);
-        anim.attach(0, upstream).subscribe(downstream);
+        var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0, 0)).repeat(10);
+        anim.attach(upstream).subscribe(downstream);
         counterA.should.equal(2);
         counterB.should.equal(2);
     });
@@ -75,8 +77,8 @@ describe('then', function () {
         var anim = countAthenCountB();
         counterA.should.equal(0);
         counterB.should.equal(0);
-        var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0)).repeat(1);
-        anim.attach(0, upstream.tap(function (next) {
+        var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0, 0)).repeat(1);
+        anim.attach(upstream.tap(function (next) {
             console.log("upstream");
         })).tap(function (next) {
             console.log("downstream");
@@ -88,7 +90,10 @@ describe('then', function () {
 
 
     it('passes on clock', function () { //todo generic animation contract
-        var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0.1)).repeat(3);
+        var upstream =
+            Rx.Observable.from([0, 0.1, 0.2, 0.3])
+            .map(x => new Ax.DrawTick(null, x, x));
+
         counterA = 0;
         var expectedClock = [0, 0.1, 0.2, 0.3];
         var expectedFirstClock = [0];
@@ -98,7 +103,7 @@ describe('then', function () {
             Ax.assertClock(expectedFirstClock, countA(1))
                 .then(Ax.assertClock(expectedSecondClock, countA(2))));
 
-        anim.attach(0, upstream).subscribe(); //errors are propogated
+        anim.attach(upstream).subscribe(); //errors are propogated
         counterA.should.eql(3);
 
     });
