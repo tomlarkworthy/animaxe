@@ -5,23 +5,22 @@ require('source-map-support').install();
 import Ax = require("../src/animaxe");
 import Rx = require("rx");
 
-//create an animator, at 30FPS
 try {
+    // In a browser environment, find a canvas
     var canvas:any = document.getElementById("canvas");
     console.log("browser", canvas);
 } catch (err) {
+    // in a node.js encironment, load a fake canvas
     console.log(err);
     var Canvas = require('canvas');
     var canvas = new Canvas(100, 100);
     console.log("node", canvas);
 }
 
-console.log("context", context);
 var context: CanvasRenderingContext2D = canvas.getContext('2d');
+var animator: Ax.Animator = new Ax.Animator(context);
 
-var animator: Ax.Animator = new Ax.Animator(context); /*should be based on context*/
-
-
+//a line between two points of a specified thickness and color (which are temporally varying parameters)
 function thickLine1tick(
     thickness: number,
     start: Ax.PointStream,
@@ -37,7 +36,7 @@ function thickLine1tick(
         var endVal = end.next(tick.clock);
         var ctx = tick.ctx;
         ctx.lineWidth = thickness;
-        console.log("thickLine1tick: drawing between ", tick.clock, startVal, endVal);
+        //console.log("thickLine1tick: drawing between ", tick.clock, startVal, endVal);
         ctx.moveTo(startVal[0], startVal[1]);
         ctx.lineTo(endVal[0], endVal[1]);
         ctx.closePath();
@@ -45,15 +44,19 @@ function thickLine1tick(
     }));
 }
 
+/**
+ * Three frame animation of a thinning line. Animations are displaced in time so even if the start and end streams move
+ * The line doesn't
+ */
 function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string | Ax.ColorStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
-    return thickLine1tick(6,
+    return thickLine1tick(6, //thick line
             start,
             end, css_color)
-        .then(thickLine1tick(2,
-            Ax.displaceT(-0.1, start), // todo, this method does not get called every round
+        .then(thickLine1tick(2, //medium line
+            Ax.displaceT(-0.1, start),
             Ax.displaceT(-0.1, end),
             css_color))
-        .then(thickLine1tick(1,
+        .then(thickLine1tick(1, //thin line
             Ax.displaceT(-0.2, start),
             Ax.displaceT(-0.2, end),
             css_color));
@@ -72,19 +75,19 @@ var blue = 50;
 animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
 animator.play(
         Ax.emit(
-            //Ax.assertClock([0,0.1,0.3,0.3,0.4,0.5,0.6,0.8,0.9,10],
                 sparkLine(
                     Ax.point(
                         bigSin,
                         bigCos
                     ),
-                    Ax.displaceT(-0.1, Ax.point(
-                        bigSin,
-                        bigCos
-                    )),
+                    Ax.displaceT(-0.1,
+                        Ax.point(
+                            bigSin,
+                            bigCos
+                        )
+                    ),
                     Ax.color(red,green,blue,0.5)
                 )
-            //)
         )
     );
 
