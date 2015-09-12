@@ -3,6 +3,7 @@
 import Rx = require("rx");
 export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
+export declare var DEBUG_EMIT: boolean;
 export declare class DrawTick {
     ctx: CanvasRenderingContext2D;
     clock: number;
@@ -67,6 +68,16 @@ export declare function assertClock(assertClock: number[], after?: Animation): A
 export declare function displaceT<T>(displacement: number | Parameter<number>, value: Parameter<T>): Parameter<T>;
 export declare function sin(period: number | Parameter<number>): Parameter<number>;
 export declare function cos(period: number | NumberStream): NumberStream;
+/**
+ * The child animation is started every frame
+ * @param animation
+ */
+export declare function emit(animation: Animation): Animation;
+/**
+ * When the child loop finishes, it is spawned
+ * @param animation
+ * @returns {Animation}
+ */
 export declare function loop(animation: Animation): Animation;
 export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation): Animation;
 export declare function move(delta: Point | PointStream, animation?: Animation): Animation;

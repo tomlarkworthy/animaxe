@@ -37,7 +37,7 @@ function thickLine1tick(
         var endVal = end.next(tick.clock);
         var ctx = tick.ctx;
         ctx.lineWidth = thickness;
-        //console.log("thickLine1tick: drawing between ", tick.clock, startVal, endVal);
+        console.log("thickLine1tick: drawing between ", tick.clock, startVal, endVal);
         ctx.moveTo(startVal[0], startVal[1]);
         ctx.lineTo(endVal[0], endVal[1]);
         ctx.closePath();
@@ -69,20 +69,20 @@ var green = Ax.sin(2).map(x => x * 55 + 200);
 
 animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
 animator.play(
-        Ax.loop(
-            Ax.assertClock(
-                [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        Ax.emit(
+            //Ax.assertClock([0,0.1,0.3,0.3,0.4,0.5,0.6,0.8,0.9,10],
                 sparkLine(
                     Ax.point(
                         bigSin,
                         bigCos
                     ),
-                    Ax.point(
+                    Ax.displaceT(-0.1, Ax.point(
                         bigSin,
-                        bigCos,
+                        bigCos
+                    )),
                     Ax.color(red,green,0,0.5)
                 )
-            )
+            //)
         )
     );
 

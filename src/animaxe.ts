@@ -5,6 +5,7 @@ import Rx = require("rx");
 
 export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
+export var DEBUG_EMIT = true;
 
 export class DrawTick {
     constructor (public ctx: CanvasRenderingContext2D, public clock: number, public dt: number) {}
@@ -177,7 +178,8 @@ export class Animation {
                     if (DEBUG_THEN) console.log("then: disposer");
                     prevSubscription.dispose();
                     firstAttach.dispose();
-                    secondAttach.dispose();
+                    if (secondAttach)
+                        secondAttach.dispose();
                 };
             }).subscribeOn(Rx.Scheduler.immediate); //todo remove subscribeOns
         });
@@ -294,27 +296,19 @@ export function assertDt(expectedDt: Rx.Observable<number>, after?: Animation): 
 }
 
 //todo would be nice if this took an iterable or some other type of simple pull stream
+// and used streamEquals
 export function assertClock(assertClock: number[], after?: Animation): Animation {
-    var error = null;
-    var tester = new ParameterStateful(
-        0,
-        [],
-        function(clock: number, index: number) {
-            console.log("assertClock: tick", clock);
-            if (clock < assertClock[index] - 0.00001 || clock > assertClock[index] + 0.00001)
-                error = "unexpected clock observed: " + clock + ", expected:" + assertClock[index];
-
-            return index + 1;
-        },
-        function(index: number) {
-            return null; //we don't need a value
-        }
-    );
+    var index = 0;
 
     return new Animation(function(upstream) {
-        return upstream.tapOnNext(function() {
-            console.log("assertClock error", error);
-            if (error) throw new Error(error);
+        return upstream.tapOnNext(function(tick: DrawTick) {
+            console.log("assertClock: ", tick);
+            if (tick.clock < assertClock[index] - 0.00001 || tick.clock > assertClock[index] + 0.00001) {
+                var errorMsg = "unexpected clock observed: " + tick.clock + ", expected:" + assertClock[index]
+                console.log(errorMsg);
+                throw new Error(errorMsg);
+            }
+            index ++;
         });
     }, after);
 }
@@ -385,6 +379,32 @@ function sequence(
 ): Animation
 { return null;}
 
+/**
+ * The child animation is started every frame
+ * @param animation
+ */
+export function emit(
+    animation: Animation
+): Animation
+{
+    return new Animation(function (prev: DrawStream): DrawStream {
+        if (DEBUG_EMIT) console.log("emit: initializing");
+        var attachPoint = new Rx.Subject<DrawTick>();
+
+        return prev.tapOnNext(function(tick: DrawTick) {
+                if (DEBUG_EMIT) console.log("emit: emmitting", animation);
+                animation.attach(attachPoint).subscribe();
+                attachPoint.onNext(tick);
+            }
+        );
+    });
+}
+
+/**
+ * When the child loop finishes, it is spawned
+ * @param animation
+ * @returns {Animation}
+ */
 export function loop(
     animation: Animation
 ): Animation
