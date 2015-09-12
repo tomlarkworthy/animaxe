@@ -63,8 +63,10 @@ function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string
 var bigSin = Ax.sin(1).map(x => x * 40 + 50);
 var bigCos = Ax.cos(1).map(x => x * 40 + 50);
 
-var red   = Ax.sin(2).map(x => x * 125 + 125);
-var green = Ax.sin(2).map(x => x * 55 + 200);
+//periodic color
+var red   = 255;
+var green = Ax.sin(2).map(x => x * 100 + 55);
+var blue = 50;
 
 
 animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
@@ -80,7 +82,7 @@ animator.play(
                         bigSin,
                         bigCos
                     )),
-                    Ax.color(red,green,0,0.5)
+                    Ax.color(red,green,blue,0.5)
                 )
             //)
         )
@@ -100,5 +102,5 @@ try {
 } catch(err) {
     //node.js
     animator.play(Ax.save(100, 100, "images/tutorial2.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(10));
+    animator.ticker(Rx.Observable.return(0.1).repeat(20));
 }
