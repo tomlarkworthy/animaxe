@@ -15,67 +15,47 @@ function stackTrace() {
     return (<any>err).stack;
 }
 
-export class Iterable<Value> {
-    private predecessors: Iterable<any>[];
-
+export class Parameter<Value> {
     // tried immutable.js but it only supports 2 dimensionable iterables
-    constructor(predecessors: Iterable<any>[], next: () => Value) {
-        this.predecessors = predecessors;
+    constructor(next: (t: number) => Value) {
         this.next = next;
     }
 
-    upstreamTick(t: number): void {
-        //console.log("Iterable: upstreamTick", t);
-        // first let upstream update first
-        this.predecessors.forEach(function (predecessor) {
-            predecessor.upstreamTick(t);
-        });
-    }
+    next(t: number): Value {throw new Error('This method is abstract');}
 
-    next(): Value {throw new Error('This method is abstract');}
-
-    map<V>(fn: (Value) => V): Iterable<V> {
+    map<V>(fn: (Value) => V): Parameter<V> {
         var base = this;
-        return new Iterable(
-            [base],
-            function(): V {
+        return new Parameter(
+            function(t: number): V {
                 //console.log("Iterable: next");
-                return fn(base.next());
+                return fn(base.next(t));
             }
         );
     }
 
-    clone(): Iterable<Value> {
+    clone(): Parameter<Value> {
         return this.map(x => x);
     }
 }
 
-export class IterableStateful<State, Value> extends Iterable<Value>{
+export class ParameterStateful<State, Value> extends Parameter<Value>{
 
     state: State;
     private tick: (t: number, state: State) => State;
-    // tried immutable.js but it only supports 2 dimensionable iterables
+    // tried immutable.js but it only supports 2 dimension iterables
     constructor(
         initial: State,
-        predecessors: Iterable<any>[],
+        predecessors: Parameter<any>[],
         tick: (t: number, state: State) => State,
         value: (state: State) => Value) {
 
         super(
-            predecessors,
             function () {
                 return value(this.state);
             }
         );
         this.state = initial;
         this.tick  = tick;
-    }
-
-    upstreamTick(t: number) {
-        // first let upstream update first
-        super.upstreamTick(t);
-        // now call internal state change\
-        this.state = this.tick(t, this.state);
     }
 
 
@@ -94,15 +74,14 @@ export class IterableStateful<State, Value> extends Iterable<Value>{
     }**/
 }
 
-export type NumberStream = Iterable<number>;
-export type PointStream = Iterable<Point>;
-export type ColorStream = Iterable<string>;
+export type NumberStream = Parameter<number>;
+export type PointStream = Parameter<Point>;
+export type ColorStream = Parameter<string>;
 export type DrawStream = Rx.Observable<DrawTick>;
 
-export class Fixed<T> extends Iterable<T> {
+export class Fixed<T> extends Parameter<T> {
     constructor(public val: T) {
         super(
-            [], //no dependants
             function(){
                 return this.val;
             }
@@ -121,9 +100,9 @@ export function toStreamColor(x: string | ColorStream): ColorStream {
 }
 
 export class Animation {
-    private predecessors: Iterable<any>[];
+    private predecessors: Parameter<any>[];
 
-    constructor(public _attach: (upstream: DrawStream) => DrawStream, public after?: Animation, predecessors?: Iterable<any>[]) {
+    constructor(public _attach: (upstream: DrawStream) => DrawStream, public after?: Animation, predecessors?: Parameter<any>[]) {
         this.predecessors = predecessors
     }
     attach(upstream: DrawStream): DrawStream {
@@ -131,18 +110,7 @@ export class Animation {
         //console.log("animation initialized ", clock);
 
         var instream = null;
-        if (this.predecessors == null) {
-            instream = upstream;
-        } else {
-            // if we have dependant parameters we update their clock before attaching
-            instream = upstream.tap(function (tick: DrawTick) {
-                //console.log("animation: sending upstream tick", t);
-                //we update params of clock before
-                self.predecessors.forEach(function(pred){
-                    pred.upstreamTick(tick.clock);
-                });
-            });
-        }
+        instream = upstream;
         //console.log("animation: instream", instream, "upstream", upstream);
         var processed = this._attach(instream);
         return this.after? this.after.attach(processed): processed;
@@ -258,11 +226,6 @@ export class Animator {
             restoreAfterFrame.subscribe()
         );
     }
-
-    clock(): NumberStream {
-        var self = this;
-        return new Iterable([], function() {return self.t})
-    }
 }
 
 export type Point = [number, number]
@@ -275,10 +238,9 @@ export function point(
     var y_stream = toStreamNumber(y);
 
     //console.log("point: init", x_stream, y_stream);
-    return new Iterable(
-        [x_stream, y_stream],
-        function() {
-            var result: [number, number] = [x_stream.next(), y_stream.next()];
+    return new Parameter(
+        function(t: number) {
+            var result: [number, number] = [x_stream.next(t), y_stream.next(t)];
             //console.log("point: next", result);
             return result;
         }
@@ -300,20 +262,19 @@ export function color(
     var g_stream = toStreamNumber(g);
     var b_stream = toStreamNumber(b);
     var a_stream = toStreamNumber(a);
-    return new Iterable(
-        [r_stream, g_stream, b_stream, a_stream],
-        function() {
-            var r = Math.floor(r_stream.next());
-            var g = Math.floor(g_stream.next());
-            var b = Math.floor(b_stream.next());
-            var a = Math.floor(a_stream.next());
+    return new Parameter(
+        function(t: number) {
+            var r = Math.floor(r_stream.next(t));
+            var g = Math.floor(g_stream.next(t));
+            var b = Math.floor(b_stream.next(t));
+            var a = Math.floor(a_stream.next(t));
             return "rgb(" + r + "," + g + "," + b + ")";
         }
     );
 }
 
 export function rnd(): NumberStream {
-    return new Iterable([], function () {
+    return new Parameter(function (t) {
             return Math.random();
         }
     );
@@ -337,7 +298,7 @@ export function assertDt(expectedDt: Rx.Observable<number>, after?: Animation): 
 //todo would be nice if this took an iterable or some other type of simple pull stream
 export function assertClock(assertClock: number[], after?: Animation): Animation {
     var error = null;
-    var tester = new IterableStateful(
+    var tester = new ParameterStateful(
         0,
         [],
         function(clock: number, index: number) {
@@ -360,51 +321,36 @@ export function assertClock(assertClock: number[], after?: Animation): Animation
     }, after, [tester]);
 }
 
-export function previous<T>(value: Iterable<T>): Iterable<T> {
-    return new IterableStateful<{currentValue:T; prevValue:T}, T> (
-        {currentValue: value.next(), prevValue: value.next()},
-        [value],
-        function (t, state) {
-            var newState =  {currentValue: value.next(), prevValue: state.currentValue};
-            console.log("previous: tick ", t, state, "->", newState);
-            return newState;
-        }, function(state) {
-            console.log("previous: value", state.prevValue);
-            return <T>state.prevValue;
+export function displaceT<T>(displacement: number | Parameter<number>, value: Parameter<T>): Parameter<T> {
+    var deltat: Parameter<number> = toStreamNumber(displacement);
+    return new Parameter<T> (
+        function (t) {
+            var dt = deltat.next(t);
+            console.log("displaceT: ", dt)
+            return value.next(t + dt)
         });
 }
 
-export function sin(period: number| NumberStream): NumberStream {
+//todo: shoudl be t
+export function sin(period: number| Parameter<number>): Parameter<number> {
     console.log("sin: new");
     var period_stream = toStreamNumber(period);
 
-    return new IterableStateful<number, number>(
-        0,
-        [period_stream],
-        function(t, state: number) {
-            console.log("sin: tick", t);
-            return t;
-        }, function(state: number) {
-            var value = Math.sin(state * (Math.PI * 2) / period_stream.next());
-            console.log("sin: ", value, state);
-            return value;
-        });
+    return new Parameter(function (t: number) {
+        var value = Math.sin(t * (Math.PI * 2) / period_stream.next(t));
+        console.log("sin: tick", t, value);
+        return value;
+    });
 }
 export function cos(period: number| NumberStream): NumberStream {
     //console.log("cos: new");
     var period_stream = toStreamNumber(period);
 
-    return new IterableStateful<number, number>(
-        0,
-        [period_stream],
-        function(t, state: number) {
-            console.log("cos: tick");
-            return t;
-        }, function(state: number) {
-            var value = Math.cos(state * (Math.PI * 2) / period_stream.next());
-            console.log("cos: ", value, state);
-            return value;
-        });
+    return new Parameter(function (t: number) {
+        var value = Math.cos(t * (Math.PI * 2) / period_stream.next(t));
+        console.log("cos: tick", t, value);
+        return value;
+    });
 }
 
 function scale_x(
@@ -507,7 +453,7 @@ export function loop(
 export function draw(
     fn: (tick: DrawTick) => void,
     animation?: Animation,
-    predecessors?: Iterable<any>[]
+    predecessors?: Parameter<any>[]
 ): Animation
 {
     return new Animation(function (previous: DrawStream): DrawStream {
@@ -522,7 +468,7 @@ export function move(
     console.log("move: attached");
     var pointStream: PointStream = toStreamPoint(delta);
     return draw(function(tick) {
-        var point = pointStream.next();
+        var point = pointStream.next(tick.clock);
         console.log("move:", point);
         if (tick)
             tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
@@ -538,7 +484,7 @@ export function velocity(
     return new Animation(function(prev: DrawStream): DrawStream {
         var pos: Point = [0.0,0.0];
         return prev.map(function(tick) {
-            var velocity = velocityStream.next();
+            var velocity = velocityStream.next(tick.clock);
             pos[0] += velocity[0] * tick.dt;
             pos[1] += velocity[1] * tick.dt;
             tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
@@ -562,8 +508,8 @@ export function tween_linear(
         var t = 0;
         return prev.map(function(tick: DrawTick) {
             console.log("tween: inner");
-            var from = from_stream.next();
-            var to   = to_stream.next();
+            var from = from_stream.next(tick.clock);
+            var to   = to_stream.next(tick.clock);
 
             t = t + tick.dt;
             if (t > time) t = time;

@@ -27,13 +27,13 @@ var animator: Ax.Animator = new Ax.Animator(context); /*should be based on conte
 function spark(css_color: string | Ax.ColorStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
     var css = Ax.toStreamColor(css_color);
     return Ax.take(1, Ax.draw(function(tick: Ax.DrawTick) {
-            console.log("spark: frame1", css.next());
-            tick.ctx.fillStyle = css.next();
+            console.log("spark: frame1", css.next(tick.clock));
+            tick.ctx.fillStyle = css.next(tick.clock);
             tick.ctx.fillRect(-2,-2,5,5);
     })).then(
         Ax.take(1, Ax.draw(function(tick: Ax.DrawTick) {
-            console.log("spark: frame2", css.next());
-            tick.ctx.fillStyle = css.next();
+            console.log("spark: frame2", css.next(tick.clock));
+            tick.ctx.fillStyle = css.next(tick.clock);
             tick.ctx.fillRect(-1,-1,3,3);
         }))
     );

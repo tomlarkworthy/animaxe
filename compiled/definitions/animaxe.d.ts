@@ -9,25 +9,22 @@ export declare class DrawTick {
     dt: number;
     constructor(ctx: CanvasRenderingContext2D, clock: number, dt: number);
 }
-export declare class Iterable<Value> {
-    private predecessors;
-    constructor(predecessors: Iterable<any>[], next: () => Value);
-    upstreamTick(t: number): void;
-    next(): Value;
-    map<V>(fn: (Value) => V): Iterable<V>;
-    clone(): Iterable<Value>;
+export declare class Parameter<Value> {
+    constructor(next: (t: number) => Value);
+    next(t: number): Value;
+    map<V>(fn: (Value) => V): Parameter<V>;
+    clone(): Parameter<Value>;
 }
-export declare class IterableStateful<State, Value> extends Iterable<Value> {
+export declare class ParameterStateful<State, Value> extends Parameter<Value> {
     state: State;
     private tick;
-    constructor(initial: State, predecessors: Iterable<any>[], tick: (t: number, state: State) => State, value: (state: State) => Value);
-    upstreamTick(t: number): void;
+    constructor(initial: State, predecessors: Parameter<any>[], tick: (t: number, state: State) => State, value: (state: State) => Value);
 }
-export declare type NumberStream = Iterable<number>;
-export declare type PointStream = Iterable<Point>;
-export declare type ColorStream = Iterable<string>;
+export declare type NumberStream = Parameter<number>;
+export declare type PointStream = Parameter<Point>;
+export declare type ColorStream = Parameter<string>;
 export declare type DrawStream = Rx.Observable<DrawTick>;
-export declare class Fixed<T> extends Iterable<T> {
+export declare class Fixed<T> extends Parameter<T> {
     val: T;
     constructor(val: T);
 }
@@ -38,7 +35,7 @@ export declare class Animation {
     _attach: (upstream: DrawStream) => DrawStream;
     after: Animation;
     private predecessors;
-    constructor(_attach: (upstream: DrawStream) => DrawStream, after?: Animation, predecessors?: Iterable<any>[]);
+    constructor(_attach: (upstream: DrawStream) => DrawStream, after?: Animation, predecessors?: Parameter<any>[]);
     attach(upstream: DrawStream): DrawStream;
     /**
      * delivers events to this first, then when that animation is finished
@@ -55,7 +52,6 @@ export declare class Animator {
     constructor(ctx: CanvasRenderingContext2D);
     ticker(tick: Rx.Observable<number>): void;
     play(animation: Animation): void;
-    clock(): NumberStream;
 }
 export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
@@ -69,11 +65,11 @@ export declare function rnd(): NumberStream;
  */
 export declare function assertDt(expectedDt: Rx.Observable<number>, after?: Animation): Animation;
 export declare function assertClock(assertClock: number[], after?: Animation): Animation;
-export declare function previous<T>(value: Iterable<T>): Iterable<T>;
-export declare function sin(period: number | NumberStream): NumberStream;
+export declare function displaceT<T>(displacement: number | Parameter<number>, value: Parameter<T>): Parameter<T>;
+export declare function sin(period: number | Parameter<number>): Parameter<number>;
 export declare function cos(period: number | NumberStream): NumberStream;
 export declare function loop(animation: Animation): Animation;
-export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation, predecessors?: Iterable<any>[]): Animation;
+export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation, predecessors?: Parameter<any>[]): Animation;
 export declare function move(delta: Point | PointStream, animation?: Animation): Animation;
 export declare function velocity(velocity: Point | PointStream, animation?: Animation): Animation;
 export declare function tween_linear(from: Point | PointStream, to: Point | PointStream, time: number, animation: Animation): Animation;

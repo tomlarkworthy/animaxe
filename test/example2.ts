@@ -32,13 +32,13 @@ function thickLine1tick(
 
     var css = Ax.toStreamColor(css_color);
     return Ax.take(1, Ax.draw(function(tick: Ax.DrawTick) {
-        tick.ctx.strokeStyle = css.next();
+        tick.ctx.strokeStyle = css.next(tick.clock);
         tick.ctx.beginPath();
-        var startVal = start.next();
-        var endVal = end.next();
+        var startVal = start.next(tick.clock);
+        var endVal = end.next(tick.clock);
         var ctx = tick.ctx;
         ctx.lineWidth = thickness;
-        console.log("thickLine1tick: drawing between ", startVal, endVal);
+        console.log("thickLine1tick: drawing between ", tick.clock, startVal, endVal);
         ctx.moveTo(startVal[0], startVal[1]);
         ctx.lineTo(endVal[0], endVal[1]);
         ctx.closePath();
@@ -51,12 +51,12 @@ function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string
             start,
             end, css_color)
         .then(thickLine1tick(2,
-            Ax.previous(start), // todo, this method does not get called every round
-            Ax.previous(end),
+            Ax.displaceT(-0.1, start), // todo, this method does not get called every round
+            Ax.displaceT(-0.1, end),
             css_color))
         .then(thickLine1tick(1,
-            Ax.previous(Ax.previous(start)),
-            Ax.previous(Ax.previous(end)),
+            Ax.displaceT(-0.2, start),
+            Ax.displaceT(-0.2, end),
             css_color));
 
     /*
@@ -83,15 +83,15 @@ var red   = Ax.sin(2).map(x => x * 125 + 125);
 var green = Ax.sin(2).map(x => x * 55 + 200);
 
 
-//animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
+animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
 animator.play(
         Ax.loop(
             Ax.assertClock(
                 [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
                 sparkLine(
                     Ax.point(
-                        Ax.previous(Ax.sin(1).map(x => x * 40 + 50)),
-                        Ax.previous(Ax.cos(1).map(x => x * 40 + 50))
+                        Ax.displaceT(-0.1, Ax.sin(1).map(x => x * 40 + 50)),
+                        Ax.displaceT(-0.1, Ax.cos(1).map(x => x * 40 + 50))
                     ),
                     Ax.point(
                         Ax.sin(1).map(x => x * 40 + 50),

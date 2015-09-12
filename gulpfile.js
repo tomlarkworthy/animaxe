@@ -87,6 +87,7 @@ function exampleTask(i) {
 
     gulp.task('compile-' + exampleName, ["compile"], function() {
         var tsResult = gulp.src("test/" + exampleNameTS)
+                        .pipe(sourcemaps.init())
                         .pipe(ts(projects[exampleName]));
         return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('compiled/test'));
     });
