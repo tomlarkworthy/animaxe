@@ -100,10 +100,8 @@ export function toStreamColor(x: string | ColorStream): ColorStream {
 }
 
 export class Animation {
-    private predecessors: Parameter<any>[];
 
-    constructor(public _attach: (upstream: DrawStream) => DrawStream, public after?: Animation, predecessors?: Parameter<any>[]) {
-        this.predecessors = predecessors
+    constructor(public _attach: (upstream: DrawStream) => DrawStream, public after?: Animation) {
     }
     attach(upstream: DrawStream): DrawStream {
         var self = this;
@@ -318,7 +316,7 @@ export function assertClock(assertClock: number[], after?: Animation): Animation
             console.log("assertClock error", error);
             if (error) throw new Error(error);
         });
-    }, after, [tester]);
+    }, after);
 }
 
 export function displaceT<T>(displacement: number | Parameter<number>, value: Parameter<T>): Parameter<T> {
@@ -452,13 +450,12 @@ export function loop(
 
 export function draw(
     fn: (tick: DrawTick) => void,
-    animation?: Animation,
-    predecessors?: Parameter<any>[]
+    animation?: Animation
 ): Animation
 {
     return new Animation(function (previous: DrawStream): DrawStream {
         return previous.tapOnNext(fn);
-    }, animation, predecessors);
+    }, animation);
 }
 
 export function move(
@@ -473,7 +470,7 @@ export function move(
         if (tick)
             tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
         return tick;
-    }, animation, [pointStream]);
+    }, animation);
 }
 
 export function velocity(

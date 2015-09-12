@@ -37,7 +37,7 @@ describe('toStreamNumber', function () {
 describe('point', function () {
 
     it('should return a point', function () {
-        Ax.point(5, 5).next().toString().should.equal([5, 5].toString());
+        Ax.point(5, 5).next(0).toString().should.equal([5, 5].toString());
     });
 });
 

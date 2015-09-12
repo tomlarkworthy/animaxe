@@ -34,8 +34,7 @@ export declare function toStreamColor(x: string | ColorStream): ColorStream;
 export declare class Animation {
     _attach: (upstream: DrawStream) => DrawStream;
     after: Animation;
-    private predecessors;
-    constructor(_attach: (upstream: DrawStream) => DrawStream, after?: Animation, predecessors?: Parameter<any>[]);
+    constructor(_attach: (upstream: DrawStream) => DrawStream, after?: Animation);
     attach(upstream: DrawStream): DrawStream;
     /**
      * delivers events to this first, then when that animation is finished
@@ -69,7 +68,7 @@ export declare function displaceT<T>(displacement: number | Parameter<number>, v
 export declare function sin(period: number | Parameter<number>): Parameter<number>;
 export declare function cos(period: number | NumberStream): NumberStream;
 export declare function loop(animation: Animation): Animation;
-export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation, predecessors?: Parameter<any>[]): Animation;
+export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation): Animation;
 export declare function move(delta: Point | PointStream, animation?: Animation): Animation;
 export declare function velocity(velocity: Point | PointStream, animation?: Animation): Animation;
 export declare function tween_linear(from: Point | PointStream, to: Point | PointStream, time: number, animation: Animation): Animation;
