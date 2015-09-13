@@ -4,6 +4,7 @@ test/*.js
 logs
 *.log
 
+compiled/
 # Runtime data
 pids
 *.pid

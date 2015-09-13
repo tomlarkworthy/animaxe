@@ -7,7 +7,7 @@ var browserify = require('browserify');
 var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 
-var num_examples = 2;
+var num_examples = 3;
 
 gulp.task('browserify', function () {
   var browserified = transform(function(filename) {
@@ -86,14 +86,14 @@ function exampleTask(i) {
     });
 
     gulp.task('compile-' + exampleName, ["compile"], function() {
-        var tsResult = gulp.src("test/" + exampleNameTS)
+        var tsResult = gulp.src(["test/" + exampleNameTS, 'test/helper.ts'])
                         .pipe(sourcemaps.init())
                         .pipe(ts(projects[exampleName]));
         return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('compiled/test'));
     });
 
     gulp.task('test-' + exampleName, ['compile-' + exampleName], function() {
-        return gulp.src(['compiled/test/' + exampleNameJS], { read: false })
+        return gulp.src(['compiled/test/' + exampleNameJS, 'compiled/test/helper.js'], { read: false })
             .pipe(mocha({ reporter: 'list' }));
     });
 

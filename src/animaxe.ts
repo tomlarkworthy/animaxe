@@ -627,14 +627,14 @@ function drawBigExplosion(): Animation {return null;}
 
 //What do we want it to look like
 
-
 //todo
 // INVEST IN BUILD AND TESTING
-
-// fix then
-// test case shows time is reset
-// emitter
+// refactor examples
+// website
+// jsFiddle
 // rand normal
+// glow
+// L systems (fold?)
 
 
 // animator.play(

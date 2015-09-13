@@ -80,21 +80,5 @@ animator.play(
         )
     );
 
-try {
-    //browser
-    var time;
-    var render = function() {
-        window.requestAnimationFrame(render);
-        var now = new Date().getTime(),
-            dt = now - (time || now);
-        time = now;
-        animator.root.onNext(new Ax.DrawTick(animator.ctx, 0, dt/1000));
-    };
-    render();
-} catch(err) {
-    //node.js
-    animator.play(Ax.save(100, 100, "images/tutorial2.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(20));
-}
+helper.playExample("example3", 10, animator);
 
-helper.playExample("example2", 20, animator);

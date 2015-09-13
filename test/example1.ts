@@ -1,26 +1,14 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
-/// <reference path="../types/node.d.ts" />
 /// <reference path="../types/should.d.ts" />
+/// <reference path="../types/node.d.ts" />
 require('source-map-support').install();
 import Ax = require("../src/animaxe");
 import Rx = require("rx");
 
-//create an animator, at 30FPS
-try {
-    var canvas:any = document.getElementById("canvas");
-    console.log("browser", canvas);
-} catch (err) {
-    console.log(err);
-    var Canvas = require('canvas');
-    var canvas = new Canvas(100, 100);
-    console.log("node", canvas);
-}
-
-console.log("context", context);
-var context: CanvasRenderingContext2D = canvas.getContext('2d');
+import helper = require("./helper");
 
 
-var animator: Ax.Animator = new Ax.Animator(context); /*should be based on context*/
+var animator: Ax.Animator = helper.getExampleAnimator();
 
 
 //2 frame animated glow
@@ -76,3 +64,5 @@ try {
     animator.play(Ax.save(100, 100, "images/tutorial1.gif"));
     animator.ticker(Rx.Observable.return(0.1).repeat(20));
 }
+
+helper.playExample("example1", 10, animator);
