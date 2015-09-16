@@ -80,24 +80,36 @@ export type PointStream = Parameter<Point>;
 export type ColorStream = Parameter<string>;
 export type DrawStream = Rx.Observable<DrawTick>;
 
-export class Fixed<T> extends Parameter<T> {
-    constructor(public val: T) {
-        super(
-            function(){
-                return this.val;
+export function fixed<T>(val: T | Parameter<T>): Parameter<T> {
+    if (typeof (<any>val).next === 'function') {
+        var generate = true;
+        // we were passed in a Parameter object
+        return new Parameter<T>(
+            function(clock: number) {
+                if (generate) {
+                    generate = false;
+                    val = (<Parameter<T>>val).next(clock);
+                }
+                return <T>val;
+            }
+        );
+    } else {
+        return new Parameter<T>(
+            function(clock: number) {
+                return <T>val;
             }
         );
     }
 }
 
 export function toStreamNumber(x: number | NumberStream): NumberStream {
-    return typeof x === 'number' ? new Fixed(x): x;
+    return typeof x === 'number' ? fixed(x): x;
 }
 export function toStreamPoint(x: Point | PointStream): PointStream {
-    return <PointStream> (typeof (<any>x).next === 'function' ? x: new Fixed(x));
+    return <PointStream> (typeof (<any>x).next === 'function' ? x: fixed(x));
 }
 export function toStreamColor(x: string | ColorStream): ColorStream {
-    return <ColorStream> (typeof (<any>x).next === 'function' ? x: new Fixed(x));
+    return <ColorStream> (typeof (<any>x).next === 'function' ? x: fixed(x));
 }
 
 export class Animation {
@@ -140,7 +152,7 @@ export class Animation {
                     },
                     observer.onError.bind(observer),
                     function(){
-                        if (DEBUG_THEN) console.log("then: first complete", t);
+                        if (DEBUG_THEN) console.log("then: first complete");
                         firstTurn = false;
 
                         secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
@@ -662,48 +674,14 @@ export function save(width:number, height:number, path: string): Animation {
     });
 }
 
+// TODO
 
-//we will draw
-// EXPLODING SHIP
-//1. n pieces of debris flying outwards (linear movement in time of Debris from 50,50 to rnd, rnd, at velocity v)
-//2. explosion of debris (last position of debris spawns explosion
-//3. large explosion at center (50,50) at end of linear movement
-var CENTRE = point(50,50);
-var TL = point(50,50);
-var BR = point(50,50);
-var t: number = 0;
-var n: number = 0;
-
-var gaussian: NumberStream;
-var splatter: number | NumberStream = scale_x(3, gaussian);
-
-function drawDebris(): Animation {return null;}
-function drawExplosion(): Animation {return null;}
-function drawBigExplosion(): Animation {return null;}
-
-//What do we want it to look like
-
-//todo
-// INVEST IN BUILD AND TESTING
-// refactor examples
+// replace parrallel with its own animator
 // website
 // jsFiddle
 // rand normal
 // glow
 // L systems (fold?)
-
-
-// animator.play(
-//    //clone is a parrallel execution the same animation
-//    parallel([clone(n, linear_tween(/*fixed point*/CENTRE,
-//                   /*generative point*/ point(splatter, splatter),
-//                   /*time*/ t,
-//                   /*draw fn for tween*/ storeTx("X", drawDebris()))
-//                .then(loadTx("X", drawExplosion())) //after the tween completes draw the explosion
-//              ),
-//              take(/*fixed value*/ t).then(drawBigExplosion())
-//             ])
-//);
 
 
 // IDEAS

@@ -32,7 +32,7 @@ animator.play(
                 Ax.move(
                     [50, 50],
                     Ax.velocity(
-                        Ax.rndNormal(50),
+                        Ax.fixed(Ax.rndNormal(50)),
                         premSpark(Ax.color(red,green,blue,0.5))
                     )
                 )

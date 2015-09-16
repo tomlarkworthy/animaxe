@@ -25,10 +25,7 @@ export declare type NumberStream = Parameter<number>;
 export declare type PointStream = Parameter<Point>;
 export declare type ColorStream = Parameter<string>;
 export declare type DrawStream = Rx.Observable<DrawTick>;
-export declare class Fixed<T> extends Parameter<T> {
-    val: T;
-    constructor(val: T);
-}
+export declare function fixed<T>(val: T | Parameter<T>): Parameter<T>;
 export declare function toStreamNumber(x: number | NumberStream): NumberStream;
 export declare function toStreamPoint(x: Point | PointStream): PointStream;
 export declare function toStreamColor(x: string | ColorStream): ColorStream;
@@ -73,6 +70,8 @@ export declare function cos(period: number | NumberStream): NumberStream;
  * plays several animations, finishes when they are all done.
  * @param animations
  * @returns {Animation}
+ * todo: I think there are lots of bugs when an animation stops part way
+ * I think it be better if this spawned its own Animator to handle ctx restores
  */
 export declare function parallel(animations: Rx.Observable<Animation>): Animation;
 export declare function clone(n: number, animation: Animation): Animation;
