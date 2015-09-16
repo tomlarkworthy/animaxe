@@ -217,7 +217,7 @@ export class Animator {
                 console.log("animator: ctx next restore");
                 tick.ctx.restore();
             },function(err){
-                console.log("animator: ctx err restore");
+                console.log("animator: ctx err restore", err);
                 self.ctx.restore();
             },function(){
                 self.ctx.restore();
@@ -276,6 +276,25 @@ export function color(
 export function rnd(): NumberStream {
     return new Parameter(function (t) {
             return Math.random();
+        }
+    );
+}
+
+export function rndNormal(scale : NumberStream | number = 1): PointStream {
+    var scale_ = toStreamNumber(scale);
+    return new Parameter<Point>(function (t: number): Point {
+            var scale = scale_.next(t);
+            // generate random numbers
+            var norm2 = 100;
+            while (norm2 > 1) { //reject those outside the unit circle
+                var x = (Math.random() - 0.5) * 2;
+                var y = (Math.random() - 0.5) * 2;
+                norm2 = x * x + y * y;
+            }
+
+            var norm = Math.sqrt(norm2);
+
+            return [scale * x / norm , scale * y / norm];
         }
     );
 }
@@ -363,16 +382,52 @@ function loadTx(
 ): Animation
 { return null;}
 
-function clone(
-    n: number | NumberStream,
-    animation: Animation /* copies */
+/**
+ * plays several animations, finishes when they are all done.
+ * @param animations
+ * @returns {Animation}
+ * todo: I think there are lots of bugs when an animation stops part way
+ * I think it be better if this spawned its own Animator to handle ctx restores
+ */
+export function parallel(
+    animations: Rx.Observable<Animation>
 ): Animation
-{ return null;}
+{
+    return new Animation(function (prev: DrawStream): DrawStream {
+        if (DEBUG_EMIT) console.log("parallel: initializing");
 
-function parallel( //rename layer?
-    animation: Animation[]
-): Animation
-{ return null;}
+        var activeAnimations = 0;
+        var attachPoint = new Rx.Subject<DrawTick>();
+
+        function decrementActive() {
+            if (DEBUG_EMIT) console.log("parallel: decrement active");
+            activeAnimations --;
+        }
+
+        animations.forEach(function(animation: Animation) {
+            activeAnimations++;
+            animation.attach(attachPoint.tapOnNext(tick => tick.ctx.save())).subscribe(
+                    tick => tick.ctx.restore(),
+                decrementActive,
+                decrementActive)
+        });
+
+        return prev.takeWhile(() => activeAnimations > 0).tapOnNext(function(tick: DrawTick) {
+                if (DEBUG_EMIT) console.log("parallel: emitting, animations", tick);
+                attachPoint.onNext(tick);
+                if (DEBUG_EMIT) console.log("parallel: emitting finished");
+            }
+        );
+    });
+}
+
+export function clone(
+    n: number,
+    animation: Animation
+): Animation {
+    return parallel(Rx.Observable.return(animation).repeat(n));
+}
+
 
 function sequence(
     animation: Animation[]
@@ -399,6 +454,7 @@ export function emit(
         );
     });
 }
+
 
 /**
  * When the child loop finishes, it is spawned

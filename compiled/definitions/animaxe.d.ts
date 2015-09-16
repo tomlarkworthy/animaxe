@@ -57,6 +57,7 @@ export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
 export declare function color(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
 export declare function rnd(): NumberStream;
+export declare function rndNormal(scale?: NumberStream | number): PointStream;
 /**
  * NOTE: currently fails if the streams are different lengths
  * @param assertDt the expected clock tick values
@@ -68,6 +69,13 @@ export declare function assertClock(assertClock: number[], after?: Animation): A
 export declare function displaceT<T>(displacement: number | Parameter<number>, value: Parameter<T>): Parameter<T>;
 export declare function sin(period: number | Parameter<number>): Parameter<number>;
 export declare function cos(period: number | NumberStream): NumberStream;
+/**
+ * plays several animations, finishes when they are all done.
+ * @param animations
+ * @returns {Animation}
+ */
+export declare function parallel(animations: Rx.Observable<Animation>): Animation;
+export declare function clone(n: number, animation: Animation): Animation;
 /**
  * The child animation is started every frame
  * @param animation
