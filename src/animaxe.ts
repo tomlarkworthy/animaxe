@@ -17,19 +17,20 @@ function stackTrace() {
 }
 
 export class Parameter<Value> {
-    // tried immutable.js but it only supports 2 dimensionable iterables
-    constructor(next: (t: number) => Value) {
-        this.next = next;
+    constructor(init: () => ((t: number) => Value)) {
+        this.init = init;
     }
 
-    next(t: number): Value {throw new Error('This method is abstract');}
+    init(): (clock: number) => Value {throw new Error('This method is abstract');}
 
     map<V>(fn: (Value) => V): Parameter<V> {
         var base = this;
         return new Parameter(
-            function(t: number): V {
-                //console.log("Iterable: next");
-                return fn(base.next(t));
+            () => {
+                var base_next = base.init();
+                return function(t) {
+                    return fn(base_next(t));
+                }
             }
         );
     }
@@ -39,77 +40,50 @@ export class Parameter<Value> {
     }
 }
 
-export class ParameterStateful<State, Value> extends Parameter<Value>{
-
-    state: State;
-    private tick: (t: number, state: State) => State;
-    // tried immutable.js but it only supports 2 dimension iterables
-    constructor(
-        initial: State,
-        predecessors: Parameter<any>[],
-        tick: (t: number, state: State) => State,
-        value: (state: State) => Value) {
-
-        super(
-            function () {
-                return value(this.state);
-            }
-        );
-        this.state = initial;
-        this.tick  = tick;
-    }
-
-
-    /**
-     * TODO, we could map state here maybe
-    map<V>(fn: (Value) => V): IterableStateful<any, V> {
-        var base = this;
-        return new IterableStateful(
-            null,
-            [base],
-            function() {},
-            function(): V {
-                return fn(base.next());
-            }
-        );
-    }**/
-}
-
 export type NumberStream = Parameter<number>;
 export type PointStream = Parameter<Point>;
 export type ColorStream = Parameter<string>;
 export type DrawStream = Rx.Observable<DrawTick>;
 
 export function fixed<T>(val: T | Parameter<T>): Parameter<T> {
-    if (typeof (<any>val).next === 'function') {
-        var generate = true;
+    if (typeof (<any>val).init === 'function') {
         // we were passed in a Parameter object
         return new Parameter<T>(
-            function(clock: number) {
-                if (generate) {
-                    generate = false;
-                    val = (<Parameter<T>>val).next(clock);
+            () => {
+                var generate = true;
+                var next = (<Parameter<T>>val).init();
+                var value: T = null;
+                return function (clock: number) {
+                    if (generate) {
+                        generate = false;
+                        value = next(clock);
+                    }
+                    console.log("fixed: val from parameter", value);
+                    return value;
                 }
-                return <T>val;
             }
+
         );
     } else {
         return new Parameter<T>(
-            function(clock: number) {
-                return <T>val;
+            () => {
+                return function (clock: number) {
+                    console.log("fixed: val from constant", val);
+                    return <T>val;
+                }
             }
         );
     }
 }
 
 export function toStreamNumber(x: number | NumberStream): NumberStream {
-    return typeof x === 'number' ? fixed(x): x;
+    return <NumberStream> (typeof (<any>x).init === 'function' ? x: fixed(x));
 }
 export function toStreamPoint(x: Point | PointStream): PointStream {
-    return <PointStream> (typeof (<any>x).next === 'function' ? x: fixed(x));
+    return <PointStream> (typeof (<any>x).init === 'function' ? x: fixed(x));
 }
 export function toStreamColor(x: string | ColorStream): ColorStream {
-    return <ColorStream> (typeof (<any>x).next === 'function' ? x: fixed(x));
+    return <ColorStream> (typeof (<any>x).init === 'function' ? x: fixed(x));
 }
 
 export class Animation {
@@ -251,10 +225,14 @@ export function point(
 
     //console.log("point: init", x_stream, y_stream);
     return new Parameter(
-        function(t: number) {
-            var result: [number, number] = [x_stream.next(t), y_stream.next(t)];
-            //console.log("point: next", result);
-            return result;
+        () => {
+            var x_next = x_stream.init();
+            var y_next = y_stream.init();
+            return function(t: number) {
+                var result: [number, number] = [x_next(t), y_next(t)];
+                //console.log("point: next", result);
+                return result;
+            }
         }
     );
 }
@@ -275,18 +253,27 @@ export function color(
     var b_stream = toStreamNumber(b);
     var a_stream = toStreamNumber(a);
     return new Parameter(
-        function(t: number) {
-            var r = Math.floor(r_stream.next(t));
-            var g = Math.floor(g_stream.next(t));
-            var b = Math.floor(b_stream.next(t));
-            var a = Math.floor(a_stream.next(t));
-            return "rgb(" + r + "," + g + "," + b + ")";
+        () => {
+            var r_next = r_stream.init();
+            var g_next = g_stream.init();
+            var b_next = b_stream.init();
+            var a_next = a_stream.init();
+            return function(t: number) {
+                var r_val = Math.floor(r_next(t));
+                var g_val = Math.floor(g_next(t));
+                var b_val = Math.floor(b_next(t));
+                var a_val = a_next(t);
+                var val = "rgba(" + r_val + "," + g_val + "," + b_val + "," + a_val + ")";
+                console.log("color: ", val);
+                return val;
+            }
         }
     );
 }
 
 export function rnd(): NumberStream {
-    return new Parameter(function (t) {
+    return new Parameter(
+        () => function (t) {
             return Math.random();
         }
     );
@@ -294,19 +281,25 @@ export function rnd(): NumberStream {
 
 export function rndNormal(scale : NumberStream | number = 1): PointStream {
     var scale_ = toStreamNumber(scale);
-    return new Parameter<Point>(function (t: number): Point {
-            var scale = scale_.next(t);
-            // generate random numbers
-            var norm2 = 100;
-            while (norm2 > 1) { //reject those outside the unit circle
-                var x = (Math.random() - 0.5) * 2;
-                var y = (Math.random() - 0.5) * 2;
-                norm2 = x * x + y * y;
+    return new Parameter<Point>(
+        () => {
+            console.log("rndNormal: init");
+            var scale_next = scale_.init();
+            return function (t: number): Point {
+                var scale = scale_next(t);
+                // generate random numbers
+                var norm2 = 100;
+                while (norm2 > 1) { //reject those outside the unit circle
+                    var x = (Math.random() - 0.5) * 2;
+                    var y = (Math.random() - 0.5) * 2;
+                    norm2 = x * x + y * y;
+                }
+
+                var norm = Math.sqrt(norm2);
+                var val: [number, number] = [scale * x / norm , scale * y / norm];
+                console.log("rndNormal: val", val);
+                return val;
             }
-
-            var norm = Math.sqrt(norm2);
-
-            return [scale * x / norm , scale * y / norm];
         }
     );
 }
@@ -347,33 +340,46 @@ export function assertClock(assertClock: number[], after?: Animation): Animation
 export function displaceT<T>(displacement: number | Parameter<number>, value: Parameter<T>): Parameter<T> {
     var deltat: Parameter<number> = toStreamNumber(displacement);
     return new Parameter<T> (
-        function (t) {
-            var dt = deltat.next(t);
-            console.log("displaceT: ", dt)
-            return value.next(t + dt)
-        });
+        () => {
+            var dt_next = deltat.init();
+            var value_next = value.init();
+            return function (t) {
+                var dt = dt_next(t);
+                console.log("displaceT: ", dt)
+                return value_next(t + dt)
+            }
+        }
+    )
 }
 
-//todo: shoudl be t
+//todo: should be t as a parameter to a non tempor
 export function sin(period: number| Parameter<number>): Parameter<number> {
     console.log("sin: new");
     var period_stream = toStreamNumber(period);
-
-    return new Parameter(function (t: number) {
-        var value = Math.sin(t * (Math.PI * 2) / period_stream.next(t));
-        console.log("sin: tick", t, value);
-        return value;
-    });
+    return new Parameter(
+        () => {
+            var period_next = period_stream.init();
+            return function (t: number) {
+                var value = Math.sin(t * (Math.PI * 2) / period_next(t));
+                console.log("sin: tick", t, value);
+                return value;
+            }
+        }
+    );
 }
-export function cos(period: number| NumberStream): NumberStream {
-    //console.log("cos: new");
+export function cos(period: number| Parameter<number>): Parameter<number> {
+    console.log("cos: new");
     var period_stream = toStreamNumber(period);
-
-    return new Parameter(function (t: number) {
-        var value = Math.cos(t * (Math.PI * 2) / period_stream.next(t));
-        console.log("cos: tick", t, value);
-        return value;
-    });
+    return new Parameter(
+        () => {
+            var period_next = period_stream.init();
+            return function (t: number) {
+                var value = Math.cos(t * (Math.PI * 2) / period_next(t));
+                console.log("cos: tick", t, value);
+                return value;
+            }
+        }
+    );
 }
 
 function scale_x(
@@ -537,12 +543,13 @@ export function loop(
 }
 
 export function draw(
-    fn: (tick: DrawTick) => void,
+    initDraw: () => ((tick: DrawTick) => void),
     animation?: Animation
 ): Animation
 {
     return new Animation(function (previous: DrawStream): DrawStream {
-        return previous.tapOnNext(fn);
+        var draw: (tick: DrawTick) => void = initDraw();
+        return previous.tapOnNext(draw);
     }, animation);
 }
 
@@ -552,30 +559,50 @@ export function move(
 ): Animation {
     console.log("move: attached");
     var pointStream: PointStream = toStreamPoint(delta);
-    return draw(function(tick) {
-        var point = pointStream.next(tick.clock);
-        console.log("move:", point);
-        if (tick)
-            tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
-        return tick;
-    }, animation);
+    return draw(
+        () => {
+            var point_next = pointStream.init();
+            return function(tick) {
+                var point = point_next(tick.clock);
+                console.log("move:", point);
+                if (tick)
+                    tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
+                return tick;
+            }
+        }
+    , animation);
 }
+
+export function composite(
+    composite_mode: string,
+    animation?: Animation
+): Animation {
+    return draw(
+        () => {
+            return function(tick) {
+                tick.ctx.globalCompositeOperation = composite_mode;
+            }
+        }
+    , animation);
+}
+
 
 export function velocity(
     velocity: Point | PointStream,
     animation?: Animation
 ): Animation {
     var velocityStream: PointStream = toStreamPoint(velocity);
-    return new Animation(function(prev: DrawStream): DrawStream {
-        var pos: Point = [0.0,0.0];
-        return prev.map(function(tick) {
-            var velocity = velocityStream.next(tick.clock);
-            pos[0] += velocity[0] * tick.dt;
-            pos[1] += velocity[1] * tick.dt;
-            tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
-            return tick;
-        });
-    }, animation);
+    return draw(
+        () => {
+            var pos: Point = [0.0,0.0];
+            var velocity_next = velocityStream.init();
+            return function(tick) {
+                var velocity = velocity_next(tick.clock);
+                tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
+                pos[0] += velocity[0] * tick.dt;
+                pos[1] += velocity[1] * tick.dt;
+            }
+        }, animation);
 }
 
 export function tween_linear(
@@ -591,10 +618,12 @@ export function tween_linear(
 
     return new Animation(function(prev: DrawStream): DrawStream {
         var t = 0;
+        var from_next = from_stream.init();
+        var to_next = to_stream.init();
         return prev.map(function(tick: DrawTick) {
             console.log("tween: inner");
-            var from = from_stream.next(tick.clock);
-            var to   = to_stream.next(tick.clock);
+            var from = from_next(tick.clock);
+            var to   = to_next(tick.clock);
 
             t = t + tick.dt;
             if (t > time) t = time;
@@ -611,18 +640,24 @@ export function rect(
     p2: Point, //todo dynamic params instead
     animation?: Animation
 ): Animation {
-    return draw(function (tick: DrawTick) {
-        console.log("rect: fillRect");
-        tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
-    }, animation);
+    return draw(
+        () => {
+            return function (tick: DrawTick) {
+                console.log("rect: fillRect");
+                tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
+            }
+        }, animation);
 }
 export function changeColor(
     color: string, //todo
     animation?: Animation
 ): Animation {
-    return draw(function (tick: DrawTick) {
-        tick.ctx.fillStyle = color;
-    }, animation);
+    return draw(
+        () => {
+            return function (tick: DrawTick) {
+                tick.ctx.fillStyle = color;
+            }
+        }, animation);
 }
 
 function map(
@@ -677,6 +712,7 @@ export function save(width:number, height:number, path: string): Animation {
 // TODO
 
 // Parameters need initialization lifecycle too
+// backup tutorial1 =>
 // replace parralel with its own internal animator
 // website
 // jsFiddle

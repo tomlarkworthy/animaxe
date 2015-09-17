@@ -11,15 +11,10 @@ export declare class DrawTick {
     constructor(ctx: CanvasRenderingContext2D, clock: number, dt: number);
 }
 export declare class Parameter<Value> {
-    constructor(next: (t: number) => Value);
-    next(t: number): Value;
+    constructor(init: () => ((t: number) => Value));
+    init(): (clock: number) => Value;
     map<V>(fn: (Value) => V): Parameter<V>;
     clone(): Parameter<Value>;
-}
-export declare class ParameterStateful<State, Value> extends Parameter<Value> {
-    state: State;
-    private tick;
-    constructor(initial: State, predecessors: Parameter<any>[], tick: (t: number, state: State) => State, value: (state: State) => Value);
 }
 export declare type NumberStream = Parameter<number>;
 export declare type PointStream = Parameter<Point>;
@@ -65,7 +60,7 @@ export declare function assertDt(expectedDt: Rx.Observable<number>, after?: Anim
 export declare function assertClock(assertClock: number[], after?: Animation): Animation;
 export declare function displaceT<T>(displacement: number | Parameter<number>, value: Parameter<T>): Parameter<T>;
 export declare function sin(period: number | Parameter<number>): Parameter<number>;
-export declare function cos(period: number | NumberStream): NumberStream;
+export declare function cos(period: number | Parameter<number>): Parameter<number>;
 /**
  * plays several animations, finishes when they are all done.
  * @param animations
@@ -86,8 +81,9 @@ export declare function emit(animation: Animation): Animation;
  * @returns {Animation}
  */
 export declare function loop(animation: Animation): Animation;
-export declare function draw(fn: (tick: DrawTick) => void, animation?: Animation): Animation;
+export declare function draw(initDraw: () => ((tick: DrawTick) => void), animation?: Animation): Animation;
 export declare function move(delta: Point | PointStream, animation?: Animation): Animation;
+export declare function composite(composite_mode: string, animation?: Animation): Animation;
 export declare function velocity(velocity: Point | PointStream, animation?: Animation): Animation;
 export declare function tween_linear(from: Point | PointStream, to: Point | PointStream, time: number, animation: Animation): Animation;
 export declare function rect(p1: Point, p2: Point, animation?: Animation): Animation;

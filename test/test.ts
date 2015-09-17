@@ -1,7 +1,7 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
-/// <reference path="../types/should.d.ts" /> 
+/// <reference path="../types/should.d.ts" />
 require('source-map-support').install();
 require("should");
 

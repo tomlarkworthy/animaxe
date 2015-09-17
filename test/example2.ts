@@ -1,10 +1,12 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
 /// <reference path="../types/should.d.ts" />
+/// <reference path="../types/mocha.d.ts" />
 require('source-map-support').install();
 import Ax = require("../src/animaxe");
 import Rx = require("rx");
 import helper = require("./helper");
+require("should");
 
 
 var animator: Ax.Animator = helper.getExampleAnimator();
@@ -18,19 +20,26 @@ function thickLine1tick(
 : Ax.Animation {
     //console.log("thickLine1tick: ", thickness, start, end, css_color);
     var css = Ax.toStreamColor(css_color);
-    return Ax.take(1, Ax.draw(function(tick: Ax.DrawTick) {
-        tick.ctx.strokeStyle = css.next(tick.clock);
-        tick.ctx.beginPath();
-        var startVal = start.next(tick.clock);
-        var endVal = end.next(tick.clock);
-        var ctx = tick.ctx;
-        ctx.lineWidth = thickness;
-        //console.log("thickLine1tick: drawing between ", tick.clock, startVal, endVal);
-        ctx.moveTo(startVal[0], startVal[1]);
-        ctx.lineTo(endVal[0], endVal[1]);
-        ctx.closePath();
-        ctx.stroke();
-    }));
+    return Ax.take(1, Ax.draw(
+        () => {
+            var css_next = css.init();
+            var start_next = start.init();
+            var end_next = end.init();
+            return function(tick: Ax.DrawTick) {
+                tick.ctx.strokeStyle = css_next(tick.clock);
+                tick.ctx.beginPath();
+                var startVal = start_next(tick.clock);
+                var endVal = end_next(tick.clock);
+                var ctx = tick.ctx;
+                ctx.lineWidth = thickness;
+                //console.log("thickLine1tick: drawing between ", tick.clock, startVal, endVal);
+                ctx.moveTo(startVal[0], startVal[1]);
+                ctx.lineTo(endVal[0], endVal[1]);
+                ctx.closePath();
+                ctx.stroke();
+            }
+        }
+    ));
 }
 
 /**
@@ -80,21 +89,14 @@ animator.play(
         )
     );
 
-try {
-    //browser
-    var time;
-    var render = function() {
-        window.requestAnimationFrame(render);
-        var now = new Date().getTime(),
-            dt = now - (time || now);
-        time = now;
-        animator.root.onNext(new Ax.DrawTick(animator.ctx, 0, dt/1000));
-    };
-    render();
-} catch(err) {
-    //node.js
-    animator.play(Ax.save(100, 100, "images/tutorial2.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(20));
-}
-
 helper.playExample("example2", 20, animator);
+
+describe('example2', function () {
+    it ('should match the reference', function(done) {
+        helper.sameExample("example2", "ref2", function(same) {
+            console.log("example 2 equals result", same);
+            same.should.equal(true);
+            done();
+        })
+    });
+});
