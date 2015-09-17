@@ -676,7 +676,8 @@ export function save(width:number, height:number, path: string): Animation {
 
 // TODO
 
-// replace parrallel with its own animator
+// Parameters need initialization lifecycle too
+// replace parralel with its own internal animator
 // website
 // jsFiddle
 // rand normal
