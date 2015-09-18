@@ -78,7 +78,7 @@ animator.play(tween_linear([50,50], point(bigSin, bigCos), 1, loop(spark("red"))
 
 Animations are anything that has a temporal lifecycle. There is one to save the screen into an animated gif.
 ```
-animator.play(save(100, 100, "tutorial1.gif"));
+animator.play(save(100, 100, "example1.gif"));
 ```
 
 Finally an RxJS stream is used to drive the animators time ticker. The numbers represent the time (in seconds) between frames.
@@ -89,7 +89,7 @@ animator.ticker(Rx.Observable.return(0.1).repeat(20));
 
 Voila, the result:
 
-  ![alt text](../master/images/tutorial1.gif?raw=true "images/tutorial1.gif")
+  ![alt text](../master/images/example1.gif?raw=true "images/example1.gif")
 
 
 If we are in a browser environment the delta time stream is useful for rendering as fast as possible! Temporal push streams like sin, or temporal animations like velocity use the time delta to produce framerate independant renderings.

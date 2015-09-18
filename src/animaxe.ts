@@ -721,6 +721,7 @@ export function save(width:number, height:number, path: string): Animation {
 // todo BUG TODO LIST
 
 // replace parralel with its own internal animator
+// fix tests
 // website
 // jsFiddle
 // glow

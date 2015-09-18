@@ -36,7 +36,6 @@ animator.play(
         Ax.clone(
                 500,
                 Ax.move(
-                    //Ax.fixed(Ax.point(Ax.rnd().map(x => x * 5 + 48), Ax.rnd().map(x => x * 5 + 48))),
                     [50, 50],
                     Ax.velocity(
                         Ax.fixed(Ax.rndNormal(50)),
@@ -50,7 +49,7 @@ animator.play(
                         ))
                     )
                 )
-        );
+        )
 );
 
 helper.playExample("example3", 15, animator);
