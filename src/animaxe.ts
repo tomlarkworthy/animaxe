@@ -40,6 +40,7 @@ export class Parameter<Value> {
     }
 }
 
+// todo remove these
 export type NumberStream = Parameter<number>;
 export type PointStream = Parameter<Point>;
 export type ColorStream = Parameter<string>;
@@ -271,6 +272,14 @@ export function color(
     );
 }
 
+export function t(): NumberStream {
+    return new Parameter(
+        () => function (t) {
+            return t;
+        }
+    );
+}
+
 export function rnd(): NumberStream {
     return new Parameter(
         () => function (t) {
@@ -408,7 +417,7 @@ function loadTx(
  * I think it be better if this spawned its own Animator to handle ctx restores
  */
 export function parallel(
-    animations: Rx.Observable<Animation>
+    animations: Rx.Observable<Animation> | Animation[]
 ): Animation
 {
     return new Animation(function (prev: DrawStream): DrawStream {
@@ -709,14 +718,11 @@ export function save(width:number, height:number, path: string): Animation {
     });
 }
 
-// TODO
+// todo BUG TODO LIST
 
-// Parameters need initialization lifecycle too
-// backup tutorial1 =>
 // replace parralel with its own internal animator
 // website
 // jsFiddle
-// rand normal
 // glow
 // L systems (fold?)
 

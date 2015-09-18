@@ -11,12 +11,12 @@ require("should");
 var animator: Ax.Animator = helper.getExampleAnimator();
 
 
-//periodic color
+//fixed color, but we will fiddle with the alpha
 var red   = 255;
 var green = 50;
 var blue = 50;
 
-function permDot(css_color: string | Ax.ColorStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
+function permDot(size: number, css_color: string | Ax.ColorStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
     var css = Ax.toStreamColor(css_color);
     return Ax.draw(
         () => {
@@ -25,7 +25,7 @@ function permDot(css_color: string | Ax.ColorStream): Ax.Animation { //we could 
                 console.log("permDot: tick", css_next(tick.clock));
                 tick.ctx.fillStyle = css_next(tick.clock);
                 // tick.ctx.fillRect(0,0,1,1);
-                tick.ctx.fillRect(-1,-1,3,3);
+                tick.ctx.fillRect(-size/2, -size/2, size, size);
             }
         });
 }
@@ -40,11 +40,17 @@ animator.play(
                     [50, 50],
                     Ax.velocity(
                         Ax.fixed(Ax.rndNormal(50)),
-                        Ax.composite("lighter", permDot(Ax.color(red,green,blue,0.1))) // 0.2 is very transparent
-                        //permDot(Ax.color(red,green,blue,0.9)) // 0.2 is very transparent
+                        Ax.composite("lighter",
+                            Ax.parallel(
+                                [
+                                    permDot(1, Ax.color(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1)))),
+                                    permDot(5, Ax.color(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1))))
+                                ]
+                            )
+                        ))
                     )
                 )
-        )
+        );
 );
 
 helper.playExample("example3", 15, animator);

@@ -48,6 +48,7 @@ export declare class Animator {
 export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
 export declare function color(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
+export declare function t(): NumberStream;
 export declare function rnd(): NumberStream;
 export declare function rndNormal(scale?: NumberStream | number): PointStream;
 /**
@@ -68,7 +69,7 @@ export declare function cos(period: number | Parameter<number>): Parameter<numbe
  * todo: I think there are lots of bugs when an animation stops part way
  * I think it be better if this spawned its own Animator to handle ctx restores
  */
-export declare function parallel(animations: Rx.Observable<Animation>): Animation;
+export declare function parallel(animations: Rx.Observable<Animation> | Animation[]): Animation;
 export declare function clone(n: number, animation: Animation): Animation;
 /**
  * The child animation is started every frame
