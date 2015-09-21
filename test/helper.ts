@@ -5,7 +5,7 @@ require('source-map-support').install();
 import Ax = require("../src/animaxe");
 import Rx = require("rx");
 
-export function getExampleAnimator(): Ax.Animator {
+export function getExampleAnimator(width: number = 100, height: number = 100): Ax.Animator {
     try {
         // In a browser environment, find a canvas
         var canvas:any = document.getElementById("canvas");
@@ -14,7 +14,7 @@ export function getExampleAnimator(): Ax.Animator {
         // in a node.js environment, load a fake canvas
         console.log(err);
         var Canvas = require('canvas');
-        var canvas = new Canvas(100, 100);
+        var canvas = new Canvas(width, height);
         console.log("node", canvas);
     }
 
@@ -22,7 +22,7 @@ export function getExampleAnimator(): Ax.Animator {
     return new Ax.Animator(context);
 }
 
-export function playExample(name: string, frames: number, animator: Ax.Animator) {
+export function playExample(name: string, frames: number, animator: Ax.Animator, width ?: number, height ?: number) {
     try {
         //browser
         var time;
@@ -36,7 +36,7 @@ export function playExample(name: string, frames: number, animator: Ax.Animator)
         render();
     } catch(err) {
         //node.js
-        animator.play(Ax.save(100, 100, "images/" + name + ".gif"));
+        animator.play(Ax.save(width, height, "images/" + name + ".gif"));
         animator.ticker(Rx.Observable.return(0.1).repeat(frames));
     }
 }

@@ -47,7 +47,8 @@ export declare class Animator {
 }
 export declare type Point = [number, number];
 export declare function point(x: number | NumberStream, y: number | NumberStream): PointStream;
-export declare function color(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
+export declare function rgba(r: number | NumberStream, g: number | NumberStream, b: number | NumberStream, a: number | NumberStream): ColorStream;
+export declare function hsl(h: number | NumberStream, s: number | NumberStream, l: number | NumberStream): ColorStream;
 export declare function t(): NumberStream;
 export declare function rnd(): NumberStream;
 export declare function rndNormal(scale?: NumberStream | number): PointStream;
@@ -89,5 +90,6 @@ export declare function velocity(velocity: Point | PointStream, animation?: Anim
 export declare function tween_linear(from: Point | PointStream, to: Point | PointStream, time: number, animation: Animation): Animation;
 export declare function rect(p1: Point, p2: Point, animation?: Animation): Animation;
 export declare function changeColor(color: string, animation?: Animation): Animation;
+export declare function glow(decay?: number, after?: Animation): Animation;
 export declare function take(iterations: number, animation?: Animation): Animation;
 export declare function save(width: number, height: number, path: string): Animation;

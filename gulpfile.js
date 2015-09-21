@@ -7,7 +7,7 @@ var browserify = require('browserify');
 var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 
-var num_examples = 3;
+var num_examples = 4;
 
 gulp.task('browserify', function () {
   var browserified = transform(function(filename) {
