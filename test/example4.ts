@@ -31,19 +31,22 @@ function permDot(size: number, css_color: string | Ax.ColorStream, after: Ax.Ani
     );
 }
 
+var bigSin = Ax.sin(2).map(x => Math.round(x * 40 + 50));
+var bigCos = Ax.cos(2).map(x => Math.round(x * 40 + 50));
+var fastCos = Ax.cos(1).map(x => Math.round(x * 38 + 50));
+var fastSin = Ax.sin(1).map(x => Math.round(x * 38 + 50));
 
 animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
 animator.play(
     Ax.parallel([
-        Ax.move([25, 60], permDot(1, Ax.hsl(120, 50, 30))),
-        Ax.move([75, 25], permDot(1, Ax.hsl(120, 100, 75))),
-        Ax.move([25, 75], permDot(5, Ax.hsl(240, 80, 50))),
-        Ax.move([75, 75], permDot(1, Ax.hsl(120, 10, 25)))
+        Ax.move(Ax.point(fastCos, fastSin), permDot(1, Ax.hsl(120, 20, 10))),
+        Ax.move(Ax.point(bigCos, bigSin), permDot(1, Ax.hsl(240, 20, 30))),
+        Ax.move(Ax.point(bigSin, bigCos), permDot(1, Ax.hsl(60, 20, 25)))
     ])
 );
 animator.play(Ax.glow(0.01));
 
-helper.playExample("example4", 1, animator, 100, 100);
+helper.playExample("example4", 20, animator, 100, 100);
 
 describe('example4', function () {
     it ('should match the reference', function(done) {

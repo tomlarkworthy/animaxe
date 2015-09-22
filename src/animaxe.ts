@@ -7,6 +7,8 @@ export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
 export var DEBUG_EMIT = true;
 
+var husl = require("husl");
+
 export class DrawTick {
     constructor (public ctx: CanvasRenderingContext2D, public clock: number, public dt: number) {}
 }
@@ -66,7 +68,7 @@ export function fixed<T>(val: T | Parameter<T>): Parameter<T> {
                         generate = false;
                         value = next(clock);
                     }
-                    console.log("fixed: val from parameter", value);
+                    // console.log("fixed: val from parameter", value);
                     return value;
                 }
             }
@@ -76,7 +78,7 @@ export function fixed<T>(val: T | Parameter<T>): Parameter<T> {
         return new Parameter<T>(
             () => {
                 return function (clock: number) {
-                    console.log("fixed: val from constant", val);
+                    // console.log("fixed: val from constant", val);
                     return <T>val;
                 }
             }
@@ -298,7 +300,7 @@ export function hsl(
                 var s_val = Math.floor(s_next(t));
                 var l_val = Math.floor(l_next(t));
                 var val = "hsl(" + h_val + "," + s_val + "%," + l_val + "%)";
-                console.log("hsl: ", val);
+                // console.log("hsl: ", val);
                 return val;
             }
         }
@@ -778,9 +780,11 @@ export function glow(
                         // convert to hsl
                         rgbToHsl(red, green, blue, hsl);
 
+
+
                         var hue = hsl[0];
                         var qty = hsl[1]; // qty decays
-                        var local_decay = hsl[2];
+                        var local_decay = hsl[2] + 1;
 
                         // we only need to calculate a contribution near the source
                         // contribution = qty decaying by inverse square distance
@@ -788,6 +792,7 @@ export function glow(
                         // 0.01 = q / (d^2 * k) => d^2 = q / (0.01 * k)
                         // d = sqrt(100 * q / k) (note 2 solutions, representing the two halfwidths)
                         var halfwidth = Math.sqrt(1000 * qty / (decay * local_decay));
+                        halfwidth *= 100;
                         var li = Math.max(0, Math.floor(x - halfwidth));
                         var ui = Math.min(width, Math.ceil(x + halfwidth));
                         var lj = Math.max(0, Math.floor(y - halfwidth));
@@ -801,11 +806,13 @@ export function glow(
                                 var d_squared = dx * dx + dy * dy;
 
                                 // c is in the same scale at qty i.e. (0 - 100, saturation)
-                                var c = (qty) / (1 + d_squared * decay * local_decay);
+                                var c = (qty) / (1.0001 + Math.sqrt(d_squared) * decay * local_decay);
 
                                 assert(c <= 100);
-                                assert(c > 0);
-                                rgb = hslToRgb(hue, 100, c, rgb);
+                                assert(c >= 0);
+                                rgb = hslToRgb(hue, 50, c, rgb);
+                                // rgb = husl.toRGB(hue, 50, c);
+                                //for (var husli = 0; husli< 3; husli++) rgb [husli] *= 255;
                                 var c_alpha = c / 100.0;
 
                                 var r_i = ((width * j) + i) * 4;
@@ -813,17 +820,11 @@ export function glow(
                                 var b_i = ((width * j) + i) * 4 + 2;
                                 var a_i = ((width * j) + i) * 4 + 3;
 
-                                /*
-                                console.log("pre-alpha", glowData[a_i]);
-                                console.log("dx", dx, "dy", dy);
-                                console.log("qty", qty);
-                                console.log("d_squared", d_squared);
-                                console.log("decay", decay);
-                                console.log("local_decay", local_decay);
-                                console.log("c", c);
-                                console.log("c_alpha", c_alpha);
-                                console.log("a_i", a_i);
-                                */
+                                // console.log("rgb", rgb);
+                                // console.log("c", c);
+
+
+
                                 var pre_alpha = glowData[a_i];
 
 
@@ -833,11 +834,19 @@ export function glow(
                                 assert(pre_alpha >= 0);
 
                                 // blend alpha first into accumulator
-                                glowData[a_i] = glowData[a_i] + c_alpha - c_alpha * glowData[a_i];
-                                //glowData[a_i] = Math.max(glowData[a_i], c_alpha);
+                                // glowData[a_i] = glowData[a_i] + c_alpha - c_alpha * glowData[a_i];
+                                // glowData[a_i] = Math.max(glowData[a_i], c_alpha);
+
+                                glowData[a_i] = 1;
 
                                 assert(glowData[a_i] <= 1);
                                 assert(glowData[a_i] >= 0);
+                                assert(glowData[r_i] <= 255);
+                                assert(glowData[r_i] >= 0);
+                                assert(glowData[g_i] <= 255);
+                                assert(glowData[g_i] >= 0);
+                                assert(glowData[b_i] <= 255);
+                                assert(glowData[b_i] >= 0);
 
                                 /*
                                 glowData[r_i] = (pre_alpha + rgb[0]/ 255.0 - c_alpha * rgb[0]/ 255.0) * 255;
@@ -848,6 +857,7 @@ export function glow(
                                 // console.log("post-alpha", glowData[a_i]);
 
                                 // now simple lighten
+
                                 /*
                                 glowData[r_i] = Math.max(rgb[0], glowData[r_i]);
                                 glowData[g_i] = Math.max(rgb[1], glowData[g_i]);
@@ -873,12 +883,36 @@ export function glow(
                                 glowData[b_i] = Math.min(rgb[2] + glowData[b_i], 255);
 
 
+
+                                if (x < 2 && j == 20 && i == 20 ) {
+                                }
+
+                                if (glowData[r_i] == -1) {
+                                    console.log("pre-alpha", glowData[a_i]);
+                                    console.log("dx", dx, "dy", dy);
+                                    console.log("d_squared", d_squared);
+                                    console.log("decay", decay);
+                                    console.log("local_decay", local_decay);
+                                    console.log("c", c);
+                                    console.log("c_alpha", c_alpha);
+                                    console.log("a_i", a_i);
+                                    console.log("hue", hue);
+                                    console.log("qty", qty);
+                                    console.log("red", red);
+                                    console.log("green", green);
+                                    console.log("blue", blue);
+                                    console.log("rgb", rgb);
+                                    console.log("glowData[r_i]", glowData[r_i]);
+
+                                    throw new Error();
+
+                                }
                             }
                         }
                     }
                 }
 
-                console.log("glow", glowData);
+                // console.log("glow", glowData);
 
                 var buf = new ArrayBuffer(data.length);
                 for(var y = 0; y < height; y++) {
@@ -888,10 +922,10 @@ export function glow(
                         var b_i = ((width * y) + x) * 4 + 2;
                         var a_i = ((width * y) + x) * 4 + 3;
 
-                        buf[r_i] = Math.round(glowData[r_i]);
-                        buf[g_i] = Math.round(glowData[g_i]);
-                        buf[b_i] = Math.round(glowData[b_i]);
-                        buf[a_i] = Math.round(glowData[a_i] * 255);
+                        buf[r_i] = Math.floor(glowData[r_i]);
+                        buf[g_i] = Math.floor(glowData[g_i]);
+                        buf[b_i] = Math.floor(glowData[b_i]);
+                        buf[a_i] = 255; //Math.floor(glowData[a_i] * 255);
 
                     }
                 }
@@ -934,7 +968,7 @@ export function save(width:number, height:number, path: string): Animation {
 
     var encoder = new GIFEncoder(width, height);
     encoder.createReadStream()
-      .pipe(encoder.createWriteStream({ repeat: 10000, delay: 100, quality: 1 }))
+      .pipe(encoder.createWriteStream({ repeat: 10000, delay: 100, quality: 10 }))
       .pipe(fs.createWriteStream(path));
     encoder.start();
 
@@ -960,10 +994,8 @@ export function save(width:number, height:number, path: string): Animation {
 
 // Features
 // Glow
-    // lighten = 1−(1−A)×(1−B)
-    // number particles k/(d^2)
-    // transparency increases inverse square too
-    // only foreground alpha makes an effect (background is considered solid)
+    // differnt distance exponents are interesting
+    // rgb -> hsv has a round in it, making it steppy
 
 // Reflection
 // L systems (fold?)
@@ -1013,7 +1045,7 @@ function rgbToHsl(r, g, b, passback: [number, number, number]): [number, number,
 
     if(max == min){
         h = s = 0; // achromatic
-    }else{
+    } else {
         var d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch(max){
@@ -1023,9 +1055,9 @@ function rgbToHsl(r, g, b, passback: [number, number, number]): [number, number,
         }
         h /= 6;
     }
-    passback[0] = Math.round(h * 360);       // 0 - 360 degrees
-    passback[1] = Math.round(s * 100); // 0 - 100%
-    passback[2] = Math.round(l * 100); // 0 - 100%
+    passback[0] = (h * 360);       // 0 - 360 degrees
+    passback[1] = (s * 100); // 0 - 100%
+    passback[2] = (l * 100); // 0 - 100%
 
     // console.log("rgbToHsl: output", passback);
 
@@ -1047,9 +1079,9 @@ function hslToRgb(h, s, l, passback: [number, number, number]): [number, number,
     var r, g, b;
     // console.log("hslToRgb input:", h, s, l);
 
-    h /= 360;
-    l /= 100;
-    s /= 100;
+    h = h / 360.0;
+    s = s / 100.0;
+    l = l / 100.0;
 
     if(s == 0){
         r = g = b = l; // achromatic
@@ -1070,9 +1102,9 @@ function hslToRgb(h, s, l, passback: [number, number, number]): [number, number,
         b = hue2rgb(p, q, h - 1/3);
     }
 
-    passback[0] = Math.round(r * 255);
-    passback[1] = Math.round(g * 255);
-    passback[2] = Math.round(b * 255);
+    passback[0] = r * 255;
+    passback[1] = g * 255;
+    passback[2] = b * 255;
 
     // console.log("hslToRgb", passback);
 
