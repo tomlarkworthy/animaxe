@@ -8,7 +8,6 @@ import Rx = require("rx");
 import helper = require("./helper");
 require("should");
 
-
 var animator: Ax.Animator = helper.getExampleAnimator();
 
 //a line between two points of a specified thickness and color (which are temporally varying parameters)
@@ -84,12 +83,12 @@ animator.play(
                             bigCos
                         )
                     ),
-                    Ax.color(red,green,blue,0.5)
+                    Ax.rgba(red,green,blue,1)
                 )
         )
     );
 
-helper.playExample("example2", 20, animator);
+helper.playExample("example2", 20, animator, 100, 100);
 
 describe('example2', function () {
     it ('should match the reference', function(done) {

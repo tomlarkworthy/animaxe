@@ -43,6 +43,20 @@ gulp.task('compile', function() {
     ]);
 });
 
+gulp.task('compile_gen', function() {
+    var tsResult = gulp.src('scripts/*.ts')
+                    .pipe(sourcemaps.init())
+                    .pipe(ts(tsProject));
+    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
+        tsResult.dts.pipe(gulp.dest('compiled/definitions')),
+        tsResult.js
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('compiled/scripts'))
+    ]);
+});
+
+
+
 var tsTestProject = ts.createProject({ //todo stop repeating config
     sortOutput: true,
     declarationFiles: false,

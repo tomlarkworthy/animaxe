@@ -641,8 +641,8 @@ export function velocity(
             var pos: Point = [0.0,0.0];
             var velocity_next = velocityStream.init();
             return function(tick) {
-                var velocity = velocity_next(tick.clock);
                 tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
+                var velocity = velocity_next(tick.clock);
                 pos[0] += velocity[0] * tick.dt;
                 pos[1] += velocity[1] * tick.dt;
             }
@@ -934,7 +934,7 @@ export function glow(
                 // https://hacks.mozilla.org/2011/12/faster-canvas-pixel-manipulation-with-typed-arrays/
 
                 //finally overwrite the pixel data with the accumulator
-                imgData.data.set(new Uint8ClampedArray(buf));
+                (<any>imgData.data).set(new Uint8ClampedArray(buf));
 
                 ctx.putImageData(imgData, 0, 0);
             }
@@ -968,7 +968,7 @@ export function save(width:number, height:number, path: string): Animation {
 
     var encoder = new GIFEncoder(width, height);
     encoder.createReadStream()
-      .pipe(encoder.createWriteStream({ repeat: 10000, delay: 100, quality: 10 }))
+      .pipe(encoder.createWriteStream({ repeat: 10000, delay: 100, quality: 1 }))
       .pipe(fs.createWriteStream(path));
     encoder.start();
 
@@ -995,17 +995,20 @@ export function save(width:number, height:number, path: string): Animation {
 // Features
 // Glow
     // differnt distance exponents are interesting
-    // rgb -> hsv has a round in it, making it steppy
+    // think about alpha over existing backgrounds
 
 // Reflection
 // L systems (fold?)
+// simulate a lasser show, XY parametric functions (Lissajous curves), intergrate with ODE
 
 // Engineering
 // figure out why example3 cannot have move than 1000 particles without a stack overflow
-// fix test randomness
+// fix test randomness with a random seed
 // replace paralel with its own internal animator
+//replace Ax.sin() with Ax.sin(Ax.t)
 
-// marketing
+// Marketing
+// API documentation
 // website
 // jsFiddle
 

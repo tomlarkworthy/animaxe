@@ -33,26 +33,26 @@ function permDot(size: number, css_color: string | Ax.ColorStream): Ax.Animation
 
 animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
 animator.play(
-        Ax.clone(
-                500,
-                Ax.move(
-                    [50, 50],
-                    Ax.velocity(
-                        Ax.fixed(Ax.rndNormal(50)),
-                        Ax.composite("lighter",
-                            Ax.parallel(
-                                [
-                                    permDot(1, Ax.color(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1)))),
-                                    permDot(5, Ax.color(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1))))
-                                ]
-                            )
-                        ))
+    Ax.clone(
+        500,
+        Ax.move(
+            [50, 50],
+            Ax.velocity(
+                Ax.fixed(Ax.rndNormal(50)),
+                Ax.composite("lighter",
+                    Ax.parallel(
+                        [
+                            permDot(1, Ax.rgba(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1)))),
+                            permDot(5, Ax.rgba(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1))))
+                        ]
                     )
-                )
+                ))
+            )
         )
+    )
 );
 
-helper.playExample("example3", 15, animator);
+helper.playExample("example3", 15, animator, 100, 100);
 
 
 describe('example3', function () {
