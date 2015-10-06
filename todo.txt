@@ -1,0 +1,42 @@
+// todo BUG TODO LIST
+
+// Features
+// Glow
+    // different distance exponents are interesting
+    // think about alpha over existing backgrounds
+
+// Reflection
+// L systems (fold?)
+// simulate a lazer show, XY parametric functions (Lissajous curves), intergrate with ODE solver
+
+// Engineering
+// figure out why example3 cannot have move than 1000 particles without a stack overflow
+// fix test randomness with a random seed
+// replace parralel with its own internal animator
+// replace Ax.sin() with Ax.sin(Ax.t)
+// extract color spaces into own file (rgba, hsl)
+// change order of playExample parameters
+
+// Marketing
+// API documentation
+// website
+// codepan
+// - browserify
+// - npm
+// - hosting
+
+
+
+// IDEAS
+
+// PacMan
+// what about a different way of making glow?
+// render luminecence into a texture and then color based on distance from lightsource
+// mouse input, tailing glow (rember to tween between rapid movements)
+// offscreen rendering an playback
+// sin wave, randomized
+// GUI components, responsive, bootstrap
+// get data out by tapping into flow (intercept(Subject passback))
+// SVG import
+// layering with parrallel (back first)
+

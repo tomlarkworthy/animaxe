@@ -1,111 +1,369 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
-/// <reference path="../types/lib.d.ts" />
 require('source-map-support').install();
 var Rx = require("rx");
+exports.DEBUG_LOOP = false;
+exports.DEBUG_THEN = false;
+exports.DEBUG_EMIT = true;
+var husl = require("husl");
 var DrawTick = (function () {
-    function DrawTick(ctx, dt) {
+    function DrawTick(ctx, clock, dt) {
         this.ctx = ctx;
+        this.clock = clock;
         this.dt = dt;
     }
     return DrawTick;
 })();
 exports.DrawTick = DrawTick;
+function assert(predicate, message) {
+    if (!predicate) {
+        console.error(stackTrace());
+        throw new Error();
+    }
+}
+function stackTrace() {
+    var err = new Error();
+    return err.stack;
+}
+var Parameter = (function () {
+    function Parameter(init) {
+        this.init = init;
+    }
+    Parameter.prototype.init = function () { throw new Error('This method is abstract'); };
+    Parameter.prototype.map = function (fn) {
+        var base = this;
+        return new Parameter(function () {
+            var base_next = base.init();
+            return function (t) {
+                return fn(base_next(t));
+            };
+        });
+    };
+    Parameter.prototype.clone = function () {
+        return this.map(function (x) { return x; });
+    };
+    return Parameter;
+})();
+exports.Parameter = Parameter;
+function fixed(val) {
+    if (typeof val.init === 'function') {
+        // we were passed in a Parameter object
+        return new Parameter(function () {
+            var generate = true;
+            var next = val.init();
+            var value = null;
+            return function (clock) {
+                if (generate) {
+                    generate = false;
+                    value = next(clock);
+                }
+                // console.log("fixed: val from parameter", value);
+                return value;
+            };
+        });
+    }
+    else {
+        return new Parameter(function () {
+            return function (clock) {
+                // console.log("fixed: val from constant", val);
+                return val;
+            };
+        });
+    }
+}
+exports.fixed = fixed;
 function toStreamNumber(x) {
-    return typeof x === 'number' ? Rx.Observable.return(x) : x;
+    return (typeof x.init === 'function' ? x : fixed(x));
 }
 exports.toStreamNumber = toStreamNumber;
 function toStreamPoint(x) {
-    return (typeof x.concatMap === 'function' ? x : Rx.Observable.return(x));
+    return (typeof x.init === 'function' ? x : fixed(x));
 }
 exports.toStreamPoint = toStreamPoint;
-var Animation2 = (function () {
-    function Animation2(_attach, after) {
+function toStreamColor(x) {
+    return (typeof x.init === 'function' ? x : fixed(x));
+}
+exports.toStreamColor = toStreamColor;
+var Animation = (function () {
+    function Animation(_attach, after) {
         this._attach = _attach;
         this.after = after;
     }
-    Animation2.prototype.attach = function (obs) {
-        var processed = this._attach(obs);
+    Animation.prototype.attach = function (upstream) {
+        var self = this;
+        //console.log("animation initialized ", clock);
+        var instream = null;
+        instream = upstream;
+        //console.log("animation: instream", instream, "upstream", upstream);
+        var processed = this._attach(instream);
         return this.after ? this.after.attach(processed) : processed;
     };
-    Animation2.prototype.then = function (follower) {
+    /**
+     * delivers events to this first, then when that animation is finished
+     * the follower consumers events and the values are used as output, until the follower animation completes
+     */
+    Animation.prototype.then = function (follower) {
         var self = this;
-        //return new Animation2(self.attach.bind(self));
-        return new Animation2(function (prev) {
-            var join = new Rx.Subject();
-            var dispose_first = self.attach.call(self, prev).subscribe(join.onNext.bind(join), join.onError.bind(join), function () {
-                console.log("then: complete");
-                follower.attach.call(follower, prev).subscribe(join);
-            });
-            return join;
+        return new Animation(function (prev) {
+            return Rx.Observable.create(function (observer) {
+                var first = new Rx.Subject();
+                var second = new Rx.Subject();
+                var firstTurn = true;
+                var current = first;
+                if (exports.DEBUG_THEN)
+                    console.log("then: attach");
+                var secondAttach = null;
+                var firstAttach = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
+                    if (exports.DEBUG_THEN)
+                        console.log("then: first to downstream");
+                    observer.onNext(next);
+                }, observer.onError.bind(observer), function () {
+                    if (exports.DEBUG_THEN)
+                        console.log("then: first complete");
+                    firstTurn = false;
+                    secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
+                        if (exports.DEBUG_THEN)
+                            console.log("then: second to downstream");
+                        observer.onNext(next);
+                    }, observer.onError.bind(observer), function () {
+                        if (exports.DEBUG_THEN)
+                            console.log("then: second complete");
+                        observer.onCompleted();
+                    });
+                });
+                var prevSubscription = prev.subscribeOn(Rx.Scheduler.immediate).subscribe(function (next) {
+                    if (exports.DEBUG_THEN)
+                        console.log("then: upstream to first OR second");
+                    if (firstTurn) {
+                        first.onNext(next);
+                    }
+                    else {
+                        second.onNext(next);
+                    }
+                }, observer.onError, function () {
+                    if (exports.DEBUG_THEN)
+                        console.log("then: upstream complete");
+                    observer.onCompleted();
+                });
+                // on dispose
+                return function () {
+                    if (exports.DEBUG_THEN)
+                        console.log("then: disposer");
+                    prevSubscription.dispose();
+                    firstAttach.dispose();
+                    if (secondAttach)
+                        secondAttach.dispose();
+                };
+            }).subscribeOn(Rx.Scheduler.immediate); //todo remove subscribeOns
         });
     };
-    return Animation2;
+    return Animation;
 })();
-exports.Animation2 = Animation2;
-var Animator2 = (function () {
-    function Animator2(drawingContext) {
-        this.drawingContext = drawingContext;
+exports.Animation = Animation;
+var Animator = (function () {
+    function Animator(ctx) {
+        this.ctx = ctx;
         this.tickerSubscription = null;
         this.animationSubscriptions = [];
+        this.t = 0;
         this.root = new Rx.Subject();
     }
-    Animator2.prototype.ticker = function (tick) {
+    Animator.prototype.ticker = function (tick) {
         var self = this;
         this.tickerSubscription = tick.map(function (dt) {
-            return new DrawTick(self.drawingContext, dt);
+            var tick = new DrawTick(self.ctx, self.t, dt);
+            self.t += dt;
+            return tick;
         }).subscribe(this.root);
     };
-    Animator2.prototype.play = function (animation) {
-        console.log("play");
-        var saveBeforeFrame = this.root.tapOnNext(function (tick) { tick.ctx.save(); });
+    Animator.prototype.play = function (animation) {
+        var self = this;
+        console.log("animator: play");
+        var saveBeforeFrame = this.root.tapOnNext(function (tick) {
+            console.log("animator: ctx save");
+            tick.ctx.save();
+        });
         var doAnimation = animation.attach(saveBeforeFrame);
-        var restoreAfterFrame = doAnimation.tapOnNext(function (tick) { tick.ctx.restore(); });
+        var restoreAfterFrame = doAnimation.tap(function (tick) {
+            console.log("animator: ctx next restore");
+            tick.ctx.restore();
+        }, function (err) {
+            console.log("animator: ctx err restore", err);
+            self.ctx.restore();
+        }, function () {
+            self.ctx.restore();
+        });
         this.animationSubscriptions.push(restoreAfterFrame.subscribe());
     };
-    return Animator2;
+    return Animator;
 })();
-exports.Animator2 = Animator2;
+exports.Animator = Animator;
 function point(x, y) {
-    console.log("point: init");
     var x_stream = toStreamNumber(x);
     var y_stream = toStreamNumber(y);
-    return Rx.Observable.combineLatest([x_stream, y_stream], function (x, y) {
-        var result = [x, y];
-        return result;
-    });
-}
-exports.point = point;
-function rnd() {
-    return Rx.Observable.create(function (observer) {
-        console.log('rnd: onNext');
-        observer.onNext(Math.random());
-        return function () {
-            console.log('rnd: disposed');
+    //console.log("point: init", x_stream, y_stream);
+    return new Parameter(function () {
+        var x_next = x_stream.init();
+        var y_next = y_stream.init();
+        return function (t) {
+            var result = [x_next(t), y_next(t)];
+            //console.log("point: next", result);
+            return result;
         };
     });
 }
+exports.point = point;
+/*
+    RGB between 0 and 255
+    a between 0 - 1
+ */
+function rgba(r, g, b, a) {
+    var r_stream = toStreamNumber(r);
+    var g_stream = toStreamNumber(g);
+    var b_stream = toStreamNumber(b);
+    var a_stream = toStreamNumber(a);
+    return new Parameter(function () {
+        var r_next = r_stream.init();
+        var g_next = g_stream.init();
+        var b_next = b_stream.init();
+        var a_next = a_stream.init();
+        return function (t) {
+            var r_val = Math.floor(r_next(t));
+            var g_val = Math.floor(g_next(t));
+            var b_val = Math.floor(b_next(t));
+            var a_val = a_next(t);
+            var val = "rgba(" + r_val + "," + g_val + "," + b_val + "," + a_val + ")";
+            console.log("color: ", val);
+            return val;
+        };
+    });
+}
+exports.rgba = rgba;
+function hsl(h, s, l) {
+    var h_stream = toStreamNumber(h);
+    var s_stream = toStreamNumber(s);
+    var l_stream = toStreamNumber(l);
+    return new Parameter(function () {
+        var h_next = h_stream.init();
+        var s_next = s_stream.init();
+        var l_next = l_stream.init();
+        return function (t) {
+            var h_val = Math.floor(h_next(t));
+            var s_val = Math.floor(s_next(t));
+            var l_val = Math.floor(l_next(t));
+            var val = "hsl(" + h_val + "," + s_val + "%," + l_val + "%)";
+            // console.log("hsl: ", val);
+            return val;
+        };
+    });
+}
+exports.hsl = hsl;
+function t() {
+    return new Parameter(function () { return function (t) {
+        return t;
+    }; });
+}
+exports.t = t;
+function rnd() {
+    return new Parameter(function () { return function (t) {
+        return Math.random();
+    }; });
+}
 exports.rnd = rnd;
-function sin(period, trigger) {
-    var t = 0;
+function rndNormal(scale) {
+    if (scale === void 0) { scale = 1; }
+    var scale_ = toStreamNumber(scale);
+    return new Parameter(function () {
+        console.log("rndNormal: init");
+        var scale_next = scale_.init();
+        return function (t) {
+            var scale = scale_next(t);
+            // generate random numbers
+            var norm2 = 100;
+            while (norm2 > 1) {
+                var x = (Math.random() - 0.5) * 2;
+                var y = (Math.random() - 0.5) * 2;
+                norm2 = x * x + y * y;
+            }
+            var norm = Math.sqrt(norm2);
+            var val = [scale * x / norm, scale * y / norm];
+            console.log("rndNormal: val", val);
+            return val;
+        };
+    });
+}
+exports.rndNormal = rndNormal;
+/**
+ * NOTE: currently fails if the streams are different lengths
+ * @param assertDt the expected clock tick values
+ * @param after
+ * @returns {Animation}
+ */
+function assertDt(expectedDt, after) {
+    return new Animation(function (upstream) {
+        return upstream.zip(expectedDt, function (tick, expectedDtValue) {
+            if (tick.dt != expectedDtValue)
+                throw new Error("unexpected dt observed: " + tick.dt + ", expected:" + expectedDtValue);
+            return tick;
+        });
+    }, after);
+}
+exports.assertDt = assertDt;
+//todo would be nice if this took an iterable or some other type of simple pull stream
+// and used streamEquals
+function assertClock(assertClock, after) {
+    var index = 0;
+    return new Animation(function (upstream) {
+        return upstream.tapOnNext(function (tick) {
+            console.log("assertClock: ", tick);
+            if (tick.clock < assertClock[index] - 0.00001 || tick.clock > assertClock[index] + 0.00001) {
+                var errorMsg = "unexpected clock observed: " + tick.clock + ", expected:" + assertClock[index];
+                console.log(errorMsg);
+                throw new Error(errorMsg);
+            }
+            index++;
+        });
+    }, after);
+}
+exports.assertClock = assertClock;
+function displaceT(displacement, value) {
+    var deltat = toStreamNumber(displacement);
+    return new Parameter(function () {
+        var dt_next = deltat.init();
+        var value_next = value.init();
+        return function (t) {
+            var dt = dt_next(t);
+            console.log("displaceT: ", dt);
+            return value_next(t + dt);
+        };
+    });
+}
+exports.displaceT = displaceT;
+//todo: should be t as a parameter to a non tempor
+function sin(period) {
+    console.log("sin: new");
     var period_stream = toStreamNumber(period);
-    return trigger.root.withLatestFrom(period_stream, function (tick, period) {
-        t += tick.dt;
-        while (t > period)
-            t -= period;
-        return Math.sin(t * (Math.PI * 2) / period);
+    return new Parameter(function () {
+        var period_next = period_stream.init();
+        return function (t) {
+            var value = Math.sin(t * (Math.PI * 2) / period_next(t));
+            console.log("sin: tick", t, value);
+            return value;
+        };
     });
 }
 exports.sin = sin;
-function cos(period, trigger) {
-    var t = 0;
+function cos(period) {
+    console.log("cos: new");
     var period_stream = toStreamNumber(period);
-    return trigger.root.withLatestFrom(period_stream, function (tick, period) {
-        t += tick.dt;
-        while (t > period)
-            t -= period;
-        return Math.cos(t * (Math.PI * 2) / period);
+    return new Parameter(function () {
+        var period_next = period_stream.init();
+        return function (t) {
+            var value = Math.cos(t * (Math.PI * 2) / period_next(t));
+            console.log("cos: tick", t, value);
+            return value;
+        };
     });
 }
 exports.cos = cos;
@@ -114,240 +372,522 @@ function storeTx(n, /*pass though context but store transform in variable*/ anim
     ) { return null; }
 function loadTx(n, /*pass though context but store transform in variable*/ animation //passthrough
     ) { return null; }
-function clone(n, animation /* copies */) { return null; }
-function parallel(//rename layer?
-    animation) { return null; }
-function sequence(animation) { return null; }
-function loop(animation) {
-    console.log("loop: initializing");
-    var input = new Rx.Subject();
-    var output = new Rx.Subject();
-    var passthoughSubscription = null;
-    var attachNext = true;
-    return new Animation2(function (previous) {
-        previous.tapOnCompleted(function () {
-            attachNext = false;
-        }).subscribe(input);
-        function attachPassthrouh() {
-            console.log("loop: passthrough, attach");
-            passthoughSubscription = animation.attach(input).subscribe(output.onNext.bind(output), output.onError.bind(output), function () {
-                //onComplete
-                console.log("loop: passthrough, complete");
-                passthoughSubscription.dispose(); //todo, check for mem leaks in loop, and maybe get rid of this line
-                if (attachNext)
-                    attachPassthrouh();
-            });
+/**
+ * plays several animations, finishes when they are all done.
+ * @param animations
+ * @returns {Animation}
+ * todo: I think there are lots of bugs when an animation stops part way
+ * I think it be better if this spawned its own Animator to handle ctx restores
+ */
+function parallel(animations) {
+    return new Animation(function (prev) {
+        if (exports.DEBUG_EMIT)
+            console.log("parallel: initializing");
+        var activeAnimations = 0;
+        var attachPoint = new Rx.Subject();
+        function decrementActive() {
+            if (exports.DEBUG_EMIT)
+                console.log("parallel: decrement active");
+            activeAnimations--;
         }
-        ;
-        attachPassthrouh();
-        return output;
+        animations.forEach(function (animation) {
+            activeAnimations++;
+            animation.attach(attachPoint.tapOnNext(function (tick) { return tick.ctx.save(); })).subscribe(function (tick) { return tick.ctx.restore(); }, decrementActive, decrementActive);
+        });
+        return prev.takeWhile(function () { return activeAnimations > 0; }).tapOnNext(function (tick) {
+            if (exports.DEBUG_EMIT)
+                console.log("parallel: emitting, animations", tick);
+            attachPoint.onNext(tick);
+            if (exports.DEBUG_EMIT)
+                console.log("parallel: emitting finished");
+        });
     });
 }
-function draw(fn, animation) {
-    return new Animation2(function (previous) {
-        return previous.tapOnNext(fn);
-    }, animation);
+exports.parallel = parallel;
+function clone(n, animation) {
+    return parallel(Rx.Observable.return(animation).repeat(n));
 }
-function move(delta, animation) {
-    var pointStream = toStreamPoint(delta);
-    return new Animation2(function (prev) {
-        return prev.withLatestFrom(pointStream, function (tick, point) {
-            console.log("move: transform", point);
-            tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
-            return tick;
+exports.clone = clone;
+function sequence(animation) { return null; }
+/**
+ * The child animation is started every frame
+ * @param animation
+ */
+function emit(animation) {
+    return new Animation(function (prev) {
+        if (exports.DEBUG_EMIT)
+            console.log("emit: initializing");
+        var attachPoint = new Rx.Subject();
+        return prev.tapOnNext(function (tick) {
+            if (exports.DEBUG_EMIT)
+                console.log("emit: emmitting", animation);
+            animation.attach(attachPoint).subscribe();
+            attachPoint.onNext(tick);
         });
+    });
+}
+exports.emit = emit;
+/**
+ * When the child loop finishes, it is spawned
+ * @param animation
+ * @returns {Animation}
+ */
+function loop(animation) {
+    return new Animation(function (prev) {
+        if (exports.DEBUG_LOOP)
+            console.log("loop: initializing");
+        return Rx.Observable.create(function (observer) {
+            if (exports.DEBUG_LOOP)
+                console.log("loop: create new loop");
+            var loopStart = null;
+            var loopSubscription = null;
+            var t = 0;
+            function attachLoop(next) {
+                if (exports.DEBUG_LOOP)
+                    console.log("loop: new inner loop starting at", t);
+                loopStart = new Rx.Subject();
+                loopSubscription = animation.attach(loopStart).subscribe(function (next) {
+                    if (exports.DEBUG_LOOP)
+                        console.log("loop: post-inner loop to downstream");
+                    observer.onNext(next);
+                }, function (err) {
+                    if (exports.DEBUG_LOOP)
+                        console.log("loop: post-inner loop err to downstream");
+                    observer.onError(err);
+                }, function () {
+                    if (exports.DEBUG_LOOP)
+                        console.log("loop: post-inner completed");
+                    loopStart = null;
+                });
+                if (exports.DEBUG_LOOP)
+                    console.log("loop: new inner loop finished construction");
+            }
+            prev.subscribe(function (next) {
+                if (loopStart == null) {
+                    if (exports.DEBUG_LOOP)
+                        console.log("loop: no inner loop");
+                    attachLoop(next);
+                }
+                if (exports.DEBUG_LOOP)
+                    console.log("loop: upstream to inner loop");
+                loopStart.onNext(next);
+                t += next.dt;
+            }, function (err) {
+                if (exports.DEBUG_LOOP)
+                    console.log("loop: upstream error to downstream", err);
+                observer.onError(err);
+            }, observer.onCompleted.bind(observer));
+            return function () {
+                //dispose
+                if (exports.DEBUG_LOOP)
+                    console.log("loop: dispose");
+                if (loopStart)
+                    loopStart.dispose();
+            };
+        }).subscribeOn(Rx.Scheduler.immediate);
+    });
+}
+exports.loop = loop;
+function draw(initDraw, animation) {
+    return new Animation(function (previous) {
+        var draw = initDraw();
+        return previous.tapOnNext(draw);
     }, animation);
 }
+exports.draw = draw;
+function move(delta, animation) {
+    console.log("move: attached");
+    var pointStream = toStreamPoint(delta);
+    return draw(function () {
+        var point_next = pointStream.init();
+        return function (tick) {
+            var point = point_next(tick.clock);
+            console.log("move:", point);
+            if (tick)
+                tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
+            return tick;
+        };
+    }, animation);
+}
+exports.move = move;
+function composite(composite_mode, animation) {
+    return draw(function () {
+        return function (tick) {
+            tick.ctx.globalCompositeOperation = composite_mode;
+        };
+    }, animation);
+}
+exports.composite = composite;
 function velocity(velocity, animation) {
     var velocityStream = toStreamPoint(velocity);
-    return new Animation2(function (prev) {
+    return draw(function () {
         var pos = [0.0, 0.0];
-        return prev.withLatestFrom(velocityStream, function (tick, velocity) {
+        var velocity_next = velocityStream.init();
+        return function (tick) {
+            tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
+            var velocity = velocity_next(tick.clock);
             pos[0] += velocity[0] * tick.dt;
             pos[1] += velocity[1] * tick.dt;
-            tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
-            return tick;
-        });
+        };
     }, animation);
 }
+exports.velocity = velocity;
 function tween_linear(from, to, time, animation /* copies */) {
     var from_stream = toStreamPoint(from);
     var to_stream = toStreamPoint(to);
-    var combined = from_stream.combineLatest(to_stream, function (a, b) { return [a, b]; });
     var scale = 1.0 / time;
-    return new Animation2(function (prev) {
+    return new Animation(function (prev) {
         var t = 0;
-        return prev.withLatestFrom(combined, function (tick, points) {
+        var from_next = from_stream.init();
+        var to_next = to_stream.init();
+        return prev.map(function (tick) {
+            console.log("tween: inner");
+            var from = from_next(tick.clock);
+            var to = to_next(tick.clock);
             t = t + tick.dt;
             if (t > time)
                 t = time;
-            var x = points[0][0] + (points[1][0] - points[0][0]) * t * scale;
-            var y = points[0][1] + (points[1][1] - points[0][1]) * t * scale;
+            var x = from[0] + (to[0] - from[0]) * t * scale;
+            var y = from[1] + (to[1] - from[1]) * t * scale;
             tick.ctx.transform(1, 0, 0, 1, x, y);
             return tick;
         }).takeWhile(function (tick) { return t < time; });
     }, animation);
 }
-function rect(p1, //todo
-    p2, //todo
+exports.tween_linear = tween_linear;
+function rect(p1, //todo dynamic params instead
+    p2, //todo dynamic params instead
     animation) {
-    return draw(function (tick) {
-        console.log("rect: fillRect");
-        tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
+    return draw(function () {
+        return function (tick) {
+            console.log("rect: fillRect");
+            tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
+        };
     }, animation);
 }
-function color(color, //todo
+exports.rect = rect;
+function changeColor(color, //todo
     animation) {
-    return draw(function (tick) {
-        tick.ctx.fillStyle = color;
+    return draw(function () {
+        return function (tick) {
+            tick.ctx.fillStyle = color;
+        };
     }, animation);
 }
+exports.changeColor = changeColor;
+// foreground color used to define emmitter regions around the canvas
+//  the hue, is reused in the particles
+//  the lightness is use to describe the quantity (max lightness leads to total saturation)
+//
+// the additional parameter intesity is used to scale the emmiters
+// generally the colors you place on the map will be exceeded by the saturation
+//
+// How are two different hues sensibly mixed
+// decay of 0.5
+//
+//       H
+// 1 2 4 9 4 2 1       //sat, also alpha
+//----------------------------
+//         1 2 4 2 1   //sat
+//             H2
+//
+// we add the contribution to an image sized accumulator
+// as the contributions need to sum permutation independently (also probably associative)
+// blend(rgba1, rgba2) = blend(rgba2,rgba1)
+// alpha = a1 + a2 - a1a2
+// if a1 = 1   and a2 = 1,   alpha = 1         = 1
+// if a1 = 0.5 and a2 = 1,   alpha = 1.5 - 0.5 = 1
+// if a1 = 0.5 and a2 = 0.5, alpha = 1 - 0.25  = 0.75
+// Normal blending doesn't commute:
+// red = (r1 * a1  + (r2 * a2) * (1 - a1)) / alpha
+// lighten does, which is just the max
+// red = max(r1, r2)
+// or addition red = r1 + r2
+// http://www.deepskycolors.com/archive/2010/04/21/formulas-for-Photoshop-blending-modes.html
+function glow(decay, after) {
+    if (decay === void 0) { decay = 0.1; }
+    return draw(function () {
+        return function (tick) {
+            var ctx = tick.ctx;
+            // our src pixel data
+            var width = ctx.canvas.width;
+            var height = ctx.canvas.height;
+            var pixels = width * height;
+            var imgData = ctx.getImageData(0, 0, width, height);
+            var data = imgData.data;
+            // console.log("original data", imgData.data)
+            // our target data
+            // todo if we used a Typed array throughout we could save some zeroing and other crappy conversions
+            // although at least we are calculating at a high accuracy, lets not do a byte array from the beginning
+            var glowData = new Array(pixels * 4);
+            for (var i = 0; i < pixels * 4; i++)
+                glowData[i] = 0;
+            // passback to avoid lots of array allocations in rgbToHsl, and hslToRgb calls
+            var hsl = [0, 0, 0];
+            var rgb = [0, 0, 0];
+            // calculate the contribution of each emmitter on their surrounds
+            for (var y = 0; y < height; y++) {
+                for (var x = 0; x < width; x++) {
+                    var red = data[((width * y) + x) * 4];
+                    var green = data[((width * y) + x) * 4 + 1];
+                    var blue = data[((width * y) + x) * 4 + 2];
+                    var alpha = data[((width * y) + x) * 4 + 3];
+                    // convert to hsl
+                    rgbToHsl(red, green, blue, hsl);
+                    var hue = hsl[0];
+                    var qty = hsl[1]; // qty decays
+                    var local_decay = hsl[2] + 1;
+                    // we only need to calculate a contribution near the source
+                    // contribution = qty decaying by inverse square distance
+                    // c = q / (d^2 * k), we want to find the c < 0.01 point
+                    // 0.01 = q / (d^2 * k) => d^2 = q / (0.01 * k)
+                    // d = sqrt(100 * q / k) (note 2 solutions, representing the two halfwidths)
+                    var halfwidth = Math.sqrt(1000 * qty / (decay * local_decay));
+                    halfwidth *= 100;
+                    var li = Math.max(0, Math.floor(x - halfwidth));
+                    var ui = Math.min(width, Math.ceil(x + halfwidth));
+                    var lj = Math.max(0, Math.floor(y - halfwidth));
+                    var uj = Math.min(height, Math.ceil(y + halfwidth));
+                    for (var j = lj; j < uj; j++) {
+                        for (var i = li; i < ui; i++) {
+                            var dx = i - x;
+                            var dy = j - y;
+                            var d_squared = dx * dx + dy * dy;
+                            // c is in the same scale at qty i.e. (0 - 100, saturation)
+                            var c = (qty) / (1.0001 + Math.sqrt(d_squared) * decay * local_decay);
+                            assert(c <= 100);
+                            assert(c >= 0);
+                            rgb = hslToRgb(hue, 50, c, rgb);
+                            // rgb = husl.toRGB(hue, 50, c);
+                            //for (var husli = 0; husli< 3; husli++) rgb [husli] *= 255;
+                            var c_alpha = c / 100.0;
+                            var r_i = ((width * j) + i) * 4;
+                            var g_i = ((width * j) + i) * 4 + 1;
+                            var b_i = ((width * j) + i) * 4 + 2;
+                            var a_i = ((width * j) + i) * 4 + 3;
+                            // console.log("rgb", rgb);
+                            // console.log("c", c);
+                            var pre_alpha = glowData[a_i];
+                            assert(c_alpha <= 1);
+                            assert(c_alpha >= 0);
+                            assert(pre_alpha <= 1);
+                            assert(pre_alpha >= 0);
+                            // blend alpha first into accumulator
+                            // glowData[a_i] = glowData[a_i] + c_alpha - c_alpha * glowData[a_i];
+                            // glowData[a_i] = Math.max(glowData[a_i], c_alpha);
+                            glowData[a_i] = 1;
+                            assert(glowData[a_i] <= 1);
+                            assert(glowData[a_i] >= 0);
+                            assert(glowData[r_i] <= 255);
+                            assert(glowData[r_i] >= 0);
+                            assert(glowData[g_i] <= 255);
+                            assert(glowData[g_i] >= 0);
+                            assert(glowData[b_i] <= 255);
+                            assert(glowData[b_i] >= 0);
+                            /*
+                            glowData[r_i] = (pre_alpha + rgb[0]/ 255.0 - c_alpha * rgb[0]/ 255.0) * 255;
+                            glowData[g_i] = (pre_alpha + rgb[1]/ 255.0 - c_alpha * rgb[1]/ 255.0) * 255;
+                            glowData[b_i] = (pre_alpha + rgb[2]/ 255.0 - c_alpha * rgb[2]/ 255.0) * 255;
+                            */
+                            // console.log("post-alpha", glowData[a_i]);
+                            // now simple lighten
+                            /*
+                            glowData[r_i] = Math.max(rgb[0], glowData[r_i]);
+                            glowData[g_i] = Math.max(rgb[1], glowData[g_i]);
+                            glowData[b_i] = Math.max(rgb[2], glowData[b_i]);
+                            */
+                            // mix the colors like pigment
+                            /*
+                            var total_alpha = c_alpha + pre_alpha;
+                            glowData[r_i] = (c_alpha * rgb[0] + pre_alpha * glowData[r_i]) / total_alpha;
+                            glowData[g_i] = (c_alpha * rgb[1] + pre_alpha * glowData[g_i]) / total_alpha;
+                            glowData[b_i] = (c_alpha * rgb[2] + pre_alpha * glowData[b_i]) / total_alpha;
+                            */
+                            /*
+                            REALLY COOL EFFECT
+                            glowData[r_i] = rgb[0] + glowData[r_i];
+                            glowData[g_i] = rgb[1] + glowData[g_i];
+                            glowData[b_i] = rgb[2] + glowData[b_i];
+                            */
+                            glowData[r_i] = Math.min(rgb[0] + glowData[r_i], 255);
+                            glowData[g_i] = Math.min(rgb[1] + glowData[g_i], 255);
+                            glowData[b_i] = Math.min(rgb[2] + glowData[b_i], 255);
+                            if (x < 2 && j == 20 && i == 20) {
+                            }
+                            if (glowData[r_i] == -1) {
+                                console.log("pre-alpha", glowData[a_i]);
+                                console.log("dx", dx, "dy", dy);
+                                console.log("d_squared", d_squared);
+                                console.log("decay", decay);
+                                console.log("local_decay", local_decay);
+                                console.log("c", c);
+                                console.log("c_alpha", c_alpha);
+                                console.log("a_i", a_i);
+                                console.log("hue", hue);
+                                console.log("qty", qty);
+                                console.log("red", red);
+                                console.log("green", green);
+                                console.log("blue", blue);
+                                console.log("rgb", rgb);
+                                console.log("glowData[r_i]", glowData[r_i]);
+                                throw new Error();
+                            }
+                        }
+                    }
+                }
+            }
+            // console.log("glow", glowData);
+            var buf = new ArrayBuffer(data.length);
+            for (var y = 0; y < height; y++) {
+                for (var x = 0; x < width; x++) {
+                    var r_i = ((width * y) + x) * 4;
+                    var g_i = ((width * y) + x) * 4 + 1;
+                    var b_i = ((width * y) + x) * 4 + 2;
+                    var a_i = ((width * y) + x) * 4 + 3;
+                    buf[r_i] = Math.floor(glowData[r_i]);
+                    buf[g_i] = Math.floor(glowData[g_i]);
+                    buf[b_i] = Math.floor(glowData[b_i]);
+                    buf[a_i] = 255; //Math.floor(glowData[a_i] * 255);
+                }
+            }
+            // (todo) maybe we can speed boost some of this
+            // https://hacks.mozilla.org/2011/12/faster-canvas-pixel-manipulation-with-typed-arrays/
+            //finally overwrite the pixel data with the accumulator
+            imgData.data.set(new Uint8ClampedArray(buf));
+            ctx.putImageData(imgData, 0, 0);
+        };
+    }, after);
+}
+exports.glow = glow;
 function map(map_fn, animation) {
-    return new Animation2(function (previous) {
+    return new Animation(function (previous) {
         return previous.map(map_fn);
     }, animation);
 }
 function take(iterations, animation) {
-    return new Animation2(function (prev) {
+    return new Animation(function (prev) {
         return prev.take(iterations);
     }, animation);
 }
+exports.take = take;
 function save(width, height, path) {
     var GIFEncoder = require('gifencoder');
     var fs = require('fs');
     var encoder = new GIFEncoder(width, height);
     encoder.createReadStream()
-        .pipe(encoder.createWriteStream({ repeat: -1, delay: 500, quality: 1 }))
+        .pipe(encoder.createWriteStream({ repeat: 10000, delay: 100, quality: 1 }))
         .pipe(fs.createWriteStream(path));
     encoder.start();
-    return new Animation2(function (parent) {
-        var t = 0;
-        var endNext = false;
+    return new Animation(function (parent) {
         return parent.tap(function (tick) {
             console.log("save: wrote frame");
-            //t += tick.dt;
-            //var out = fs.writeFileSync(path + "_"+ t + ".png", canvas.toBuffer());
-            //var parsed = pngparse(canvas.toBuffer())
             encoder.addFrame(tick.ctx);
-            //encoder.addFrame(tick.ctx.getImageData(0, 0, width, height).data);
-        }, function () { console.error("save: not saved", path); }, function () { console.log("save: saved", path); encoder.finish(); /* endNext = true;*/ });
+        }, function () { console.error("save: not saved", path); }, function () { console.log("save: saved", path); encoder.finish(); });
     });
 }
-//we will draw
-// EXPLODING SHIP
-//1. n pieces of debris flying outwards (linear movement in time of Debris from 50,50 to rnd, rnd, at velocity v)
-//2. explosion of debris (last position of debris spawns explosion
-//3. large explosion at center (50,50) at end of linear movement
-var CENTRE = point(50, 50);
-var TL = point(50, 50);
-var BR = point(50, 50);
-var t = 0;
-var n = 0;
-var gaussian;
-var splatter = scale_x(3, gaussian);
-function drawDebris() { return null; }
-function drawExplosion() { return null; }
-function drawBigExplosion() { return null; }
-//What do we want it to look like
-//create an animator, at 30FPS
-try {
-    var canvas = document.getElementById("canvas");
-    console.log("browser", canvas);
+exports.save = save;
+/**
+ * Converts an RGB color value to HSL. Conversion formula
+ * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+ * Assumes r, g, and b are contained in the set [0, 255] and
+ * returns h, s, and l in the set [0, 1].
+ *
+ * @param   Number  r       The red color value
+ * @param   Number  g       The green color value
+ * @param   Number  b       The blue color value
+ * @return  Array           The HSL representation
+ */
+function rgbToHsl(r, g, b, passback) {
+    // console.log("rgbToHsl: input", r, g, b);
+    r /= 255, g /= 255, b /= 255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2;
+    if (max == min) {
+        h = s = 0; // achromatic
+    }
+    else {
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break;
+            case g:
+                h = (b - r) / d + 2;
+                break;
+            case b:
+                h = (r - g) / d + 4;
+                break;
+        }
+        h /= 6;
+    }
+    passback[0] = (h * 360); // 0 - 360 degrees
+    passback[1] = (s * 100); // 0 - 100%
+    passback[2] = (l * 100); // 0 - 100%
+    // console.log("rgbToHsl: output", passback);
+    return passback;
 }
-catch (err) {
-    console.log(err);
-    var Canvas = require('canvas');
-    var canvas = new Canvas(100, 100);
-    console.log("node", canvas);
+/**
+ * Converts an HSL color value to RGB. Conversion formula
+ * adapted from http://en.wikipedia.org/wiki/HSL_color_space.
+ * Assumes h, s, and l are contained in the set [0, 1] and
+ * returns r, g, and b in the set [0, 255].
+ *
+ * @param   Number  h       The hue
+ * @param   Number  s       The saturation
+ * @param   Number  l       The lightness
+ * @return  Array           The RGB representation
+ */
+function hslToRgb(h, s, l, passback) {
+    var r, g, b;
+    // console.log("hslToRgb input:", h, s, l);
+    h = h / 360.0;
+    s = s / 100.0;
+    l = l / 100.0;
+    if (s == 0) {
+        r = g = b = l; // achromatic
+    }
+    else {
+        var hue2rgb = function hue2rgb(p, q, t) {
+            if (t < 0)
+                t += 1;
+            if (t > 1)
+                t -= 1;
+            if (t < 1 / 6)
+                return p + (q - p) * 6 * t;
+            if (t < 1 / 2)
+                return q;
+            if (t < 2 / 3)
+                return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1 / 3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1 / 3);
+    }
+    passback[0] = r * 255;
+    passback[1] = g * 255;
+    passback[2] = b * 255;
+    // console.log("hslToRgb", passback);
+    return passback;
 }
-console.log("context", context);
-var context = canvas.getContext('2d');
-var animator = new Animator2(context); /*should be based on context*/
-//animator.ticker(Rx.Observable.timer(/*now*/0, /*period in ms, 30FPS*/ 1000.0 / 30));
-//GLOW EXAMPLES
-//2 frame animated glow
-function spark(css_color) {
-    return take(1, draw(function (tick) {
-        console.log("spark: frame1", css_color);
-        tick.ctx.fillStyle = css_color;
-        tick.ctx.fillRect(-2, -2, 5, 5);
-    })).then(take(1, draw(function (tick) {
-        console.log("spark: frame2", css_color);
-        tick.ctx.fillStyle = css_color;
-        tick.ctx.fillRect(-1, -1, 3, 3);
-    })));
-}
-function sparkLong(css_color) {
-    return draw(function (tick) {
-        console.log("sparkLong", css_color);
-        tick.ctx.fillStyle = css_color;
-        tick.ctx.fillRect(-1, -1, 3, 3);
-    });
-}
-//single spark
-var bigRnd = rnd().map(function (x) { return x * 50; });
-var bigSin = sin(1, animator).map(function (x) { return x * 45 + 50; });
-var bigCos = cos(1, animator).map(function (x) { return x * 45 + 50; });
-animator.play(color("#000000", rect([0, 0], [100, 100]))); /*repain background every round */
-animator.play(move(point(bigSin, bigCos), loop(spark("#FFFFFF"))));
-animator.play(move([50, 50], velocity([50, 0], loop(spark("#FFFFFF")))));
-animator.play(tween_linear([50, 50], point(bigSin, bigCos), 1, loop(spark("red"))));
-//animator.play(tween_linear([100,100], point(bigSin, bigCos), 1, sparkLong("red")));
-try {
-    var time;
-    var render = function () {
-        window.requestAnimationFrame(render);
-        var now = new Date().getTime(), dt = now - (time || now);
-        time = now;
-        animator.root.onNext(new DrawTick(animator.drawingContext, dt / 1000));
-    };
-    render();
-}
-catch (err) {
-    animator.play(save(100, 100, "spark.gif"));
-    animator.ticker(Rx.Observable.return(0.1).repeat(15));
-}
-//todo
-// INVEST IN BUILD AND TESTING
-//why loop pos matters, unit tests
-// animator.play(loop(move(point(bigSin, bigCos), spark("#FFFFFF"))));
-// Vs. animator.play(move(point(bigSin, bigCos), loop(spark("#FFFFFF"))));
-//emitter
-// rand normal
-//animator.play(
-//    //clone is a parrallel execution the same animation
-//    parallel([clone(n, linear_tween(/*fixed point*/CENTRE,
-//                   /*generative point*/ point(splatter, splatter),
-//                   /*time*/ t,
-//                   /*draw fn for tween*/ storeTx("X", drawDebris()))
-//                .then(loadTx("X", drawExplosion())) //after the tween completes draw the explosion
-//              ),
-//              take(/*fixed value*/ t).then(drawBigExplosion())
-//             ])
-//);
-// IDEAS
-// PacMan
-// what about a different way of making glow?
-// render luminecence into a texture and then color based on distance from lightsource
-// mouse input, tailing glow (rember to tween between rapid movements)
-// offscreen rendering an playback
-// sin wave, randomized
-// GUI components, responsive, bootstrap
-// get data out by tapping into flow (intercept(Subject passback))
-// SVG import
-// layering with parrallel (back first)
 
-},{"canvas":2,"fs":2,"gifencoder":26,"rx":30,"source-map-support":41}],2:[function(require,module,exports){
+
+},{"fs":2,"gifencoder":27,"husl":31,"rx":32,"source-map-support":43}],2:[function(require,module,exports){
 
 },{}],3:[function(require,module,exports){
 arguments[4][2][0].apply(exports,arguments)
 },{"dup":2}],4:[function(require,module,exports){
+(function (global){
 /*!
  * The buffer module from node.js, for the browser.
  *
  * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
  * @license  MIT
  */
+/* eslint-disable no-proto */
 
 var base64 = require('base64-js')
 var ieee754 = require('ieee754')
@@ -387,20 +927,22 @@ var rootParent = {}
  * We detect these buggy browsers and set `Buffer.TYPED_ARRAY_SUPPORT` to `false` so they
  * get the Object implementation, which is slower but behaves correctly.
  */
-Buffer.TYPED_ARRAY_SUPPORT = (function () {
-  function Bar () {}
-  try {
-    var arr = new Uint8Array(1)
-    arr.foo = function () { return 42 }
-    arr.constructor = Bar
-    return arr.foo() === 42 && // typed array instances can be augmented
-        arr.constructor === Bar && // constructor can be set
-        typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
-        arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
-  } catch (e) {
-    return false
-  }
-})()
+Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
+  ? global.TYPED_ARRAY_SUPPORT
+  : (function () {
+      function Bar () {}
+      try {
+        var arr = new Uint8Array(1)
+        arr.foo = function () { return 42 }
+        arr.constructor = Bar
+        return arr.foo() === 42 && // typed array instances can be augmented
+            arr.constructor === Bar && // constructor can be set
+            typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
+            arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
+      } catch (e) {
+        return false
+      }
+    })()
 
 function kMaxLength () {
   return Buffer.TYPED_ARRAY_SUPPORT
@@ -556,10 +1098,16 @@ function fromJsonObject (that, object) {
   return that
 }
 
+if (Buffer.TYPED_ARRAY_SUPPORT) {
+  Buffer.prototype.__proto__ = Uint8Array.prototype
+  Buffer.__proto__ = Uint8Array
+}
+
 function allocate (that, length) {
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     // Return an augmented `Uint8Array` instance, for best performance
     that = Buffer._augment(new Uint8Array(length))
+    that.__proto__ = Buffer.prototype
   } else {
     // Fallback: Return an object instance of the Buffer class
     that.length = length
@@ -968,31 +1516,20 @@ function base64Slice (buf, start, end) {
 
 function utf8Slice (buf, start, end) {
   end = Math.min(buf.length, end)
-  var firstByte
-  var secondByte
-  var thirdByte
-  var fourthByte
-  var bytesPerSequence
-  var tempCodePoint
-  var codePoint
   var res = []
+
   var i = start
-
-  for (; i < end; i += bytesPerSequence) {
-    firstByte = buf[i]
-    codePoint = 0xFFFD
-
-    if (firstByte > 0xEF) {
-      bytesPerSequence = 4
-    } else if (firstByte > 0xDF) {
-      bytesPerSequence = 3
-    } else if (firstByte > 0xBF) {
-      bytesPerSequence = 2
-    } else {
-      bytesPerSequence = 1
-    }
+  while (i < end) {
+    var firstByte = buf[i]
+    var codePoint = null
+    var bytesPerSequence = (firstByte > 0xEF) ? 4
+      : (firstByte > 0xDF) ? 3
+      : (firstByte > 0xBF) ? 2
+      : 1
 
     if (i + bytesPerSequence <= end) {
+      var secondByte, thirdByte, fourthByte, tempCodePoint
+
       switch (bytesPerSequence) {
         case 1:
           if (firstByte < 0x80) {
@@ -1031,8 +1568,10 @@ function utf8Slice (buf, start, end) {
       }
     }
 
-    if (codePoint === 0xFFFD) {
-      // we generated an invalid codePoint so make sure to only advance by 1 byte
+    if (codePoint === null) {
+      // we did not generate a valid codePoint so insert a
+      // replacement char (U+FFFD) and advance only 1 byte
+      codePoint = 0xFFFD
       bytesPerSequence = 1
     } else if (codePoint > 0xFFFF) {
       // encode to utf16 (surrogate pair dance)
@@ -1042,9 +1581,33 @@ function utf8Slice (buf, start, end) {
     }
 
     res.push(codePoint)
+    i += bytesPerSequence
   }
 
-  return String.fromCharCode.apply(String, res)
+  return decodeCodePointsArray(res)
+}
+
+// Based on http://stackoverflow.com/a/22747272/680742, the browser with
+// the lowest limit is Chrome, with 0x10000 args.
+// We go 1 magnitude less, for safety
+var MAX_ARGUMENTS_LENGTH = 0x1000
+
+function decodeCodePointsArray (codePoints) {
+  var len = codePoints.length
+  if (len <= MAX_ARGUMENTS_LENGTH) {
+    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
+  }
+
+  // Decode in chunks to avoid "call stack size exceeded".
+  var res = ''
+  var i = 0
+  while (i < len) {
+    res += String.fromCharCode.apply(
+      String,
+      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
+    )
+  }
+  return res
 }
 
 function asciiSlice (buf, start, end) {
@@ -1763,7 +2326,6 @@ function utf8ToBytes (string, units) {
           // unexpected trail
           if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
           continue
-
         } else if (i + 1 === length) {
           // unpaired lead
           if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
@@ -1785,7 +2347,6 @@ function utf8ToBytes (string, units) {
 
       // valid surrogate pair
       codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
-
     } else if (leadSurrogate) {
       // valid bmp char, but last char was a lead
       if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
@@ -1863,6 +2424,7 @@ function blitBuffer (src, dst, offset, length) {
   return i
 }
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"base64-js":5,"ieee754":6,"is-array":7}],5:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -2439,11 +3001,30 @@ if (typeof Object.create === 'function') {
 }
 
 },{}],10:[function(require,module,exports){
+/**
+ * Determine if an object is Buffer
+ *
+ * Author:   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * License:  MIT
+ *
+ * `npm install is-buffer`
+ */
+
+module.exports = function (obj) {
+  return !!(obj != null &&
+    (obj._isBuffer || // For Safari 5-7 (missing Object.prototype.constructor)
+      (obj.constructor &&
+      typeof obj.constructor.isBuffer === 'function' &&
+      obj.constructor.isBuffer(obj))
+    ))
+}
+
+},{}],11:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -2671,7 +3252,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,require('_process'))
-},{"_process":12}],12:[function(require,module,exports){
+},{"_process":13}],13:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -2731,10 +3312,10 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":14}],14:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":15}],15:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -2827,7 +3408,7 @@ function forEach (xs, f) {
 }
 
 }).call(this,require('_process'))
-},{"./_stream_readable":16,"./_stream_writable":18,"_process":12,"core-util-is":19,"inherits":9}],15:[function(require,module,exports){
+},{"./_stream_readable":17,"./_stream_writable":19,"_process":13,"core-util-is":20,"inherits":9}],16:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2875,7 +3456,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":17,"core-util-is":19,"inherits":9}],16:[function(require,module,exports){
+},{"./_stream_transform":18,"core-util-is":20,"inherits":9}],17:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -3830,7 +4411,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require('_process'))
-},{"./_stream_duplex":14,"_process":12,"buffer":4,"core-util-is":19,"events":8,"inherits":9,"isarray":10,"stream":24,"string_decoder/":25,"util":3}],17:[function(require,module,exports){
+},{"./_stream_duplex":15,"_process":13,"buffer":4,"core-util-is":20,"events":8,"inherits":9,"isarray":11,"stream":25,"string_decoder/":26,"util":3}],18:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4041,7 +4622,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":14,"core-util-is":19,"inherits":9}],18:[function(require,module,exports){
+},{"./_stream_duplex":15,"core-util-is":20,"inherits":9}],19:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4522,7 +5103,7 @@ function endWritable(stream, state, cb) {
 }
 
 }).call(this,require('_process'))
-},{"./_stream_duplex":14,"_process":12,"buffer":4,"core-util-is":19,"inherits":9,"stream":24}],19:[function(require,module,exports){
+},{"./_stream_duplex":15,"_process":13,"buffer":4,"core-util-is":20,"inherits":9,"stream":25}],20:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4631,11 +5212,11 @@ exports.isBuffer = isBuffer;
 function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
-}).call(this,require("buffer").Buffer)
-},{"buffer":4}],20:[function(require,module,exports){
+}).call(this,{"isBuffer":require("/Users/larkworthy/dev/animaxe/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js")})
+},{"/Users/larkworthy/dev/animaxe/node_modules/browserify/node_modules/insert-module-globals/node_modules/is-buffer/index.js":10}],21:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":15}],21:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":16}],22:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = require('stream');
 exports.Readable = exports;
@@ -4644,13 +5225,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":14,"./lib/_stream_passthrough.js":15,"./lib/_stream_readable.js":16,"./lib/_stream_transform.js":17,"./lib/_stream_writable.js":18,"stream":24}],22:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":15,"./lib/_stream_passthrough.js":16,"./lib/_stream_readable.js":17,"./lib/_stream_transform.js":18,"./lib/_stream_writable.js":19,"stream":25}],23:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":17}],23:[function(require,module,exports){
+},{"./lib/_stream_transform.js":18}],24:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":18}],24:[function(require,module,exports){
+},{"./lib/_stream_writable.js":19}],25:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4779,7 +5360,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":8,"inherits":9,"readable-stream/duplex.js":13,"readable-stream/passthrough.js":20,"readable-stream/readable.js":21,"readable-stream/transform.js":22,"readable-stream/writable.js":23}],25:[function(require,module,exports){
+},{"events":8,"inherits":9,"readable-stream/duplex.js":14,"readable-stream/passthrough.js":21,"readable-stream/readable.js":22,"readable-stream/transform.js":23,"readable-stream/writable.js":24}],26:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -5002,10 +5583,10 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":4}],26:[function(require,module,exports){
+},{"buffer":4}],27:[function(require,module,exports){
 module.exports = require('./lib/GIFEncoder');
 
-},{"./lib/GIFEncoder":27}],27:[function(require,module,exports){
+},{"./lib/GIFEncoder":28}],28:[function(require,module,exports){
 (function (Buffer){
 /*
   GIFEncoder.js
@@ -5459,7 +6040,7 @@ GIFEncoder.prototype.writePixels = function() {
 module.exports = GIFEncoder;
 
 }).call(this,require("buffer").Buffer)
-},{"./LZWEncoder.js":28,"./TypedNeuQuant.js":29,"buffer":4,"stream":24}],28:[function(require,module,exports){
+},{"./LZWEncoder.js":29,"./TypedNeuQuant.js":30,"buffer":4,"stream":25}],29:[function(require,module,exports){
 /*
   LZWEncoder.js
 
@@ -5670,7 +6251,7 @@ function LZWEncoder(width, height, pixels, colorDepth) {
 
 module.exports = LZWEncoder;
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 /* NeuQuant Neural-Net Quantization Algorithm
  * ------------------------------------------
  *
@@ -6103,7 +6684,391 @@ function NeuQuant(pixels, samplefac) {
 
 module.exports = NeuQuant;
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
+// Generated by CoffeeScript 1.9.3
+(function() {
+  var L_to_Y, Y_to_L, conv, distanceFromPole, dotProduct, epsilon, fromLinear, getBounds, intersectLineLine, kappa, lengthOfRayUntilIntersect, m, m_inv, maxChromaForLH, maxSafeChromaForL, refU, refV, root, toLinear;
+
+  m = {
+    R: [3.2409699419045214, -1.5373831775700935, -0.49861076029300328],
+    G: [-0.96924363628087983, 1.8759675015077207, 0.041555057407175613],
+    B: [0.055630079696993609, -0.20397695888897657, 1.0569715142428786]
+  };
+
+  m_inv = {
+    X: [0.41239079926595948, 0.35758433938387796, 0.18048078840183429],
+    Y: [0.21263900587151036, 0.71516867876775593, 0.072192315360733715],
+    Z: [0.019330818715591851, 0.11919477979462599, 0.95053215224966058]
+  };
+
+  refU = 0.19783000664283681;
+
+  refV = 0.468319994938791;
+
+  kappa = 903.2962962962963;
+
+  epsilon = 0.0088564516790356308;
+
+  getBounds = function(L) {
+    var bottom, channel, j, k, len1, len2, m1, m2, m3, ref, ref1, ref2, ret, sub1, sub2, t, top1, top2;
+    sub1 = Math.pow(L + 16, 3) / 1560896;
+    sub2 = sub1 > epsilon ? sub1 : L / kappa;
+    ret = [];
+    ref = ['R', 'G', 'B'];
+    for (j = 0, len1 = ref.length; j < len1; j++) {
+      channel = ref[j];
+      ref1 = m[channel], m1 = ref1[0], m2 = ref1[1], m3 = ref1[2];
+      ref2 = [0, 1];
+      for (k = 0, len2 = ref2.length; k < len2; k++) {
+        t = ref2[k];
+        top1 = (284517 * m1 - 94839 * m3) * sub2;
+        top2 = (838422 * m3 + 769860 * m2 + 731718 * m1) * L * sub2 - 769860 * t * L;
+        bottom = (632260 * m3 - 126452 * m2) * sub2 + 126452 * t;
+        ret.push([top1 / bottom, top2 / bottom]);
+      }
+    }
+    return ret;
+  };
+
+  intersectLineLine = function(line1, line2) {
+    return (line1[1] - line2[1]) / (line2[0] - line1[0]);
+  };
+
+  distanceFromPole = function(point) {
+    return Math.sqrt(Math.pow(point[0], 2) + Math.pow(point[1], 2));
+  };
+
+  lengthOfRayUntilIntersect = function(theta, line) {
+    var b1, len, m1;
+    m1 = line[0], b1 = line[1];
+    len = b1 / (Math.sin(theta) - m1 * Math.cos(theta));
+    if (len < 0) {
+      return null;
+    }
+    return len;
+  };
+
+  maxSafeChromaForL = function(L) {
+    var b1, j, len1, lengths, m1, ref, ref1, x;
+    lengths = [];
+    ref = getBounds(L);
+    for (j = 0, len1 = ref.length; j < len1; j++) {
+      ref1 = ref[j], m1 = ref1[0], b1 = ref1[1];
+      x = intersectLineLine([m1, b1], [-1 / m1, 0]);
+      lengths.push(distanceFromPole([x, b1 + x * m1]));
+    }
+    return Math.min.apply(Math, lengths);
+  };
+
+  maxChromaForLH = function(L, H) {
+    var hrad, j, l, len1, lengths, line, ref;
+    hrad = H / 360 * Math.PI * 2;
+    lengths = [];
+    ref = getBounds(L);
+    for (j = 0, len1 = ref.length; j < len1; j++) {
+      line = ref[j];
+      l = lengthOfRayUntilIntersect(hrad, line);
+      if (l !== null) {
+        lengths.push(l);
+      }
+    }
+    return Math.min.apply(Math, lengths);
+  };
+
+  dotProduct = function(a, b) {
+    var i, j, ref, ret;
+    ret = 0;
+    for (i = j = 0, ref = a.length - 1; 0 <= ref ? j <= ref : j >= ref; i = 0 <= ref ? ++j : --j) {
+      ret += a[i] * b[i];
+    }
+    return ret;
+  };
+
+  fromLinear = function(c) {
+    if (c <= 0.0031308) {
+      return 12.92 * c;
+    } else {
+      return 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+    }
+  };
+
+  toLinear = function(c) {
+    var a;
+    a = 0.055;
+    if (c > 0.04045) {
+      return Math.pow((c + a) / (1 + a), 2.4);
+    } else {
+      return c / 12.92;
+    }
+  };
+
+  conv = {
+    'xyz': {},
+    'luv': {},
+    'lch': {},
+    'husl': {},
+    'huslp': {},
+    'rgb': {},
+    'hex': {}
+  };
+
+  conv.xyz.rgb = function(tuple) {
+    var B, G, R;
+    R = fromLinear(dotProduct(m.R, tuple));
+    G = fromLinear(dotProduct(m.G, tuple));
+    B = fromLinear(dotProduct(m.B, tuple));
+    return [R, G, B];
+  };
+
+  conv.rgb.xyz = function(tuple) {
+    var B, G, R, X, Y, Z, rgbl;
+    R = tuple[0], G = tuple[1], B = tuple[2];
+    rgbl = [toLinear(R), toLinear(G), toLinear(B)];
+    X = dotProduct(m_inv.X, rgbl);
+    Y = dotProduct(m_inv.Y, rgbl);
+    Z = dotProduct(m_inv.Z, rgbl);
+    return [X, Y, Z];
+  };
+
+  Y_to_L = function(Y) {
+    if (Y <= epsilon) {
+      return Y * kappa;
+    } else {
+      return 116 * Math.pow(Y, 1 / 3) - 16;
+    }
+  };
+
+  L_to_Y = function(L) {
+    if (L <= 8) {
+      return L / kappa;
+    } else {
+      return Math.pow((L + 16) / 116, 3);
+    }
+  };
+
+  conv.xyz.luv = function(tuple) {
+    var L, U, V, X, Y, Z, varU, varV;
+    X = tuple[0], Y = tuple[1], Z = tuple[2];
+    if (Y === 0) {
+      return [0, 0, 0];
+    }
+    L = Y_to_L(Y);
+    varU = (4 * X) / (X + (15 * Y) + (3 * Z));
+    varV = (9 * Y) / (X + (15 * Y) + (3 * Z));
+    U = 13 * L * (varU - refU);
+    V = 13 * L * (varV - refV);
+    return [L, U, V];
+  };
+
+  conv.luv.xyz = function(tuple) {
+    var L, U, V, X, Y, Z, varU, varV;
+    L = tuple[0], U = tuple[1], V = tuple[2];
+    if (L === 0) {
+      return [0, 0, 0];
+    }
+    varU = U / (13 * L) + refU;
+    varV = V / (13 * L) + refV;
+    Y = L_to_Y(L);
+    X = 0 - (9 * Y * varU) / ((varU - 4) * varV - varU * varV);
+    Z = (9 * Y - (15 * varV * Y) - (varV * X)) / (3 * varV);
+    return [X, Y, Z];
+  };
+
+  conv.luv.lch = function(tuple) {
+    var C, H, Hrad, L, U, V;
+    L = tuple[0], U = tuple[1], V = tuple[2];
+    C = Math.sqrt(Math.pow(U, 2) + Math.pow(V, 2));
+    if (C < 0.00000001) {
+      H = 0;
+    } else {
+      Hrad = Math.atan2(V, U);
+      H = Hrad * 360 / 2 / Math.PI;
+      if (H < 0) {
+        H = 360 + H;
+      }
+    }
+    return [L, C, H];
+  };
+
+  conv.lch.luv = function(tuple) {
+    var C, H, Hrad, L, U, V;
+    L = tuple[0], C = tuple[1], H = tuple[2];
+    Hrad = H / 360 * 2 * Math.PI;
+    U = Math.cos(Hrad) * C;
+    V = Math.sin(Hrad) * C;
+    return [L, U, V];
+  };
+
+  conv.husl.lch = function(tuple) {
+    var C, H, L, S, max;
+    H = tuple[0], S = tuple[1], L = tuple[2];
+    if (L > 99.9999999 || L < 0.00000001) {
+      C = 0;
+    } else {
+      max = maxChromaForLH(L, H);
+      C = max / 100 * S;
+    }
+    return [L, C, H];
+  };
+
+  conv.lch.husl = function(tuple) {
+    var C, H, L, S, max;
+    L = tuple[0], C = tuple[1], H = tuple[2];
+    if (L > 99.9999999 || L < 0.00000001) {
+      S = 0;
+    } else {
+      max = maxChromaForLH(L, H);
+      S = C / max * 100;
+    }
+    return [H, S, L];
+  };
+
+  conv.huslp.lch = function(tuple) {
+    var C, H, L, S, max;
+    H = tuple[0], S = tuple[1], L = tuple[2];
+    if (L > 99.9999999 || L < 0.00000001) {
+      C = 0;
+    } else {
+      max = maxSafeChromaForL(L);
+      C = max / 100 * S;
+    }
+    return [L, C, H];
+  };
+
+  conv.lch.huslp = function(tuple) {
+    var C, H, L, S, max;
+    L = tuple[0], C = tuple[1], H = tuple[2];
+    if (L > 99.9999999 || L < 0.00000001) {
+      S = 0;
+    } else {
+      max = maxSafeChromaForL(L);
+      S = C / max * 100;
+    }
+    return [H, S, L];
+  };
+
+  conv.rgb.hex = function(tuple) {
+    var ch, hex, j, len1;
+    hex = "#";
+    for (j = 0, len1 = tuple.length; j < len1; j++) {
+      ch = tuple[j];
+      ch = Math.round(ch * 1e6) / 1e6;
+      if (ch < 0 || ch > 1) {
+        throw new Error("Illegal rgb value: " + ch);
+      }
+      ch = Math.round(ch * 255).toString(16);
+      if (ch.length === 1) {
+        ch = "0" + ch;
+      }
+      hex += ch;
+    }
+    return hex;
+  };
+
+  conv.hex.rgb = function(hex) {
+    var b, g, j, len1, n, r, ref, results;
+    if (hex.charAt(0) === "#") {
+      hex = hex.substring(1, 7);
+    }
+    r = hex.substring(0, 2);
+    g = hex.substring(2, 4);
+    b = hex.substring(4, 6);
+    ref = [r, g, b];
+    results = [];
+    for (j = 0, len1 = ref.length; j < len1; j++) {
+      n = ref[j];
+      results.push(parseInt(n, 16) / 255);
+    }
+    return results;
+  };
+
+  conv.lch.rgb = function(tuple) {
+    return conv.xyz.rgb(conv.luv.xyz(conv.lch.luv(tuple)));
+  };
+
+  conv.rgb.lch = function(tuple) {
+    return conv.luv.lch(conv.xyz.luv(conv.rgb.xyz(tuple)));
+  };
+
+  conv.husl.rgb = function(tuple) {
+    return conv.lch.rgb(conv.husl.lch(tuple));
+  };
+
+  conv.rgb.husl = function(tuple) {
+    return conv.lch.husl(conv.rgb.lch(tuple));
+  };
+
+  conv.huslp.rgb = function(tuple) {
+    return conv.lch.rgb(conv.huslp.lch(tuple));
+  };
+
+  conv.rgb.huslp = function(tuple) {
+    return conv.lch.huslp(conv.rgb.lch(tuple));
+  };
+
+  root = {};
+
+  root.fromRGB = function(R, G, B) {
+    return conv.rgb.husl([R, G, B]);
+  };
+
+  root.fromHex = function(hex) {
+    return conv.rgb.husl(conv.hex.rgb(hex));
+  };
+
+  root.toRGB = function(H, S, L) {
+    return conv.husl.rgb([H, S, L]);
+  };
+
+  root.toHex = function(H, S, L) {
+    return conv.rgb.hex(conv.husl.rgb([H, S, L]));
+  };
+
+  root.p = {};
+
+  root.p.toRGB = function(H, S, L) {
+    return conv.xyz.rgb(conv.luv.xyz(conv.lch.luv(conv.huslp.lch([H, S, L]))));
+  };
+
+  root.p.toHex = function(H, S, L) {
+    return conv.rgb.hex(conv.xyz.rgb(conv.luv.xyz(conv.lch.luv(conv.huslp.lch([H, S, L])))));
+  };
+
+  root.p.fromRGB = function(R, G, B) {
+    return conv.lch.huslp(conv.luv.lch(conv.xyz.luv(conv.rgb.xyz([R, G, B]))));
+  };
+
+  root.p.fromHex = function(hex) {
+    return conv.lch.huslp(conv.luv.lch(conv.xyz.luv(conv.rgb.xyz(conv.hex.rgb(hex)))));
+  };
+
+  root._conv = conv;
+
+  root._getBounds = getBounds;
+
+  root._maxChromaForLH = maxChromaForLH;
+
+  root._maxSafeChromaForL = maxSafeChromaForL;
+
+  if (!((typeof module !== "undefined" && module !== null) || (typeof jQuery !== "undefined" && jQuery !== null) || (typeof requirejs !== "undefined" && requirejs !== null))) {
+    this.HUSL = root;
+  }
+
+  if (typeof module !== "undefined" && module !== null) {
+    module.exports = root;
+  }
+
+  if (typeof jQuery !== "undefined" && jQuery !== null) {
+    jQuery.husl = root;
+  }
+
+  if ((typeof requirejs !== "undefined" && requirejs !== null) && (typeof define !== "undefined" && define !== null)) {
+    define(root);
+  }
+
+}).call(this);
+
+},{}],32:[function(require,module,exports){
 (function (process,global){
 // Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
@@ -6160,19 +7125,19 @@ module.exports = NeuQuant;
   function cloneArray(arr) { for(var a = [], i = 0, len = arr.length; i < len; i++) { a.push(arr[i]); } return a;}
 
   var errorObj = {e: {}};
-  var tryCatchTarget;
-  function tryCatcher() {
-    try {
-      return tryCatchTarget.apply(this, arguments);
-    } catch (e) {
-      errorObj.e = e;
-      return errorObj;
+  function tryCatcherGen(tryCatchTarget) {
+    return function tryCatcher() {
+      try {
+        return tryCatchTarget.apply(this, arguments);
+      } catch (e) {
+        errorObj.e = e;
+        return errorObj;
+      }
     }
   }
-  function tryCatch(fn) {
+  var tryCatch = Rx.internals.tryCatch = function tryCatch(fn) {
     if (!isFunction(fn)) { throw new TypeError('fn must be a function'); }
-    tryCatchTarget = fn;
-    return tryCatcher;
+    return tryCatcherGen(fn);
   }
   function thrower(e) {
     throw e;
@@ -6274,35 +7239,35 @@ module.exports = NeuQuant;
     this.name = 'EmptyError';
     Error.call(this);
   };
-  EmptyError.prototype = Error.prototype;
+  EmptyError.prototype = Object.create(Error.prototype);
 
   var ObjectDisposedError = Rx.ObjectDisposedError = function() {
     this.message = 'Object has been disposed';
     this.name = 'ObjectDisposedError';
     Error.call(this);
   };
-  ObjectDisposedError.prototype = Error.prototype;
+  ObjectDisposedError.prototype = Object.create(Error.prototype);
 
   var ArgumentOutOfRangeError = Rx.ArgumentOutOfRangeError = function () {
     this.message = 'Argument out of range';
     this.name = 'ArgumentOutOfRangeError';
     Error.call(this);
   };
-  ArgumentOutOfRangeError.prototype = Error.prototype;
+  ArgumentOutOfRangeError.prototype = Object.create(Error.prototype);
 
   var NotSupportedError = Rx.NotSupportedError = function (message) {
     this.message = message || 'This operation is not supported';
     this.name = 'NotSupportedError';
     Error.call(this);
   };
-  NotSupportedError.prototype = Error.prototype;
+  NotSupportedError.prototype = Object.create(Error.prototype);
 
   var NotImplementedError = Rx.NotImplementedError = function (message) {
     this.message = message || 'This operation is not implemented';
     this.name = 'NotImplementedError';
     Error.call(this);
   };
-  NotImplementedError.prototype = Error.prototype;
+  NotImplementedError.prototype = Object.create(Error.prototype);
 
   var notImplemented = Rx.helpers.notImplemented = function () {
     throw new NotImplementedError();
@@ -14767,8 +15732,8 @@ observableProto.controlled = function (enableQueue, scheduler) {
       observableTimerTimeSpanAndPeriod(dueTime, period, scheduler);
   };
 
-  function observableDelayTimeSpan(source, dueTime, scheduler) {
-    return new AnonymousObservable(function (observer) {
+  function observableDelayRelative(source, dueTime, scheduler) {
+    return new AnonymousObservable(function (o) {
       var active = false,
         cancelable = new SerialDisposable(),
         exception = null,
@@ -14789,7 +15754,7 @@ observableProto.controlled = function (enableQueue, scheduler) {
         }
         if (shouldRun) {
           if (exception !== null) {
-            observer.onError(exception);
+            o.onError(exception);
           } else {
             d = new SingleAssignmentDisposable();
             cancelable.setDisposable(d);
@@ -14805,7 +15770,7 @@ observableProto.controlled = function (enableQueue, scheduler) {
                   result = q.shift().value;
                 }
                 if (result !== null) {
-                  result.accept(observer);
+                  result.accept(o);
                 }
               } while (result !== null);
               shouldRecurse = false;
@@ -14819,7 +15784,7 @@ observableProto.controlled = function (enableQueue, scheduler) {
               e = exception;
               running = false;
               if (e !== null) {
-                observer.onError(e);
+                o.onError(e);
               } else if (shouldRecurse) {
                 self(recurseDueTime);
               }
@@ -14831,42 +15796,91 @@ observableProto.controlled = function (enableQueue, scheduler) {
     }, source);
   }
 
-  function observableDelayDate(source, dueTime, scheduler) {
+  function observableDelayAbsolute(source, dueTime, scheduler) {
     return observableDefer(function () {
-      return observableDelayTimeSpan(source, dueTime - scheduler.now(), scheduler);
+      return observableDelayRelative(source, dueTime - scheduler.now(), scheduler);
     });
   }
 
+  function delayWithSelector(source, subscriptionDelay, delayDurationSelector) {
+    var subDelay, selector;
+    if (isFunction(subscriptionDelay)) {
+      selector = subscriptionDelay;
+    } else {
+      subDelay = subscriptionDelay;
+      selector = delayDurationSelector;
+    }
+    return new AnonymousObservable(function (o) {
+      var delays = new CompositeDisposable(), atEnd = false, subscription = new SerialDisposable();
+
+      function start() {
+        subscription.setDisposable(source.subscribe(
+          function (x) {
+            var delay = tryCatch(selector)(x);
+            if (delay === errorObj) { return o.onError(delay.e); }
+            var d = new SingleAssignmentDisposable();
+            delays.add(d);
+            d.setDisposable(delay.subscribe(
+              function () {
+                o.onNext(x);
+                delays.remove(d);
+                done();
+              },
+              function (e) { o.onError(e); },
+              function () {
+                o.onNext(x);
+                delays.remove(d);
+                done();
+              }
+            ));
+          },
+          function (e) { o.onError(e); },
+          function () {
+            atEnd = true;
+            subscription.dispose();
+            done();
+          }
+        ));
+      }
+
+      function done () {
+        atEnd && delays.length === 0 && o.onCompleted();
+      }
+
+      if (!subDelay) {
+        start();
+      } else {
+        subscription.setDisposable(subDelay.subscribe(start, function (e) { o.onError(e); }, start));
+      }
+
+      return new CompositeDisposable(subscription, delays);
+    }, this);
+  }
+
   /**
-   *  Time shifts the observable sequence by dueTime. The relative time intervals between the values are preserved.
+   *  Time shifts the observable sequence by dueTime.
+   *  The relative time intervals between the values are preserved.
    *
-   * @example
-   *  1 - res = Rx.Observable.delay(new Date());
-   *  2 - res = Rx.Observable.delay(new Date(), Rx.Scheduler.timeout);
-   *
-   *  3 - res = Rx.Observable.delay(5000);
-   *  4 - res = Rx.Observable.delay(5000, 1000, Rx.Scheduler.timeout);
-   * @memberOf Observable#
    * @param {Number} dueTime Absolute (specified as a Date object) or relative time (specified as an integer denoting milliseconds) by which to shift the observable sequence.
    * @param {Scheduler} [scheduler] Scheduler to run the delay timers on. If not specified, the timeout scheduler is used.
    * @returns {Observable} Time-shifted sequence.
    */
-  observableProto.delay = function (dueTime, scheduler) {
-    isScheduler(scheduler) || (scheduler = timeoutScheduler);
-    return dueTime instanceof Date ?
-      observableDelayDate(this, dueTime.getTime(), scheduler) :
-      observableDelayTimeSpan(this, dueTime, scheduler);
+  observableProto.delay = function () {
+    if (typeof arguments[0] === 'number' || arguments[0] instanceof Date) {
+      var dueTime = arguments[0], scheduler = arguments[1];
+      isScheduler(scheduler) || (scheduler = timeoutScheduler);
+      return dueTime instanceof Date ?
+        observableDelayAbsolute(this, dueTime, scheduler) :
+        observableDelayRelative(this, dueTime, scheduler);
+    } else if (isFunction(arguments[0])) {
+      return delayWithSelector(this, arguments[0], arguments[1]);
+    } else {
+      throw new Error('Invalid arguments');
+    }
   };
 
-  /**
-   *  Ignores values from an observable sequence which are followed by another value before dueTime.
-   * @param {Number} dueTime Duration of the debounce period for each value (specified as an integer denoting milliseconds).
-   * @param {Scheduler} [scheduler]  Scheduler to run the debounce timers on. If not specified, the timeout scheduler is used.
-   * @returns {Observable} The debounced sequence.
-   */
-  observableProto.debounce = function (dueTime, scheduler) {
+  function debounce(source, dueTime, scheduler) {
     isScheduler(scheduler) || (scheduler = timeoutScheduler);
-    var source = this;
     return new AnonymousObservable(function (observer) {
       var cancelable = new SerialDisposable(), hasvalue = false, value, id = 0;
       var subscription = source.subscribe(
@@ -14897,14 +15911,63 @@ observableProto.controlled = function (enableQueue, scheduler) {
         });
       return new CompositeDisposable(subscription, cancelable);
     }, this);
-  };
+  }
 
-  /**
-   * @deprecated use #debounce or #throttleWithTimeout instead.
-   */
-  observableProto.throttle = function(dueTime, scheduler) {
-    //deprecate('throttle', 'debounce or throttleWithTimeout');
-    return this.debounce(dueTime, scheduler);
+  function debounceWithSelector(source, durationSelector) {
+    return new AnonymousObservable(function (o) {
+      var value, hasValue = false, cancelable = new SerialDisposable(), id = 0;
+      var subscription = source.subscribe(
+        function (x) {
+          var throttle = tryCatch(durationSelector)(x);
+          if (throttle === errorObj) { return o.onError(throttle.e); }
+
+          isPromise(throttle) && (throttle = observableFromPromise(throttle));
+
+          hasValue = true;
+          value = x;
+          id++;
+          var currentid = id, d = new SingleAssignmentDisposable();
+          cancelable.setDisposable(d);
+          d.setDisposable(throttle.subscribe(
+            function () {
+              hasValue && id === currentid && o.onNext(value);
+              hasValue = false;
+              d.dispose();
+            },
+            function (e) { o.onError(e); },
+            function () {
+              hasValue && id === currentid && o.onNext(value);
+              hasValue = false;
+              d.dispose();
+            }
+          ));
+        },
+        function (e) {
+          cancelable.dispose();
+          o.onError(e);
+          hasValue = false;
+          id++;
+        },
+        function () {
+          cancelable.dispose();
+          hasValue && o.onNext(value);
+          o.onCompleted();
+          hasValue = false;
+          id++;
+        }
+      );
+      return new CompositeDisposable(subscription, cancelable);
+    }, source);
+  }
+
+  observableProto.debounce = function () {
+    if (isFunction (arguments[0])) {
+      return debounceWithSelector(this, arguments[0]);
+    } else if (typeof arguments[0] === 'number') {
+      return debounce(this, arguments[0], arguments[1]);
+    } else {
+      throw new Error('Invalid arguments');
+    }
   };
 
   /**
@@ -15165,22 +16228,78 @@ observableProto.controlled = function (enableQueue, scheduler) {
       sampleObservable(this, intervalOrSampler);
   };
 
-  /**
-   *  Returns the source observable sequence or the other observable sequence if dueTime elapses.
-   * @param {Number} dueTime Absolute (specified as a Date object) or relative time (specified as an integer denoting milliseconds) when a timeout occurs.
-   * @param {Observable} [other]  Sequence to return in case of a timeout. If not specified, a timeout error throwing sequence will be used.
-   * @param {Scheduler} [scheduler]  Scheduler to run the timeout timers on. If not specified, the timeout scheduler is used.
-   * @returns {Observable} The source sequence switching to the other sequence in case of a timeout.
-   */
-  observableProto.timeout = function (dueTime, other, scheduler) {
-    (other == null || typeof other === 'string') && (other = observableThrow(new Error(other || 'Timeout')));
+  var TimeoutError = Rx.TimeoutError = function(message) {
+    this.message = message || 'Timeout has occurred';
+    this.name = 'TimeoutError';
+    Error.call(this);
+  };
+  TimeoutError.prototype = Object.create(Error.prototype);
+
+  function timeoutWithSelector(source, firstTimeout, timeoutDurationSelector, other) {
+    if (isFunction(firstTimeout)) {
+      other = timeoutDurationSelector;
+      timeoutDurationSelector = firstTimeout;
+      firstTimeout = observableNever();
+    }
+    other || (other = observableThrow(new TimeoutError()));
+    return new AnonymousObservable(function (o) {
+      var subscription = new SerialDisposable(), timer = new SerialDisposable(), original = new SingleAssignmentDisposable();
+
+      subscription.setDisposable(original);
+
+      var id = 0, switched = false;
+
+      function setTimer(timeout) {
+        var myId = id, d = new SingleAssignmentDisposable();
+        timer.setDisposable(d);
+        d.setDisposable(timeout.subscribe(function () {
+          id === myId && subscription.setDisposable(other.subscribe(o));
+          d.dispose();
+        }, function (e) {
+          id === myId && o.onError(e);
+        }, function () {
+          id === myId && subscription.setDisposable(other.subscribe(o));
+        }));
+      };
+
+      setTimer(firstTimeout);
+
+      function oWins() {
+        var res = !switched;
+        if (res) { id++; }
+        return res;
+      }
+
+      original.setDisposable(source.subscribe(function (x) {
+        if (oWins()) {
+          o.onNext(x);
+          var timeout = tryCatch(timeoutDurationSelector)(x);
+          if (timeout === errorObj) { return o.onError(timeout.e); }
+          setTimer(isPromise(timeout) ? observableFromPromise(timeout) : timeout);
+        }
+      }, function (e) {
+        oWins() && o.onError(e);
+      }, function () {
+        oWins() && o.onCompleted();
+      }));
+      return new CompositeDisposable(subscription, timer);
+    }, source);
+  }
+
+  function timeout(source, dueTime, other, scheduler) {
+    if (other == null) { throw new Error('other or scheduler must be specified'); }
+    if (isScheduler(other)) {
+      scheduler = other;
+      other = observableThrow(new TimeoutError());
+    }
+    if (other instanceof Error) { other = observableThrow(other); }
     isScheduler(scheduler) || (scheduler = timeoutScheduler);
 
-    var source = this, schedulerMethod = dueTime instanceof Date ?
+    var schedulerMethod = dueTime instanceof Date ?
       'scheduleWithAbsolute' :
       'scheduleWithRelative';
 
-    return new AnonymousObservable(function (observer) {
+    return new AnonymousObservable(function (o) {
       var id = 0,
         original = new SingleAssignmentDisposable(),
         subscription = new SerialDisposable(),
@@ -15194,7 +16313,7 @@ observableProto.controlled = function (enableQueue, scheduler) {
         timer.setDisposable(scheduler[schedulerMethod](dueTime, function () {
           if (id === myId) {
             isPromise(other) && (other = observableFromPromise(other));
-            subscription.setDisposable(other.subscribe(observer));
+            subscription.setDisposable(other.subscribe(o));
           }
         }));
       }
@@ -15204,22 +16323,33 @@ observableProto.controlled = function (enableQueue, scheduler) {
       original.setDisposable(source.subscribe(function (x) {
         if (!switched) {
           id++;
-          observer.onNext(x);
+          o.onNext(x);
           createTimer();
         }
       }, function (e) {
         if (!switched) {
           id++;
-          observer.onError(e);
+          o.onError(e);
         }
       }, function () {
         if (!switched) {
           id++;
-          observer.onCompleted();
+          o.onCompleted();
         }
       }));
       return new CompositeDisposable(subscription, timer);
     }, source);
+  }
+
+  observableProto.timeout = function () {
+    var firstArg = arguments[0];
+    if (firstArg instanceof Date || typeof firstArg === 'number') {
+      return timeout(this, firstArg, arguments[1], arguments[2]);
+    } else if (Observable.isObservable(firstArg) || isFunction(firstArg)) {
+      return timeoutWithSelector(this, firstArg, arguments[1], arguments[2]);
+    } else {
+      throw new Error('Invalid arguments');
+    }
   };
 
   /**
@@ -15348,194 +16478,6 @@ observableProto.controlled = function (enableQueue, scheduler) {
 
       return d;
     }, this);
-  };
-
-  /**
-   *  Time shifts the observable sequence based on a subscription delay and a delay selector function for each element.
-   *
-   * @example
-   *  1 - res = source.delayWithSelector(function (x) { return Rx.Scheduler.timer(5000); }); // with selector only
-   *  1 - res = source.delayWithSelector(Rx.Observable.timer(2000), function (x) { return Rx.Observable.timer(x); }); // with delay and selector
-   *
-   * @param {Observable} [subscriptionDelay]  Sequence indicating the delay for the subscription to the source.
-   * @param {Function} delayDurationSelector Selector function to retrieve a sequence indicating the delay for each given element.
-   * @returns {Observable} Time-shifted sequence.
-   */
-  observableProto.delayWithSelector = function (subscriptionDelay, delayDurationSelector) {
-    var source = this, subDelay, selector;
-    if (isFunction(subscriptionDelay)) {
-      selector = subscriptionDelay;
-    } else {
-      subDelay = subscriptionDelay;
-      selector = delayDurationSelector;
-    }
-    return new AnonymousObservable(function (observer) {
-      var delays = new CompositeDisposable(), atEnd = false, subscription = new SerialDisposable();
-
-      function start() {
-        subscription.setDisposable(source.subscribe(
-          function (x) {
-            var delay = tryCatch(selector)(x);
-            if (delay === errorObj) { return observer.onError(delay.e); }
-            var d = new SingleAssignmentDisposable();
-            delays.add(d);
-            d.setDisposable(delay.subscribe(
-              function () {
-                observer.onNext(x);
-                delays.remove(d);
-                done();
-              },
-              function (e) { observer.onError(e); },
-              function () {
-                observer.onNext(x);
-                delays.remove(d);
-                done();
-              }
-            ))
-          },
-          function (e) { observer.onError(e); },
-          function () {
-            atEnd = true;
-            subscription.dispose();
-            done();
-          }
-        ))
-      }
-
-      function done () {
-        atEnd && delays.length === 0 && observer.onCompleted();
-      }
-
-      if (!subDelay) {
-        start();
-      } else {
-        subscription.setDisposable(subDelay.subscribe(start, function (e) { observer.onError(e); }, start));
-      }
-
-      return new CompositeDisposable(subscription, delays);
-    }, this);
-  };
-
-    /**
-     *  Returns the source observable sequence, switching to the other observable sequence if a timeout is signaled.
-     * @param {Observable} [firstTimeout]  Observable sequence that represents the timeout for the first element. If not provided, this defaults to Observable.never().
-     * @param {Function} timeoutDurationSelector Selector to retrieve an observable sequence that represents the timeout between the current element and the next element.
-     * @param {Observable} [other]  Sequence to return in case of a timeout. If not provided, this is set to Observable.throwException().
-     * @returns {Observable} The source sequence switching to the other sequence in case of a timeout.
-     */
-    observableProto.timeoutWithSelector = function (firstTimeout, timeoutdurationSelector, other) {
-      if (arguments.length === 1) {
-          timeoutdurationSelector = firstTimeout;
-          firstTimeout = observableNever();
-      }
-      other || (other = observableThrow(new Error('Timeout')));
-      var source = this;
-      return new AnonymousObservable(function (observer) {
-        var subscription = new SerialDisposable(), timer = new SerialDisposable(), original = new SingleAssignmentDisposable();
-
-        subscription.setDisposable(original);
-
-        var id = 0, switched = false;
-
-        function setTimer(timeout) {
-          var myId = id;
-
-          function timerWins () {
-            return id === myId;
-          }
-
-          var d = new SingleAssignmentDisposable();
-          timer.setDisposable(d);
-          d.setDisposable(timeout.subscribe(function () {
-            timerWins() && subscription.setDisposable(other.subscribe(observer));
-            d.dispose();
-          }, function (e) {
-            timerWins() && observer.onError(e);
-          }, function () {
-            timerWins() && subscription.setDisposable(other.subscribe(observer));
-          }));
-        };
-
-        setTimer(firstTimeout);
-
-        function observerWins() {
-          var res = !switched;
-          if (res) { id++; }
-          return res;
-        }
-
-        original.setDisposable(source.subscribe(function (x) {
-          if (observerWins()) {
-            observer.onNext(x);
-            var timeout;
-            try {
-              timeout = timeoutdurationSelector(x);
-            } catch (e) {
-              observer.onError(e);
-              return;
-            }
-            setTimer(isPromise(timeout) ? observableFromPromise(timeout) : timeout);
-          }
-        }, function (e) {
-          observerWins() && observer.onError(e);
-        }, function () {
-          observerWins() && observer.onCompleted();
-        }));
-        return new CompositeDisposable(subscription, timer);
-      }, source);
-    };
-
-  /**
-   * Ignores values from an observable sequence which are followed by another value within a computed throttle duration.
-   * @param {Function} durationSelector Selector function to retrieve a sequence indicating the throttle duration for each given element.
-   * @returns {Observable} The debounced sequence.
-   */
-  observableProto.debounceWithSelector = function (durationSelector) {
-    var source = this;
-    return new AnonymousObservable(function (o) {
-      var value, hasValue = false, cancelable = new SerialDisposable(), id = 0;
-      var subscription = source.subscribe(
-        function (x) {
-          var throttle = tryCatch(durationSelector)(x);
-          if (throttle === errorObj) { return o.onError(throttle.e); }
-
-          isPromise(throttle) && (throttle = observableFromPromise(throttle));
-
-          hasValue = true;
-          value = x;
-          id++;
-          var currentid = id, d = new SingleAssignmentDisposable();
-          cancelable.setDisposable(d);
-          d.setDisposable(throttle.subscribe(
-            function () {
-              hasValue && id === currentid && o.onNext(value);
-              hasValue = false;
-              d.dispose();
-            },
-            function (e) { o.onError(e); },
-            function () {
-              hasValue && id === currentid && o.onNext(value);
-              hasValue = false;
-              d.dispose();
-            }
-          ));
-        },
-        function (e) {
-          cancelable.dispose();
-          o.onError(e);
-          hasValue = false;
-          id++;
-        },
-        function () {
-          cancelable.dispose();
-          hasValue && o.onNext(value);
-          o.onCompleted();
-          hasValue = false;
-          id++;
-        }
-      );
-      return new CompositeDisposable(subscription, cancelable);
-    }, source);
   };
 
   /**
@@ -15737,7 +16679,7 @@ observableProto.controlled = function (enableQueue, scheduler) {
    * @param {Scheduler} [scheduler] the Scheduler to use internally to manage the timers that handle timeout for each item. If not provided, defaults to Scheduler.timeout.
    * @returns {Observable} An Observable that performs the throttle operation.
    */
-  observableProto.throttleFirst = function (windowDuration, scheduler) {
+  observableProto.throttle = function (windowDuration, scheduler) {
     isScheduler(scheduler) || (scheduler = timeoutScheduler);
     var duration = +windowDuration || 0;
     if (duration <= 0) { throw new RangeError('windowDuration cannot be less or equal zero.'); }
@@ -16508,7 +17450,7 @@ Rx.Observable.prototype.flatMapWithMaxConcurrent = function(limit, selector, res
 }.call(this));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":12}],31:[function(require,module,exports){
+},{"_process":13}],33:[function(require,module,exports){
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -16518,7 +17460,7 @@ exports.SourceMapGenerator = require('./source-map/source-map-generator').Source
 exports.SourceMapConsumer = require('./source-map/source-map-consumer').SourceMapConsumer;
 exports.SourceNode = require('./source-map/source-node').SourceNode;
 
-},{"./source-map/source-map-consumer":36,"./source-map/source-map-generator":37,"./source-map/source-node":38}],32:[function(require,module,exports){
+},{"./source-map/source-map-consumer":38,"./source-map/source-map-generator":39,"./source-map/source-node":40}],34:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16617,7 +17559,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./util":39,"amdefine":40}],33:[function(require,module,exports){
+},{"./util":41,"amdefine":42}],35:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16763,7 +17705,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./base64":34,"amdefine":40}],34:[function(require,module,exports){
+},{"./base64":36,"amdefine":42}],36:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16807,7 +17749,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":40}],35:[function(require,module,exports){
+},{"amdefine":42}],37:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -16890,7 +17832,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":40}],36:[function(require,module,exports){
+},{"amdefine":42}],38:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -17370,7 +18312,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":32,"./base64-vlq":33,"./binary-search":35,"./util":39,"amdefine":40}],37:[function(require,module,exports){
+},{"./array-set":34,"./base64-vlq":35,"./binary-search":37,"./util":41,"amdefine":42}],39:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -17752,7 +18694,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./array-set":32,"./base64-vlq":33,"./util":39,"amdefine":40}],38:[function(require,module,exports){
+},{"./array-set":34,"./base64-vlq":35,"./util":41,"amdefine":42}],40:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -18125,7 +19067,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"./source-map-generator":37,"./util":39,"amdefine":40}],39:[function(require,module,exports){
+},{"./source-map-generator":39,"./util":41,"amdefine":42}],41:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -18332,7 +19274,7 @@ define(function (require, exports, module) {
 
 });
 
-},{"amdefine":40}],40:[function(require,module,exports){
+},{"amdefine":42}],42:[function(require,module,exports){
 (function (process,__filename){
 /** vim: et:ts=4:sw=4:sts=4
  * @license amdefine 1.0.0 Copyright (c) 2011-2015, The Dojo Foundation All Rights Reserved.
@@ -18637,7 +19579,7 @@ function amdefine(module, requireFn) {
 module.exports = amdefine;
 
 }).call(this,require('_process'),"/node_modules/source-map-support/node_modules/source-map/node_modules/amdefine/amdefine.js")
-},{"_process":12,"path":11}],41:[function(require,module,exports){
+},{"_process":13,"path":12}],43:[function(require,module,exports){
 (function (process,Buffer){
 var SourceMapConsumer = require('source-map').SourceMapConsumer;
 var path = require('path');
@@ -19070,4 +20012,4 @@ exports.install = function(options) {
 };
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"_process":12,"buffer":4,"fs":2,"path":11,"source-map":31}]},{},[1]);
+},{"_process":13,"buffer":4,"fs":2,"path":12,"source-map":33}]},{},[1]);

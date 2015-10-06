@@ -6,10 +6,25 @@ var gutil = require('gulp-util');
 var browserify = require('browserify');
 var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
+var del = require('del');
+var tslint = require('gulp-tslint');
+
+var TS_SETTINGS = {
+  sortOutput: true,
+  declarationFiles: true,
+  noExternalResolve: false,
+  noEmitOnError: true,
+  module: 'commonjs'
+};
 
 var num_examples = 4;
 
-gulp.task('browserify', function () {
+
+gulp.task('clean', function(cb) {
+  del(['dist', 'compiled'], cb);
+});
+
+gulp.task('browserify', ['compile'], function () {
   var browserified = transform(function(filename) {
     console.log("browserfy", filename);
     //browserify._ignore.push("canvas");
@@ -18,11 +33,10 @@ gulp.task('browserify', function () {
     return b.bundle();
   });
   
-  return gulp.src(['./compiled/js/*.js'])
+  return gulp.src(['./compiled/src/*.js'])
     .pipe(browserified)
     .pipe(gulp.dest('./dist'));
 });
-
 
 var tsProject = ts.createProject({
     sortOutput: true,
@@ -55,14 +69,7 @@ gulp.task('compile_gen', function() {
     ]);
 });
 
-
-
-var tsTestProject = ts.createProject({ //todo stop repeating config
-    sortOutput: true,
-    declarationFiles: false,
-    noExternalResolve: false,
-    module: 'commonjs'
-});
+var tsTestProject = ts.createProject(TS_SETTINGS);
 
 gulp.task('compile-test', function() {
     var tsResult = gulp.src('test/*.ts')
@@ -92,12 +99,7 @@ function exampleTask(i) {
     var exampleNameJS = 'example' + i + '.js';
     var exampleNameTS = 'example' + i + '.ts';
 
-    projects[exampleName] = ts.createProject({
-        sortOutput: true,
-        declarationFiles: false,
-        noExternalResolve: false,
-        module: 'commonjs'
-    });
+    projects[exampleName] = ts.createProject(TS_SETTINGS);
 
     gulp.task('compile-' + exampleName, ["compile"], function() {
         var tsResult = gulp.src(["test/" + exampleNameTS, 'test/helper.ts'])
@@ -122,10 +124,6 @@ function exampleTask(i) {
 for (var i = 1; i<= num_examples; i++ ) { // (counting from 1)
     exampleTask(i);
 }
-
-
-
-
 
 gulp.task('watch', ['compile', 'compile-test', 'browserify', 'test'], function() {
     gulp.watch(['src/*.ts', 'test/*.ts'], ['test']);

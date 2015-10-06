@@ -46,7 +46,7 @@ animator.play(
                             permDot(5, Ax.rgba(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1))))
                         ]
                     )
-                ))
+                )
             )
         )
     )

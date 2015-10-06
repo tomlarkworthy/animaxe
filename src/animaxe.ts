@@ -973,59 +973,16 @@ export function save(width:number, height:number, path: string): Animation {
     encoder.start();
 
     return new Animation(function (parent: DrawStream): DrawStream {
-        var t = 0;
-        var endNext = false;
         return parent.tap(
             function(tick: DrawTick) {
                 console.log("save: wrote frame");
-                //t += tick.dt;
-                //var out = fs.writeFileSync(path + "_"+ t + ".png", canvas.toBuffer());
-                //var parsed = pngparse(canvas.toBuffer())
                 encoder.addFrame(tick.ctx);
-                //encoder.addFrame(tick.ctx.getImageData(0, 0, width, height).data);
             },
             function() {console.error("save: not saved", path);},
-            function() {console.log("save: saved", path); encoder.finish();/* endNext = true;*/}
+            function() {console.log("save: saved", path); encoder.finish();}
         )
     });
 }
-
-// todo BUG TODO LIST
-
-// Features
-// Glow
-    // differnt distance exponents are interesting
-    // think about alpha over existing backgrounds
-
-// Reflection
-// L systems (fold?)
-// simulate a lasser show, XY parametric functions (Lissajous curves), intergrate with ODE
-
-// Engineering
-// figure out why example3 cannot have move than 1000 particles without a stack overflow
-// fix test randomness with a random seed
-// replace paralel with its own internal animator
-//replace Ax.sin() with Ax.sin(Ax.t)
-
-// Marketing
-// API documentation
-// website
-// jsFiddle
-
-
-
-// IDEAS
-
-// PacMan
-// what about a different way of making glow?
-// render luminecence into a texture and then color based on distance from lightsource
-// mouse input, tailing glow (rember to tween between rapid movements)
-// offscreen rendering an playback
-// sin wave, randomized
-// GUI components, responsive, bootstrap
-// get data out by tapping into flow (intercept(Subject passback))
-// SVG import
-// layering with parrallel (back first)
 
 
 /**
