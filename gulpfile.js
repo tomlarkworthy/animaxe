@@ -8,6 +8,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 var del = require('del');
 var tslint = require('gulp-tslint');
+var tsify = require('tsify');
 
 var TS_SETTINGS = {
   sortOutput: true,
@@ -25,6 +26,7 @@ gulp.task('clean', function(cb) {
 });
 
 gulp.task('browserify', ['compile'], function () {
+
   var browserified = transform(function(filename) {
     console.log("browserfy", filename);
     //browserify._ignore.push("canvas");
@@ -36,14 +38,19 @@ gulp.task('browserify', ['compile'], function () {
   return gulp.src(['./compiled/src/*.js'])
     .pipe(browserified)
     .pipe(gulp.dest('./dist'));
+
+
+  /*
+  browserify()
+    .add('src/animaxe.ts')
+    .plugin('tsify', TS_SETTINGS)
+    .bundle()
+    .on('error', function (error) { console.error(error.toString()); })
+    .pipe(gulp.dest('./dist'));*/
 });
 
-var tsProject = ts.createProject({
-    sortOutput: true,
-    declarationFiles: true,
-    noExternalResolve: false,
-    module: 'commonjs'
-});
+
+var tsProject = ts.createProject(TS_SETTINGS);
 
 gulp.task('compile', function() {
     var tsResult = gulp.src('src/*.ts')

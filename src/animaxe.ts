@@ -9,6 +9,8 @@ export var DEBUG_EMIT = true;
 
 var husl = require("husl");
 
+console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
+
 export class DrawTick {
     constructor (public ctx: CanvasRenderingContext2D, public clock: number, public dt: number) {}
 }
