@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+  },
+  "files": [
+    "test/helper.ts",
+    "test/example1.ts",
+    "test/example2.ts",
+    "test/example3.ts"
+  ]
+}

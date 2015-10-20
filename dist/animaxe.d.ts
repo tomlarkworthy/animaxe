@@ -1,6 +1,6 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
-import Rx = require("rx");
+import Rx = require('rx');
 export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare var DEBUG_EMIT: boolean;

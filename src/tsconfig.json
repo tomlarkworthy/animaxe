@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "out": "../dist/animaxe.js"
+  },
+  "files": [
+    "animaxe.ts"
+  ]
+}

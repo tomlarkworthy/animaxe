@@ -64,6 +64,84 @@ gulp.task('compile', function() {
     ]);
 });
 
+gulp.task('compile-internal', function() {
+    var TS_INTERNAL_SETTINGS = {
+      out: "dist/animaxe.js",
+      declarationFiles: true,
+      noEmitOnError: true
+    };
+    var tsResult = gulp.src('src/*.ts')
+                    .pipe(sourcemaps.init())
+                    .pipe(ts(ts.createProject(TS_INTERNAL_SETTINGS)));
+    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
+        tsResult.dts.pipe(gulp.dest('.')),
+        tsResult.js
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('.'))
+    ]);
+});
+
+gulp.task('compile-internal-example1', function() {
+    var TS_INTERNAL_SETTINGS = {
+      out: "dist/example1.js",
+      declarationFiles: false,
+      noEmitOnError: true
+    };
+    var tsResult = gulp.src('test/example1.ts')
+                    .pipe(sourcemaps.init())
+                    .pipe(ts(ts.createProject(TS_INTERNAL_SETTINGS)));
+    return tsResult.js
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest('.'));
+});
+
+gulp.task("test-internal-example1", ["compile-internal-example1"], function() {
+    return gulp.src(['dist/animaxe  .js', 'dist/example1.js'], { read: false })
+        .pipe(mocha({ reporter: 'list' }));
+});
+
+
+
+gulp.task('compile-external', function() {
+    var TS_INTERNAL_SETTINGS = {
+      //out: "dist/animaxe.js",
+      outDir: "dist",
+      module: "commonjs",
+      declarationFiles: true,
+      noEmitOnError: true
+    };
+    var tsResult = gulp.src('src/*.ts')
+                    .pipe(sourcemaps.init())
+                    .pipe(ts(ts.createProject(TS_INTERNAL_SETTINGS)));
+    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
+        tsResult.dts.pipe(gulp.dest('./dist')),
+        tsResult.js
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('./dist'))
+    ]);
+});
+
+gulp.task('compile-external-example1', ["compile-external"], function() {
+    var TS_INTERNAL_SETTINGS = {
+      outDir: ".",
+      declarationFiles: false,
+      module: "commonjs",
+      noEmitOnError: true
+    };
+    var tsResult = gulp.src('test/example1.ts')
+                    .pipe(sourcemaps.init())
+                    .pipe(ts(ts.createProject(TS_INTERNAL_SETTINGS)));
+    return tsResult.js
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest('.'));
+});
+
+gulp.task("test-external-example1", ["compile-external-example1"], function() {
+    return gulp.src(['test/example1.js'], { read: false })
+        .pipe(mocha({ reporter: 'list' }));
+});
+
+
 gulp.task('compile_gen', function() {
     var tsResult = gulp.src('scripts/*.ts')
                     .pipe(sourcemaps.init())

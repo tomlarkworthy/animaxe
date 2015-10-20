@@ -1,6 +1,7 @@
 // todo BUG TODO LIST
 
 // Features
+
 // Glow
     // different distance exponents are interesting
     // think about alpha over existing backgrounds
@@ -9,7 +10,23 @@
 // L systems (fold?)
 // simulate a lazer show, XY parametric functions (Lissajous curves), intergrate with ODE solver
 
+// Deployment
+// make it work with tsc and tsconfig.json
+// webpack
+// single.js file, works with node or browser (without a module loader?), a library written in typescript,
+// which can be used for applications written in Javascript or Typescript.
+// Browser, add animaxe.js to a script tag.
+// EXAMPLES:
+//   - <script src=animaxe.js> ... var Ax = Ax()[1] ; ... new Ax.Animator();
+//   - /// path to types , import Ax = require("Ax");
+// make it work with tcd
+//   - http://www.jbrantly.com/typescript-and-webpack/
+// REALITY:
+// - we follow RxJS conventions, which means commonjs external modules
+
+
 // Engineering
+
 // figure out why example3 cannot have move than 1000 particles without a stack overflow
 // fix test randomness with a random seed
 // replace parralel with its own internal animator
@@ -18,9 +35,10 @@
 // change order of playExample parameters
 
 // Marketing
+
 // API documentation
 // website
-// codepan
+// codepen
 // - browserify
 // - npm
 // - hosting
