@@ -23,7 +23,10 @@
 //   - http://www.jbrantly.com/typescript-and-webpack/
 // REALITY:
 // - we follow RxJS conventions, which means commonjs external modules
-
+// - we need Ax to depend on Rx. Which suggests importing it as a module, however that does not work in browser.
+// - External module typescript system a must, therefore webpack for browser usage
+// - webpack standalone example works
+// - however we want it as a library, see https://webpack.github.io/docs/library-and-externals.html
 
 // Engineering
 

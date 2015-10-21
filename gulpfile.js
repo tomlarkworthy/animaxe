@@ -9,6 +9,8 @@ var transform = require('vinyl-transform');
 var del = require('del');
 var tslint = require('gulp-tslint');
 var tsify = require('tsify');
+var webpack = require('webpack');
+var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"))
 
 var TS_SETTINGS = {
   sortOutput: true,
@@ -38,15 +40,131 @@ gulp.task('browserify', ['compile'], function () {
   return gulp.src(['./compiled/src/*.js'])
     .pipe(browserified)
     .pipe(gulp.dest('./dist'));
+});
 
-
-  /*
+gulp.task('tsify', ['compile'], function () {
   browserify()
-    .add('src/animaxe.ts')
+    .add(['./src/animaxe.ts'])
     .plugin('tsify', TS_SETTINGS)
     .bundle()
     .on('error', function (error) { console.error(error.toString()); })
-    .pipe(gulp.dest('./dist'));*/
+    .pipe(gulp.dest('./dist'));
+
+});
+
+/**
+ * standalone examples can be <script> tagged in html, no user supplied source
+ */
+gulp.task("webpack-standalone", function(callback) {
+    // run webpack
+    webpack({
+      entry: {
+        animaxe: ['./src/animaxe.ts'],
+        example1: './test/example1.ts'
+      },
+      output: {
+        filename: './dist/[name]-standalone.js'
+      },
+      resolve: {
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
+      },
+      module: {
+        loaders: [
+          { test: /\.ts$/, loader: 'ts-loader'}
+        ]
+      },
+      node: {
+        fs: "empty"
+      },
+      plugins: [ignore]
+    }, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+
+        }));
+        callback();
+    });
+});
+
+/**
+ * animaxe is loaded into global scope, so can be added in a script tag, and the user is able to write
+ * the examples in their own scripts. The need to include Rx themselves
+ */
+gulp.task("webpack-browser-ax", function(callback) {
+    // run webpack
+    webpack({
+      entry: {
+        "ax": ['./src/animaxe.ts']
+      },
+      output: {
+        libraryTarget: "var",
+        library: "Ax",
+        filename: './dist/ax.js'
+      },
+      resolve: {
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
+      },
+      module: {
+        loaders: [
+          { test: /\.ts$/, loader: 'ts-loader'}
+        ]
+      },
+      externals: {
+          // require("rx") is external and on the Rx variable
+          "rx": "Rx"
+      },
+      node: {
+        fs: "empty"
+      },
+      plugins: [ignore]
+    }, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+
+        }));
+        callback();
+    });
+});
+
+/**
+ */
+gulp.task("webpack-browser-helper", function(callback) {
+    // run webpack
+    webpack({
+      entry: {
+        "ax-helper": ['./test/helper.ts']
+      },
+      output: {
+        libraryTarget: "var",
+        library: "Helper",
+        filename: './dist/helper.js'
+      },
+      resolve: {
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
+      },
+      module: {
+        loaders: [
+          { test: /\.ts$/, loader: 'ts-loader'}
+        ]
+      },
+      externals: {
+          // require("rx") is external and on the Rx variable
+          "rx": "Rx"
+      },
+      node: {
+        fs: "empty"
+      },
+      plugins: [ignore]
+    }, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+
+        }));
+        callback();
+    });
 });
 
 

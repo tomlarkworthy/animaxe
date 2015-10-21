@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "commonjs"
   },
   "files": [
-    "test/helper.ts",
-    "test/example1.ts",
-    "test/example2.ts",
-    "test/example3.ts"
+    "helper.ts",
+    "example1.ts",
+    "example2.ts",
+    "example3.ts",
+    "../src/animaxe.ts"
   ]
 }

@@ -1,6 +1,8 @@
-module.exports = {  
-  entry: {
+var webpack = require('webpack');
+var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"))
 
+module.exports = {
+  entry: {
     animaxe: ['./src/animaxe.ts'],
     example1: './test/example1.ts'
   },
@@ -16,10 +18,7 @@ module.exports = {
     ]
   },
   node: {
-    fs: "empty",
-    canvas: "empty",
+    fs: "empty"
   },
-  browser: {
-    canvas: false
-  }
-}
+  plugins: [ignore]
+};
