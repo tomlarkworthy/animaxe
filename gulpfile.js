@@ -12,16 +12,7 @@ var tsify = require('tsify');
 var webpack = require('webpack');
 var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"))
 
-var TS_SETTINGS = {
-  sortOutput: true,
-  declarationFiles: true,
-  noExternalResolve: false,
-  noEmitOnError: true,
-  module: 'commonjs'
-};
-
 var num_examples = 4;
-
 
 gulp.task('clean', function(cb) {
   del([
@@ -34,91 +25,8 @@ gulp.task('clean', function(cb) {
   ], cb);
 });
 
-/**
- * animaxe is loaded into global scope, so can be added in a script tag, and the user is able to write
- * the examples in their own scripts. The need to include Rx themselves
- */
-gulp.task("webpack-browser-ax", function(callback) {
-    // run webpack
-    webpack({
-      entry: {
-        "ax": ['./src/animaxe.ts']
-      },
-      output: {
-        libraryTarget: "var",
-        library: "Ax",
-        filename: './dist/ax.js'
-      },
-      resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
-      },
-      module: {
-        loaders: [
-          { test: /\.ts$/, loader: 'ts-loader'}
-        ]
-      },
-      externals: {
-          // require("rx") is external and on the Rx variable
-          "rx": "Rx"
-      },
-      node: {
-        fs: "empty"
-      },
-      plugins: [ignore]
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-
-        }));
-        callback();
-    });
-});
-
-/**
- */
-gulp.task("webpack-browser-helper", function(callback) {
-    // run webpack
-    webpack({
-      entry: {
-        "ax-helper": ['./src/helper.ts']
-      },
-      output: {
-        libraryTarget: "var",
-        library: "helper",
-        filename: './dist/helper.js'
-      },
-      resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
-      },
-      module: {
-        loaders: [
-          { test: /\.ts$/, loader: 'ts-loader'}
-        ]
-      },
-      externals: {
-          // require("rx") is external and on the Rx variable
-          "rx": "Rx"
-      },
-      node: {
-        fs: "empty"
-      },
-      plugins: [ignore]
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-
-        }));
-        callback();
-    });
-});
-
-
-var tsProject = ts.createProject(TS_SETTINGS);
-
 gulp.task('compile', function() {
-    var TS_INTERNAL_SETTINGS = {
+    var TS_SETTINGS = {
       outDir: "dist",
       module: "commonjs",
       declarationFiles: true,
@@ -126,7 +34,7 @@ gulp.task('compile', function() {
     };
     var tsResult = gulp.src('src/*.ts')
                     .pipe(sourcemaps.init())
-                    .pipe(ts(ts.createProject(TS_INTERNAL_SETTINGS)));
+                    .pipe(ts(ts.createProject(TS_SETTINGS)));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
         tsResult.dts.pipe(gulp.dest('./dist')),
         tsResult.js
@@ -180,6 +88,86 @@ gulp.task('watch', ['compile', 'compile-test', 'browserify', 'test'], function()
 });
 
 
+/**
+ * animaxe is loaded into global scope, so can be added in a script tag, and the user is able to write
+ * the examples in their own scripts. The need to include Rx themselves
+ */
+gulp.task("webpack-ax", function(callback) {
+    // run webpack
+    webpack({
+      entry: {
+        "ax": ['./src/animaxe.ts']
+      },
+      output: {
+        libraryTarget: "var",
+        library: "Ax",
+        filename: './dist/ax.js'
+      },
+      resolve: {
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
+      },
+      module: {
+        loaders: [
+          { test: /\.ts$/, loader: 'ts-loader'}
+        ]
+      },
+      externals: {
+          // require("rx") is external and on the Rx variable
+          "rx": "Rx"
+      },
+      node: {
+        fs: "empty"
+      },
+      plugins: [ignore]
+    }, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+
+        }));
+        callback();
+    });
+});
+
+gulp.task("webpack-helper", function(callback) {
+    // run webpack
+    webpack({
+      entry: {
+        "ax-helper": ['./src/helper.ts']
+      },
+      output: {
+        libraryTarget: "var",
+        library: "helper",
+        filename: './dist/helper.js'
+      },
+      resolve: {
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
+      },
+      module: {
+        loaders: [
+          { test: /\.ts$/, loader: 'ts-loader'}
+        ]
+      },
+      externals: {
+          // require("rx") is external and on the Rx variable
+          "rx": "Rx"
+      },
+      node: {
+        fs: "empty"
+      },
+      plugins: [ignore]
+    }, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+
+        }));
+        callback();
+    });
+});
+
+
+gulp.task("webpack", ["webpack-ax", "webpack-helper"]);
 
 // TODO delete this after getting documentation generator working properly
 gulp.task('compile_gen', function() {
