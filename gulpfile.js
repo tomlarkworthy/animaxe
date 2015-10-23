@@ -8,6 +8,7 @@ var transform = require('vinyl-transform');
 var del = require('del');
 var tslint = require('gulp-tslint');
 var webpack = require('webpack');
+var typedoc = require("gulp-typedoc");
 var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"))
 
 var num_examples = 4;
@@ -165,6 +166,18 @@ gulp.task("webpack-helper", function(callback) {
 
 
 gulp.task("webpack", ["webpack-ax", "webpack-helper"]);
+
+gulp.task("typedoc", function() {
+    return gulp
+        .src(["src/*.ts"])
+        .pipe(typedoc({
+            module: "commonjs",
+            target: "es5",
+            out: "docs/",
+            name: "Animaxe"
+        }))
+    ;
+});
 
 // TODO delete this after getting documentation generator working properly
 gulp.task('compile_gen', function() {

@@ -12,36 +12,15 @@
 
 // Deployment
 //   - <script src=animaxe.js> ... var Ax = Ax() ; ... new Ax.Animator();
-// make it work with tcd
-//   - http://www.jbrantly.com/typescript-and-webpack/
 // REALITY:
 // - we follow RxJS conventions, which means commonjs external modules
 // - we need Ax to depend on Rx. Which suggests importing it as a module, however that does not work in browser.
 // - External module typescript system a must, therefore webpack for browser usage
 // - webpack standalone example works
-// - however we want it as a library, see https://webpack.github.io/docs/library-and-externals.html
-// - we are able to bundle it up with webpack, in a variety of modes. Including as a script tag for consuption by codepen
+// see http://codepen.io/tomlarkworthy/pen/jbmVWO
 
-/*
-declare var Helper;
 
-var animator = Helper.getExampleAnimator();
-var red   = 255;
-var green = 50;
-var blue = 50;
-
-function foo(p: Ax.Animation) {};
-animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100])));
-
-Helper.playExample("example1", 20, animator, 100, 100);
-
-declare module Ax {
-  export function rect(start, end);
-  export function changeColor(color, after);
-  export class Animation {}
-}
-*/
-
+// Why we went with code pen
 // - code pen sucks for syntax errors, and you have to declare the Ax module inline (though at least you can do this at the bottom)
 // - however, even with strong compilation, the errors are not highlighted inline and are confusing
 // - Playground-on-ace https://github.com/hi104/typescript-playground-on-ace does GREAT error reporting, but no sharing code :/
@@ -55,8 +34,9 @@ declare module Ax {
 
 // figure out why example3 cannot have move than 1000 particles without a stack overflow
 // fix test randomness with a random seed
-// replace parralel with its own internal animator
+// replace parralel with its own internal animator OR make parrallel the only option
 // replace Ax.sin() with Ax.sin(Ax.t)
+// Maybe operators should chain, Ax.move([50,50]).velocity(), instead of wrapping?
 // extract color spaces into own file (rgba, hsl)
 // change order of playExample parameters
 
@@ -64,12 +44,11 @@ declare module Ax {
 
 // API documentation
 // website
-// codepen
-// - browserify
 // - npm
 // - hosting
 
-
+// Code pen example
+// UI controls
 
 // IDEAS
 
@@ -82,5 +61,4 @@ declare module Ax {
 // GUI components, responsive, bootstrap
 // get data out by tapping into flow (intercept(Subject passback))
 // SVG import
-// layering with parrallel (back first)
 

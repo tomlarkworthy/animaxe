@@ -1,0 +1,237 @@
+<!doctype html>
+<html class="default no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>Animaxe</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
+	<script src="assets/js/modernizr.js"></script>
+</head>
+<body>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.js" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">Animaxe</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1> Animaxe</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<h1 id="animaxe-composable-animation-library">Animaxe, Composable Animation Library</h1>
+				<p>Drawing APIs suck, they are full of hidden state and have no opinion on the arrow of time.</p>
+				<p>Animaxe is an experiment to generalise drawing primatives across time, using a functional reactive paradigm (FRP).</p>
+				<p>Now you can compose animations <em>functionally</em>. Ideal for procedural and <em>interactive</em> animations.</p>
+				<p>Its still very early on this project, the basic building blocks are not complete, and the repository layout is not useful for libraries to link to. However, the following is a proof-of-concept for the API feel. Maybe you want to contribute?</p>
+				<h2 id="tutorial-1-render-to-animated-gif-in-nodejs">Tutorial 1 - render to animated gif in nodejs</h2>
+				<p>First wrap a CanvasRendering2D in a Animator, the schedular for animations. Later the animator will trigger rendering routines when connected to a number source (the time delta ticker). On a delta time tick, the animator passes the drawing context down the reactive animation pipeline.</p>
+				<pre><code><span class="hljs-keyword">var</span> Canvas = <span class="hljs-built_in">require</span>(<span class="hljs-string">'canvas'</span>);
+<span class="hljs-keyword">var</span> canvas = <span class="hljs-keyword">new</span> Canvas(<span class="hljs-number">100</span>, <span class="hljs-number">100</span>);
+<span class="hljs-keyword">var</span> context: CanvasRenderingContext2D = canvas.getContext(<span class="hljs-string">'2d'</span>);
+<span class="hljs-keyword">var</span> animator: Animator = <span class="hljs-keyword">new</span> Animator(context);
+</code></pre><p>Next we setup the animations. There are two major classes of thing in library:</p>
+				<ul>
+					<li>animations, drawing context push pipelines with a temporal lifecycle.</li>
+					<li>pull streams, used for parameters and arithmatic for animations</li>
+				</ul>
+				<p>Both these models support functional concepts. First we setup some push math routines.</p>
+				<pre><code><span class="hljs-comment">// create some time varying functions, syncronised to the the animator's clock</span>
+var bigSin = <span class="hljs-built_in">sin</span>(<span class="hljs-number">1</span>, animator.clock()).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">40</span> + <span class="hljs-number">50</span>);
+var bigCos = <span class="hljs-built_in">cos</span>(<span class="hljs-number">1</span>, animator.clock()).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">40</span> + <span class="hljs-number">50</span>);
+var red    = <span class="hljs-built_in">sin</span>(<span class="hljs-number">2</span>, animator.clock()).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">125</span> + <span class="hljs-number">125</span>);
+var green  = <span class="hljs-built_in">sin</span>(<span class="hljs-number">2</span>, animator.clock()).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">55</span> + <span class="hljs-number">200</span>);
+</code></pre><p>Now we use those functions to build animations. Most animations take parameters, you can use either literals, or push streams <code>type NumberStream = Iterable&lt;number&gt;)</code>. We start with a 2 frame basic animation of a spark.</p>
+				<pre><code><span class="hljs-comment">// two frame animation of a spark</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">spark</span><span class="hljs-params">(css_color: string | ColorStream)</span><span class="hljs-type">: Animation</span> </span>{
+    <span class="hljs-keyword">var</span> css: ColorStream = toStreamColor(css_color);
+    <span class="hljs-comment">// we build an animation by composing existing animation functions</span>
+    <span class="hljs-comment">// draw(fn, anim) takes a function taking a DrawTick and returns an infinite</span>
+    <span class="hljs-comment">// animation which applies the drawing function every frame</span>
+    <span class="hljs-comment">// take(n, anim) does no drawing itself, but passes only n frame of animation</span>
+    <span class="hljs-comment">// to its only child</span>
+    <span class="hljs-comment">// anim.then(anim) sequences a second animation to play after the first</span>
+    <span class="hljs-comment">// completes</span>
+    <span class="hljs-keyword">return</span> take(<span class="hljs-number">1</span>, draw(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(tick: DrawTick)</span> </span>{
+            console.log(<span class="hljs-string">"spark: frame1"</span>, css.next());
+            tick.ctx.fillStyle = css.next(); <span class="hljs-comment">//pull value out of param stream</span>
+            tick.ctx.fillRect(-<span class="hljs-number">2</span>,-<span class="hljs-number">2</span>,<span class="hljs-number">5</span>,<span class="hljs-number">5</span>); <span class="hljs-comment">//big rectangle</span>
+    })).then(
+        take(<span class="hljs-number">1</span>, draw(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(tick: DrawTick)</span> </span>{
+            console.log(<span class="hljs-string">"spark: frame2"</span>, css.next());
+            tick.ctx.fillStyle = css.next(); <span class="hljs-comment">//pull value out of param stream</span>
+            tick.ctx.fillRect(-<span class="hljs-number">1</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">3</span>,<span class="hljs-number">3</span>); <span class="hljs-comment">//small rectange</span>
+        }))
+    );
+}
+</code></pre><p>With a basic 2 frame animation building block we can now apply that animation in a variety of dynamic ways. <code>loop</code> is very handy for resequencing a child animation after it finishes.</p>
+				<p>When an animation pipeline is built up, you pass the animation tree to the animator to play it.</p>
+				<pre><code><span class="hljs-comment">// draw black background forever</span>
+animator<span class="hljs-class">.play</span>(<span class="hljs-function">changeColor</span>("<span class="hljs-id">#000000</span>", <span class="hljs-function">rect</span>(<span class="hljs-attr_selector">[0,0]</span>,<span class="hljs-attr_selector">[100,100]</span>)));
+<span class="hljs-comment">// animate a spark following a circular path, in dynamic colors</span>
+animator<span class="hljs-class">.play</span>(<span class="hljs-function">loop</span>(<span class="hljs-function">move</span>(<span class="hljs-function">point</span>(bigSin, bigCos), <span class="hljs-function">spark</span>(<span class="hljs-function">color</span>(red,green,0,0<span class="hljs-class">.5</span>)))));
+<span class="hljs-comment">// constant velocity from center (50,50) at (50, 0) pixels per second</span>
+animator<span class="hljs-class">.play</span>(<span class="hljs-function">move</span>(<span class="hljs-attr_selector">[50,50]</span>, <span class="hljs-function">velocity</span>(<span class="hljs-attr_selector">[50,0]</span>, <span class="hljs-function">loop</span>(<span class="hljs-function">spark</span>("<span class="hljs-id">#FFFFFF</span>")))));
+<span class="hljs-comment">// tween center to point on circle</span>
+animator<span class="hljs-class">.play</span>(<span class="hljs-function">tween_linear</span>(<span class="hljs-attr_selector">[50,50]</span>, <span class="hljs-function">point</span>(bigSin, bigCos), 1, <span class="hljs-function">loop</span>(<span class="hljs-function">spark</span>("red"))));
+</code></pre><p>Animations are anything that has a temporal lifecycle. There is one to save the screen into an animated gif.</p>
+				<pre><code>animator.play(save(<span class="hljs-number">100</span>, <span class="hljs-number">100</span>, <span class="hljs-string">"example1.gif"</span>));
+</code></pre><p>Finally an RxJS stream is used to drive the animators time ticker. The numbers represent the time (in seconds) between frames.</p>
+				<pre><code><span class="hljs-comment">// sumulating 2 seconds of time</span>
+animator.ticker(Rx.Observable.return(<span class="hljs-number">0.1</span>).repeat(<span class="hljs-number">20</span>));
+</code></pre><p>Voila, the result:</p>
+				<p>  <img src="../master/images/example1.gif?raw=true" alt="alt text" title="images/example1.gif"></p>
+				<p>If we are in a browser environment the delta time stream is useful for rendering as fast as possible! Temporal push streams like sin, or temporal animations like velocity use the time delta to produce framerate independant renderings.</p>
+				<pre><code><span class="hljs-comment">//browser</span>
+<span class="hljs-keyword">var</span> time;
+<span class="hljs-keyword">var</span> render = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+    <span class="hljs-built_in">window</span>.requestAnimationFrame(render);
+    <span class="hljs-keyword">var</span> now = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime(),
+    dt = now - (time || now);
+    time = now;
+    animator.root.onNext(<span class="hljs-keyword">new</span> DrawTick(animator.ctx, dt/<span class="hljs-number">1000</span>));
+};
+render();
+</code></pre><h1 id="further-work">Further work</h1>
+				<p>So the idea is animations are driven by anything. User input, physics <em>etc.</em> The main focus ATM is</p>
+				<ul>
+					<li>Better graphics, glow routines, polygon moves</li>
+					<li>Better learning resources, self-contained examples with gifs, and interactive examples on jsfiddle</li>
+					<li>Better build system, it&#39;s already continious (gulp watch), but iron out the wrinkles and modularise the tests</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_animaxe_.html">"animaxe"</a>
+					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="modules/_helper_.html">"helper"</a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="http://typedoc.io" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
+</body>
+</html>

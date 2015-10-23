@@ -1,4 +1,4 @@
-Animaxe, 2+1D Vector Drawing/Animation Library
+Animaxe, Composable Animation Library
 ==============================================
 
 Drawing APIs suck, they are full of hidden state and have no opinion on the arrow of time.
