@@ -1,13 +1,11 @@
 /// <reference path="../types/should.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
 /// <reference path="../types/node.d.ts" />
-/// <reference path="../dist/animaxe.d.ts" />
-/// <reference path="./helper.ts" />
 
 require("should");
 
-import Ax = require("../src/animaxe");
-import helper = require("./helper");
+import Ax = require("../dist/animaxe");
+import helper = require("../dist/helper");
 
 var animator: Ax.Animator = helper.getExampleAnimator();
 

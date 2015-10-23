@@ -81,7 +81,7 @@ gulp.task("webpack-browser-helper", function(callback) {
     // run webpack
     webpack({
       entry: {
-        "ax-helper": ['./test/helper.ts']
+        "ax-helper": ['./src/helper.ts']
       },
       output: {
         libraryTarget: "var",
@@ -118,20 +118,7 @@ gulp.task("webpack-browser-helper", function(callback) {
 var tsProject = ts.createProject(TS_SETTINGS);
 
 gulp.task('compile', function() {
-    var tsResult = gulp.src('src/*.ts')
-                    .pipe(sourcemaps.init())
-                    .pipe(ts(tsProject));
-    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
-        tsResult.dts.pipe(gulp.dest('compiled/definitions')),
-        tsResult.js
-            .pipe(sourcemaps.write())
-            .pipe(gulp.dest('compiled/src'))
-    ]);
-});
-
-gulp.task('compile-external', function() {
     var TS_INTERNAL_SETTINGS = {
-      //out: "dist/animaxe.js",
       outDir: "dist",
       module: "commonjs",
       declarationFiles: true,
@@ -148,65 +135,15 @@ gulp.task('compile-external', function() {
     ]);
 });
 
-gulp.task('compile-external-example1', ["compile-external"], function() {
-    var TS_INTERNAL_SETTINGS = {
+projects = {}; // each example has a set of ts projects to enable continuous compilation
+
+function exampleTask(i) {
+    var TS_SETTINGS = {
       outDir: ".",
       declarationFiles: false,
       module: "commonjs",
       noEmitOnError: true
     };
-    var tsResult = gulp.src('test/example1.ts')
-                    .pipe(sourcemaps.init())
-                    .pipe(ts(ts.createProject(TS_INTERNAL_SETTINGS)));
-    return tsResult.js
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest('.'));
-});
-
-gulp.task("test-external-example1", ["compile-external-example1"], function() {
-    return gulp.src(['test/example1.js'], { read: false })
-        .pipe(mocha({ reporter: 'list' }));
-});
-
-
-gulp.task('compile_gen', function() {
-    var tsResult = gulp.src('scripts/*.ts')
-                    .pipe(sourcemaps.init())
-                    .pipe(ts(tsProject));
-    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
-        tsResult.dts.pipe(gulp.dest('compiled/definitions')),
-        tsResult.js
-            .pipe(sourcemaps.write())
-            .pipe(gulp.dest('compiled/scripts'))
-    ]);
-});
-
-var tsTestProject = ts.createProject(TS_SETTINGS);
-
-gulp.task('compile-test', function() {
-    var tsResult = gulp.src('test/*.ts')
-                    .pipe(sourcemaps.init())
-                    .pipe(ts(tsTestProject));
-    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
-        tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('compiled/test'))
-    ]);
-});
-
-
-gulp.task('test', ['compile-test', 'compile'], function() {
-    function handleError(err) {
-        console.log(err.toString());
-        this.emit('end');
-    }
-    return gulp.src(['compiled/test/test.js'], { read: false })
-        .pipe(mocha({ reporter: 'list' }))
-        .on('error', handleError);
-});
-
-
-projects = {};
-
-function exampleTask(i) {
     var exampleName = 'example' + i;
     var exampleNameJS = 'example' + i + '.js';
     var exampleNameTS = 'example' + i + '.ts';
@@ -214,14 +151,14 @@ function exampleTask(i) {
     projects[exampleName] = ts.createProject(TS_SETTINGS);
 
     gulp.task('compile-' + exampleName, ["compile"], function() {
-        var tsResult = gulp.src(["test/" + exampleNameTS, 'test/helper.ts'])
+        var tsResult = gulp.src("test/" + exampleNameTS)
                         .pipe(sourcemaps.init())
                         .pipe(ts(projects[exampleName]));
-        return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('compiled/test'));
+        return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('.'));
     });
 
     gulp.task('test-' + exampleName, ['compile-' + exampleName], function() {
-        return gulp.src(['compiled/test/' + exampleNameJS, 'compiled/test/helper.js'], { read: false })
+        return gulp.src('test/' + exampleNameJS, { read: false })
             .pipe(mocha({ reporter: 'list' }));
     });
 
@@ -240,4 +177,19 @@ for (var i = 1; i<= num_examples; i++ ) { // (counting from 1)
 gulp.task('watch', ['compile', 'compile-test', 'browserify', 'test'], function() {
     gulp.watch(['src/*.ts', 'test/*.ts'], ['test']);
     gulp.watch('compiled/src/*.js', ['browserify']);;
+});
+
+
+
+// TODO delete this after getting documentation generator working properly
+gulp.task('compile_gen', function() {
+    var tsResult = gulp.src('scripts/*.ts')
+                    .pipe(sourcemaps.init())
+                    .pipe(ts(tsProject));
+    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
+        tsResult.dts.pipe(gulp.dest('compiled/definitions')),
+        tsResult.js
+            .pipe(sourcemaps.write())
+            .pipe(gulp.dest('compiled/scripts'))
+    ]);
 });

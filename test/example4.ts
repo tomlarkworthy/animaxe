@@ -1,11 +1,11 @@
-/// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
-/// <reference path="../types/node.d.ts" />
 /// <reference path="../types/should.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
-import Ax = require("../src/animaxe");
-import Rx = require("rx");
-import helper = require("./helper");
+/// <reference path="../types/node.d.ts" />
+
 require("should");
+
+import Ax = require("../dist/animaxe");
+import helper = require("../dist/helper");
 
 
 var animator: Ax.Animator = helper.getExampleAnimator(100, 100);
@@ -16,7 +16,7 @@ var red   = 255;
 var green = 50;
 var blue = 50;
 
-function permDot(size: number, css_color: string | Ax.ColorStream, after: Ax.Animation): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
+function permDot(size: number, css_color: string | Ax.ColorStream, after?: Ax.Animation): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
     var css = Ax.toStreamColor(css_color);
     return Ax.draw(
         () => {

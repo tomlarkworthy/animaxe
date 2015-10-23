@@ -1,12 +1,11 @@
-/// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
-/// <reference path="../types/node.d.ts" />
 /// <reference path="../types/should.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
-require('source-map-support').install();
-import Ax = require("../src/animaxe");
-import Rx = require("rx");
-import helper = require("./helper");
+/// <reference path="../types/node.d.ts" />
+
 require("should");
+
+import Ax = require("../dist/animaxe");
+import helper = require("../dist/helper");
 
 var animator: Ax.Animator = helper.getExampleAnimator();
 
