@@ -18,7 +18,6 @@ function spark(css_color: string | Ax.ColorStream): Ax.Animation { //we could be
         () => {
             var css_next = css.init();
             return function(tick: Ax.DrawTick) {
-                console.log("spark: frame1", css_next(tick.clock));
                 tick.ctx.fillStyle = css_next(tick.clock);
                 tick.ctx.fillRect(-2,-2,5,5);
             }
@@ -27,7 +26,6 @@ function spark(css_color: string | Ax.ColorStream): Ax.Animation { //we could be
             () => {
                 var css_next = css.init();
                 return function(tick: Ax.DrawTick) {
-                    console.log("spark: frame2", css_next(tick.clock));
                     tick.ctx.fillStyle = css_next(tick.clock);
                     tick.ctx.fillRect(-1,-1,3,3);
                 }
@@ -40,7 +38,6 @@ function sparkLong(css_color: string): Ax.Animation { //we could be clever and l
     return Ax.draw(
         () => {
             return function(tick: Ax.DrawTick) {
-                console.log("sparkLong", css_color);
                 tick.ctx.fillStyle = css_color;
                 tick.ctx.fillRect(-1,-1,3,3);
             }

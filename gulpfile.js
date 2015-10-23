@@ -138,7 +138,7 @@ gulp.task("webpack-browser-helper", function(callback) {
       },
       output: {
         libraryTarget: "var",
-        library: "Helper",
+        library: "helper",
         filename: './dist/helper.js'
       },
       resolve: {

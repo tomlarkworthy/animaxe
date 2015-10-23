@@ -11,14 +11,7 @@
 // simulate a lazer show, XY parametric functions (Lissajous curves), intergrate with ODE solver
 
 // Deployment
-// make it work with tsc and tsconfig.json
-// webpack
-// single.js file, works with node or browser (without a module loader?), a library written in typescript,
-// which can be used for applications written in Javascript or Typescript.
-// Browser, add animaxe.js to a script tag.
-// EXAMPLES:
-//   - <script src=animaxe.js> ... var Ax = Ax()[1] ; ... new Ax.Animator();
-//   - /// path to types , import Ax = require("Ax");
+//   - <script src=animaxe.js> ... var Ax = Ax() ; ... new Ax.Animator();
 // make it work with tcd
 //   - http://www.jbrantly.com/typescript-and-webpack/
 // REALITY:
@@ -27,6 +20,36 @@
 // - External module typescript system a must, therefore webpack for browser usage
 // - webpack standalone example works
 // - however we want it as a library, see https://webpack.github.io/docs/library-and-externals.html
+// - we are able to bundle it up with webpack, in a variety of modes. Including as a script tag for consuption by codepen
+
+/*
+declare var Helper;
+
+var animator = Helper.getExampleAnimator();
+var red   = 255;
+var green = 50;
+var blue = 50;
+
+function foo(p: Ax.Animation) {};
+animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100])));
+
+Helper.playExample("example1", 20, animator, 100, 100);
+
+declare module Ax {
+  export function rect(start, end);
+  export function changeColor(color, after);
+  export class Animation {}
+}
+*/
+
+// - code pen sucks for syntax errors, and you have to declare the Ax module inline (though at least you can do this at the bottom)
+// - however, even with strong compilation, the errors are not highlighted inline and are confusing
+// - Playground-on-ace https://github.com/hi104/typescript-playground-on-ace does GREAT error reporting, but no sharing code :/
+// - JSBin doesn't propogate type errors at all and is totally shit
+// - JSFiddle doesn't read typescript
+// - FORGET MAKING A TYPESCRIPT EDITOR, the raw JS is basically the same, and the definition file describes the API somewhat.
+
+
 
 // Engineering
 

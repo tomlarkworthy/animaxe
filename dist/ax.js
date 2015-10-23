@@ -57,7 +57,8 @@ var Ax =
 	var Rx = __webpack_require__(2);
 	exports.DEBUG_LOOP = false;
 	exports.DEBUG_THEN = false;
-	exports.DEBUG_EMIT = true;
+	exports.DEBUG_EMIT = false;
+	exports.DEBUG = false;
 	var husl = __webpack_require__(3);
 	console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 	var DrawTick = (function () {
@@ -232,17 +233,21 @@ var Ax =
 	    };
 	    Animator.prototype.play = function (animation) {
 	        var self = this;
-	        console.log("animator: play");
+	        if (exports.DEBUG)
+	            console.log("animator: play");
 	        var saveBeforeFrame = this.root.tapOnNext(function (tick) {
-	            console.log("animator: ctx save");
+	            if (exports.DEBUG)
+	                console.log("animator: ctx save");
 	            tick.ctx.save();
 	        });
 	        var doAnimation = animation.attach(saveBeforeFrame);
 	        var restoreAfterFrame = doAnimation.tap(function (tick) {
-	            console.log("animator: ctx next restore");
+	            if (exports.DEBUG)
+	                console.log("animator: ctx next restore");
 	            tick.ctx.restore();
 	        }, function (err) {
-	            console.log("animator: ctx err restore", err);
+	            if (exports.DEBUG)
+	                console.log("animator: ctx err restore", err);
 	            self.ctx.restore();
 	        }, function () {
 	            self.ctx.restore();
@@ -255,13 +260,13 @@ var Ax =
 	function point(x, y) {
 	    var x_stream = toStreamNumber(x);
 	    var y_stream = toStreamNumber(y);
-	    //console.log("point: init", x_stream, y_stream);
+	    //if (DEBUG) console.log("point: init", x_stream, y_stream);
 	    return new Parameter(function () {
 	        var x_next = x_stream.init();
 	        var y_next = y_stream.init();
 	        return function (t) {
 	            var result = [x_next(t), y_next(t)];
-	            //console.log("point: next", result);
+	            //if (DEBUG) console.log("point: next", result);
 	            return result;
 	        };
 	    });
@@ -287,7 +292,8 @@ var Ax =
 	            var b_val = Math.floor(b_next(t));
 	            var a_val = a_next(t);
 	            var val = "rgba(" + r_val + "," + g_val + "," + b_val + "," + a_val + ")";
-	            console.log("color: ", val);
+	            if (exports.DEBUG)
+	                console.log("color: ", val);
 	            return val;
 	        };
 	    });
@@ -306,7 +312,7 @@ var Ax =
 	            var s_val = Math.floor(s_next(t));
 	            var l_val = Math.floor(l_next(t));
 	            var val = "hsl(" + h_val + "," + s_val + "%," + l_val + "%)";
-	            // console.log("hsl: ", val);
+	            // if (DEBUG) console.log("hsl: ", val);
 	            return val;
 	        };
 	    });
@@ -328,7 +334,8 @@ var Ax =
 	    if (scale === void 0) { scale = 1; }
 	    var scale_ = toStreamNumber(scale);
 	    return new Parameter(function () {
-	        console.log("rndNormal: init");
+	        if (exports.DEBUG)
+	            console.log("rndNormal: init");
 	        var scale_next = scale_.init();
 	        return function (t) {
 	            var scale = scale_next(t);
@@ -341,7 +348,8 @@ var Ax =
 	            }
 	            var norm = Math.sqrt(norm2);
 	            var val = [scale * x / norm, scale * y / norm];
-	            console.log("rndNormal: val", val);
+	            if (exports.DEBUG)
+	                console.log("rndNormal: val", val);
 	            return val;
 	        };
 	    });
@@ -369,7 +377,8 @@ var Ax =
 	    var index = 0;
 	    return new Animation(function (upstream) {
 	        return upstream.tapOnNext(function (tick) {
-	            console.log("assertClock: ", tick);
+	            if (exports.DEBUG)
+	                console.log("assertClock: ", tick);
 	            if (tick.clock < assertClock[index] - 0.00001 || tick.clock > assertClock[index] + 0.00001) {
 	                var errorMsg = "unexpected clock observed: " + tick.clock + ", expected:" + assertClock[index];
 	                console.log(errorMsg);
@@ -387,7 +396,8 @@ var Ax =
 	        var value_next = value.init();
 	        return function (t) {
 	            var dt = dt_next(t);
-	            console.log("displaceT: ", dt);
+	            if (exports.DEBUG)
+	                console.log("displaceT: ", dt);
 	            return value_next(t + dt);
 	        };
 	    });
@@ -395,26 +405,30 @@ var Ax =
 	exports.displaceT = displaceT;
 	//todo: should be t as a parameter to a non tempor
 	function sin(period) {
-	    console.log("sin: new");
+	    if (exports.DEBUG)
+	        console.log("sin: new");
 	    var period_stream = toStreamNumber(period);
 	    return new Parameter(function () {
 	        var period_next = period_stream.init();
 	        return function (t) {
 	            var value = Math.sin(t * (Math.PI * 2) / period_next(t));
-	            console.log("sin: tick", t, value);
+	            if (exports.DEBUG)
+	                console.log("sin: tick", t, value);
 	            return value;
 	        };
 	    });
 	}
 	exports.sin = sin;
 	function cos(period) {
-	    console.log("cos: new");
+	    if (exports.DEBUG)
+	        console.log("cos: new");
 	    var period_stream = toStreamNumber(period);
 	    return new Parameter(function () {
 	        var period_next = period_stream.init();
 	        return function (t) {
 	            var value = Math.cos(t * (Math.PI * 2) / period_next(t));
-	            console.log("cos: tick", t, value);
+	            if (exports.DEBUG)
+	                console.log("cos: tick", t, value);
 	            return value;
 	        };
 	    });
@@ -549,13 +563,15 @@ var Ax =
 	}
 	exports.draw = draw;
 	function move(delta, animation) {
-	    console.log("move: attached");
+	    if (exports.DEBUG)
+	        console.log("move: attached");
 	    var pointStream = toStreamPoint(delta);
 	    return draw(function () {
 	        var point_next = pointStream.init();
 	        return function (tick) {
 	            var point = point_next(tick.clock);
-	            console.log("move:", point);
+	            if (exports.DEBUG)
+	                console.log("move:", point);
 	            if (tick)
 	                tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
 	            return tick;
@@ -594,7 +610,8 @@ var Ax =
 	        var from_next = from_stream.init();
 	        var to_next = to_stream.init();
 	        return prev.map(function (tick) {
-	            console.log("tween: inner");
+	            if (exports.DEBUG)
+	                console.log("tween: inner");
 	            var from = from_next(tick.clock);
 	            var to = to_next(tick.clock);
 	            t = t + tick.dt;
@@ -613,7 +630,8 @@ var Ax =
 	    animation) {
 	    return draw(function () {
 	        return function (tick) {
-	            console.log("rect: fillRect");
+	            if (exports.DEBUG)
+	                console.log("rect: fillRect");
 	            tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
 	        };
 	    }, animation);
@@ -833,7 +851,8 @@ var Ax =
 	    encoder.start();
 	    return new Animation(function (parent) {
 	        return parent.tap(function (tick) {
-	            console.log("save: wrote frame");
+	            if (exports.DEBUG)
+	                console.log("save: wrote frame");
 	            encoder.addFrame(tick.ctx);
 	        }, function () { console.error("save: not saved", path); }, function () { console.log("save: saved", path); encoder.finish(); });
 	    });

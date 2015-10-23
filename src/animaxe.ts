@@ -4,7 +4,8 @@ import Rx = require('rx');
 
     export var DEBUG_LOOP = false;
     export var DEBUG_THEN = false;
-    export var DEBUG_EMIT = true;
+    export var DEBUG_EMIT = false;
+    export var DEBUG = false;
 
     var husl = require("husl");
 
@@ -203,18 +204,18 @@ import Rx = require('rx');
         }
         play (animation: Animation): void {
             var self = this;
-            console.log("animator: play");
+            if (DEBUG) console.log("animator: play");
             var saveBeforeFrame = this.root.tapOnNext(function(tick){
-                console.log("animator: ctx save");
+                if (DEBUG) console.log("animator: ctx save");
                 tick.ctx.save();
             });
             var doAnimation = animation.attach(saveBeforeFrame);
             var restoreAfterFrame = doAnimation.tap(
                 function(tick){
-                    console.log("animator: ctx next restore");
+                    if (DEBUG) console.log("animator: ctx next restore");
                     tick.ctx.restore();
                 },function(err){
-                    console.log("animator: ctx err restore", err);
+                    if (DEBUG) console.log("animator: ctx err restore", err);
                     self.ctx.restore();
                 },function(){
                     self.ctx.restore();
@@ -234,14 +235,14 @@ import Rx = require('rx');
         var x_stream = toStreamNumber(x);
         var y_stream = toStreamNumber(y);
 
-        //console.log("point: init", x_stream, y_stream);
+        //if (DEBUG) console.log("point: init", x_stream, y_stream);
         return new Parameter(
             () => {
                 var x_next = x_stream.init();
                 var y_next = y_stream.init();
                 return function(t: number) {
                     var result: [number, number] = [x_next(t), y_next(t)];
-                    //console.log("point: next", result);
+                    //if (DEBUG) console.log("point: next", result);
                     return result;
                 }
             }
@@ -275,7 +276,7 @@ import Rx = require('rx');
                     var b_val = Math.floor(b_next(t));
                     var a_val = a_next(t);
                     var val = "rgba(" + r_val + "," + g_val + "," + b_val + "," + a_val + ")";
-                    console.log("color: ", val);
+                    if (DEBUG) console.log("color: ", val);
                     return val;
                 }
             }
@@ -301,7 +302,7 @@ import Rx = require('rx');
                     var s_val = Math.floor(s_next(t));
                     var l_val = Math.floor(l_next(t));
                     var val = "hsl(" + h_val + "," + s_val + "%," + l_val + "%)";
-                    // console.log("hsl: ", val);
+                    // if (DEBUG) console.log("hsl: ", val);
                     return val;
                 }
             }
@@ -328,7 +329,7 @@ import Rx = require('rx');
         var scale_ = toStreamNumber(scale);
         return new Parameter<Point>(
             () => {
-                console.log("rndNormal: init");
+                if (DEBUG) console.log("rndNormal: init");
                 var scale_next = scale_.init();
                 return function (t: number): Point {
                     var scale = scale_next(t);
@@ -342,7 +343,7 @@ import Rx = require('rx');
 
                     var norm = Math.sqrt(norm2);
                     var val: [number, number] = [scale * x / norm , scale * y / norm];
-                    console.log("rndNormal: val", val);
+                    if (DEBUG) console.log("rndNormal: val", val);
                     return val;
                 }
             }
@@ -371,7 +372,7 @@ import Rx = require('rx');
 
         return new Animation(function(upstream) {
             return upstream.tapOnNext(function(tick: DrawTick) {
-                console.log("assertClock: ", tick);
+                if (DEBUG) console.log("assertClock: ", tick);
                 if (tick.clock < assertClock[index] - 0.00001 || tick.clock > assertClock[index] + 0.00001) {
                     var errorMsg = "unexpected clock observed: " + tick.clock + ", expected:" + assertClock[index]
                     console.log(errorMsg);
@@ -390,7 +391,7 @@ import Rx = require('rx');
                 var value_next = value.init();
                 return function (t) {
                     var dt = dt_next(t);
-                    console.log("displaceT: ", dt)
+                    if (DEBUG) console.log("displaceT: ", dt)
                     return value_next(t + dt)
                 }
             }
@@ -399,28 +400,28 @@ import Rx = require('rx');
 
     //todo: should be t as a parameter to a non tempor
     export function sin(period: number| Parameter<number>): Parameter<number> {
-        console.log("sin: new");
+        if (DEBUG) console.log("sin: new");
         var period_stream = toStreamNumber(period);
         return new Parameter(
             () => {
                 var period_next = period_stream.init();
                 return function (t: number) {
                     var value = Math.sin(t * (Math.PI * 2) / period_next(t));
-                    console.log("sin: tick", t, value);
+                    if (DEBUG) console.log("sin: tick", t, value);
                     return value;
                 }
             }
         );
     }
     export function cos(period: number| Parameter<number>): Parameter<number> {
-        console.log("cos: new");
+        if (DEBUG) console.log("cos: new");
         var period_stream = toStreamNumber(period);
         return new Parameter(
             () => {
                 var period_next = period_stream.init();
                 return function (t: number) {
                     var value = Math.cos(t * (Math.PI * 2) / period_next(t));
-                    console.log("cos: tick", t, value);
+                    if (DEBUG) console.log("cos: tick", t, value);
                     return value;
                 }
             }
@@ -602,14 +603,14 @@ import Rx = require('rx');
         delta: Point | PointStream,
         animation?: Animation
     ): Animation {
-        console.log("move: attached");
+        if (DEBUG) console.log("move: attached");
         var pointStream: PointStream = toStreamPoint(delta);
         return draw(
             () => {
                 var point_next = pointStream.init();
                 return function(tick) {
                     var point = point_next(tick.clock);
-                    console.log("move:", point);
+                    if (DEBUG) console.log("move:", point);
                     if (tick)
                         tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
                     return tick;
@@ -666,7 +667,7 @@ import Rx = require('rx');
             var from_next = from_stream.init();
             var to_next = to_stream.init();
             return prev.map(function(tick: DrawTick) {
-                console.log("tween: inner");
+                if (DEBUG) console.log("tween: inner");
                 var from = from_next(tick.clock);
                 var to   = to_next(tick.clock);
 
@@ -688,7 +689,7 @@ import Rx = require('rx');
         return draw(
             () => {
                 return function (tick: DrawTick) {
-                    console.log("rect: fillRect");
+                    if (DEBUG) console.log("rect: fillRect");
                     tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
                 }
             }, animation);
@@ -976,7 +977,7 @@ import Rx = require('rx');
         return new Animation(function (parent: DrawStream): DrawStream {
             return parent.tap(
                 function(tick: DrawTick) {
-                    console.log("save: wrote frame");
+                    if (DEBUG) console.log("save: wrote frame");
                     encoder.addFrame(tick.ctx);
                 },
                 function() {console.error("save: not saved", path);},

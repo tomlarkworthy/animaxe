@@ -22,7 +22,6 @@ function permDot(size: number, css_color: string | Ax.ColorStream): Ax.Animation
         () => {
             var css_next = css.init();
             return function(tick: Ax.DrawTick) {
-                console.log("permDot: tick", css_next(tick.clock));
                 tick.ctx.fillStyle = css_next(tick.clock);
                 // tick.ctx.fillRect(0,0,1,1);
                 tick.ctx.fillRect(-size/2, -size/2, size, size);
