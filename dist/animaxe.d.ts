@@ -4,6 +4,7 @@ import Rx = require('rx');
 export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare var DEBUG_EMIT: boolean;
+export declare var DEBUG: boolean;
 export declare class DrawTick {
     ctx: CanvasRenderingContext2D;
     clock: number;

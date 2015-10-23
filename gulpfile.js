@@ -24,67 +24,14 @@ var num_examples = 4;
 
 
 gulp.task('clean', function(cb) {
-  del(['dist', 'compiled'], cb);
-});
-
-gulp.task('browserify', ['compile'], function () {
-
-  var browserified = transform(function(filename) {
-    console.log("browserfy", filename);
-    //browserify._ignore.push("canvas");
-    var b = browserify(filename);
-    b.ignore("canvas");
-    return b.bundle();
-  });
-  
-  return gulp.src(['./compiled/src/*.js'])
-    .pipe(browserified)
-    .pipe(gulp.dest('./dist'));
-});
-
-gulp.task('tsify', ['compile'], function () {
-  browserify()
-    .add(['./src/animaxe.ts'])
-    .plugin('tsify', TS_SETTINGS)
-    .bundle()
-    .on('error', function (error) { console.error(error.toString()); })
-    .pipe(gulp.dest('./dist'));
-
-});
-
-/**
- * standalone examples can be <script> tagged in html, no user supplied source
- */
-gulp.task("webpack-standalone", function(callback) {
-    // run webpack
-    webpack({
-      entry: {
-        animaxe: ['./src/animaxe.ts'],
-        example1: './test/example1.ts'
-      },
-      output: {
-        filename: './dist/[name]-standalone.js'
-      },
-      resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
-      },
-      module: {
-        loaders: [
-          { test: /\.ts$/, loader: 'ts-loader'}
-        ]
-      },
-      node: {
-        fs: "empty"
-      },
-      plugins: [ignore]
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-
-        }));
-        callback();
-    });
+  del([
+    'dist',
+    'compiled',
+    'test/*.js',
+    'test/*.js.map',
+    'src/*.js',
+    'src/*.js.map'
+  ], cb);
 });
 
 /**
@@ -181,44 +128,6 @@ gulp.task('compile', function() {
             .pipe(gulp.dest('compiled/src'))
     ]);
 });
-
-gulp.task('compile-internal', function() {
-    var TS_INTERNAL_SETTINGS = {
-      out: "dist/animaxe.js",
-      declarationFiles: true,
-      noEmitOnError: true
-    };
-    var tsResult = gulp.src('src/*.ts')
-                    .pipe(sourcemaps.init())
-                    .pipe(ts(ts.createProject(TS_INTERNAL_SETTINGS)));
-    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
-        tsResult.dts.pipe(gulp.dest('.')),
-        tsResult.js
-            .pipe(sourcemaps.write())
-            .pipe(gulp.dest('.'))
-    ]);
-});
-
-gulp.task('compile-internal-example1', function() {
-    var TS_INTERNAL_SETTINGS = {
-      out: "dist/example1.js",
-      declarationFiles: false,
-      noEmitOnError: true
-    };
-    var tsResult = gulp.src('test/example1.ts')
-                    .pipe(sourcemaps.init())
-                    .pipe(ts(ts.createProject(TS_INTERNAL_SETTINGS)));
-    return tsResult.js
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest('.'));
-});
-
-gulp.task("test-internal-example1", ["compile-internal-example1"], function() {
-    return gulp.src(['dist/animaxe  .js', 'dist/example1.js'], { read: false })
-        .pipe(mocha({ reporter: 'list' }));
-});
-
-
 
 gulp.task('compile-external', function() {
     var TS_INTERNAL_SETTINGS = {
