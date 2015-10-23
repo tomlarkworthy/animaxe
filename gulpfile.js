@@ -3,12 +3,10 @@ var ts = require('gulp-typescript');
 var merge = require('merge2');
 var mocha = require('gulp-mocha');
 var gutil = require('gulp-util');
-var browserify = require('browserify');
 var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 var del = require('del');
 var tslint = require('gulp-tslint');
-var tsify = require('tsify');
 var webpack = require('webpack');
 var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"))
 
@@ -82,9 +80,8 @@ for (var i = 1; i<= num_examples; i++ ) { // (counting from 1)
     exampleTask(i);
 }
 
-gulp.task('watch', ['compile', 'compile-test', 'browserify', 'test'], function() {
+gulp.task('watch', ['compile', 'compile-test','test'], function() {
     gulp.watch(['src/*.ts', 'test/*.ts'], ['test']);
-    gulp.watch('compiled/src/*.js', ['browserify']);;
 });
 
 
