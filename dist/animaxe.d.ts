@@ -6,11 +6,13 @@ export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare var DEBUG_EMIT: boolean;
 export declare var DEBUG: boolean;
+export interface Parameter<T> extends Parameter.Parameter<T> {
+}
 export declare type Color = string;
 export declare type Point = [number, number];
-export declare type NumberArg = number | Parameter.Parameter<number>;
-export declare type PointArg = Point | Parameter.Parameter<Point>;
-export declare type ColorArg = Color | Parameter.Parameter<Color>;
+export declare type NumberArg = number | Parameter<number>;
+export declare type PointArg = Point | Parameter<Point>;
+export declare type ColorArg = Color | Parameter<Color>;
 /**
  * Animators are updated with a DrawTick, which provides the local animation time, the
  */

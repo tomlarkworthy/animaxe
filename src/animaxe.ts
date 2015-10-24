@@ -10,12 +10,14 @@ export var DEBUG = false;
 
 console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 
+export interface Parameter<T> extends Parameter.Parameter<T> {}
+
 // todo we should move these into an ES6 module but my IDE does not support it yet
 export type Color = string
 export type Point     = [number, number]
-export type NumberArg = number | Parameter.Parameter<number>
-export type PointArg  = Point | Parameter.Parameter<Point>
-export type ColorArg  = Color | Parameter.Parameter<Color>
+export type NumberArg = number | Parameter<number>
+export type PointArg  = Point | Parameter<Point>
+export type ColorArg  = Color | Parameter<Color>
 
 
 /**

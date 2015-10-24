@@ -41,9 +41,12 @@
 // change order of playExample parameters
 
 * refactor
-// Parameter to go in own module, params chained to make value read left to righ
-// Parameter.rnd().pick()
+// Parameter to go in own module, params chained to make value read left to right
+// Parameter.rnd().first()
 // Parameter.rnd().map(x => x*x)
+// Note, return values end up Parameter.Parameter<T> which is not good. Maybe we make an alias in Ax. type does not work as it
+
+
 
 // Marketing
 
