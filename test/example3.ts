@@ -5,6 +5,7 @@
 require("should");
 
 import Ax = require("../dist/animaxe");
+import Parameter = require("../dist/parameter");
 import helper = require("../dist/helper");
 
 
@@ -16,11 +17,10 @@ var red   = 255;
 var green = 50;
 var blue = 50;
 
-function permDot(size: number, css_color: string | Ax.ColorStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
-    var css = Ax.toStreamColor(css_color);
+function permDot(size: number, css_color: Ax.ColorArg): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
     return Ax.draw(
         () => {
-            var css_next = css.init();
+            var css_next = Parameter.from(css_color).init();
             return function(tick: Ax.DrawTick) {
                 tick.ctx.fillStyle = css_next(tick.clock);
                 // tick.ctx.fillRect(0,0,1,1);
@@ -37,12 +37,12 @@ animator.play(
         Ax.move(
             [50, 50],
             Ax.velocity(
-                Ax.fixed(Ax.rndNormal(50)),
+                Parameter.rndNormal(50).first(),
                 Ax.composite("lighter",
                     Ax.parallel(
                         [
-                            permDot(1, Ax.rgba(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1)))),
-                            permDot(5, Ax.rgba(red,green,blue,Ax.t().map(t => 0.1 / (t*5 + 0.1))))
+                            permDot(1, Parameter.rgba(red,green,blue,Parameter.t().map(t => 0.1 / (t*5 + 0.1)))),
+                            permDot(5, Parameter.rgba(red,green,blue,Parameter.t().map(t => 0.1 / (t*5 + 0.1))))
                         ]
                     )
                 )

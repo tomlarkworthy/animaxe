@@ -36,9 +36,14 @@
 // fix test randomness with a random seed
 // replace parralel with its own internal animator OR make parrallel the only option
 // replace Ax.sin() with Ax.sin(Ax.t)
-// Maybe operators should chain, Ax.move([50,50]).velocity(), instead of wrapping?
+// Maybe operators should chain, Ax.move([50,50]).velocity(), instead of wrapping? *
 // extract color spaces into own file (rgba, hsl)
 // change order of playExample parameters
+
+* refactor
+// Parameter to go in own module, params chained to make value read left to righ
+// Parameter.rnd().pick()
+// Parameter.rnd().map(x => x*x)
 
 // Marketing
 

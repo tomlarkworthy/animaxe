@@ -5,6 +5,7 @@
 require("should");
 
 import Ax = require("../dist/animaxe");
+import Parameter = require("../dist/parameter");
 import helper = require("../dist/helper");
 
 var animator: Ax.Animator = helper.getExampleAnimator();
@@ -12,17 +13,16 @@ var animator: Ax.Animator = helper.getExampleAnimator();
 //a line between two points of a specified thickness and color (which are temporally varying parameters)
 function thickLine1tick(
     thickness: number,
-    start: Ax.PointStream,
-    end: Ax.PointStream,
-    css_color: string | Ax.ColorStream)
+    start: Ax.PointArg,
+    end: Ax.PointArg,
+    css_color: string | Ax.ColorArg)
 : Ax.Animation {
     //console.log("thickLine1tick: ", thickness, start, end, css_color);
-    var css = Ax.toStreamColor(css_color);
     return Ax.take(1, Ax.draw(
         () => {
-            var css_next = css.init();
-            var start_next = start.init();
-            var end_next = end.init();
+            var css_next = Parameter.from(css_color).init();
+            var start_next = Parameter.from(start).init();
+            var end_next = Parameter.from(end).init();
             return function(tick: Ax.DrawTick) {
                 tick.ctx.strokeStyle = css_next(tick.clock);
                 tick.ctx.beginPath();
@@ -44,27 +44,27 @@ function thickLine1tick(
  * Three frame animation of a thinning line. Animations are displaced in time so even if the start and end streams move
  * The line doesn't
  */
-function sparkLine(start: Ax.PointStream, end: Ax.PointStream, css_color: string | Ax.ColorStream): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
+function sparkLine(start: Ax.PointArg, end: Ax.PointArg, css_color: Ax.ColorArg): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
     return thickLine1tick(6, //thick line
             start,
             end, css_color)
         .then(thickLine1tick(2, //medium line
-            Ax.displaceT(-0.1, start),
-            Ax.displaceT(-0.1, end),
+            Parameter.displaceT(-0.1, start),
+            Parameter.displaceT(-0.1, end),
             css_color))
         .then(thickLine1tick(1, //thin line
-            Ax.displaceT(-0.2, start),
-            Ax.displaceT(-0.2, end),
+            Parameter.displaceT(-0.2, start),
+            Parameter.displaceT(-0.2, end),
             css_color));
 }
 
 //large circle funcitons
-var bigSin = Ax.sin(1).map(x => x * 40 + 50);
-var bigCos = Ax.cos(1).map(x => x * 40 + 50);
+var bigSin = Parameter.sin(1).map(x => x * 40 + 50);
+var bigCos = Parameter.cos(1).map(x => x * 40 + 50);
 
 //periodic color
 var red   = 255;
-var green = Ax.sin(2).map(x => x * 100 + 55);
+var green = Parameter.sin(2).map(x => x * 100 + 55);
 var blue = 50;
 
 
@@ -72,17 +72,17 @@ animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black
 animator.play(
         Ax.emit(
                 sparkLine(
-                    Ax.point(
+                    Parameter.point(
                         bigSin,
                         bigCos
                     ),
-                    Ax.displaceT(-0.1,
-                        Ax.point(
+                    Parameter.displaceT(-0.1,
+                        Parameter.point(
                             bigSin,
                             bigCos
                         )
                     ),
-                    Ax.rgba(red,green,blue,1)
+                    Parameter.rgba(red,green,blue,1)
                 )
         )
     );
