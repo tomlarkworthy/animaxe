@@ -48,13 +48,7 @@ export class Animation {
     constructor(public _attach: (upstream: DrawStream) => DrawStream, public after?: Animation) {
     }
     attach(upstream: DrawStream): DrawStream {
-        var self = this;
-        //console.log("animation initialized ", clock);
-
-        var instream = null;
-        instream = upstream;
-        //console.log("animation: instream", instream, "upstream", upstream);
-        var processed = this._attach(instream);
+        var processed = this._attach(upstream);
         return this.after? this.after.attach(processed): processed;
     }
     /**
@@ -126,6 +120,42 @@ export class Animation {
                 };
             }).subscribeOn(Rx.Scheduler.immediate); //todo remove subscribeOns
         });
+    }
+
+    pipe(after: Animation): Animation {
+        return combine2(this, after);
+    }
+
+    move(position: PointArg): Animation {
+        return this.pipe(move(position));
+    }
+    velocity(vector: PointArg): Animation {
+        return this.pipe(velocity(vector));
+    }
+
+    loop(inner: Animation): Animation {
+        return this.pipe(loop(inner));
+    }
+
+    tween_linear(
+        from: PointArg,
+        to:   PointArg,
+        time: NumberArg): Animation {
+        return this.pipe(tween_linear(from, to, time));
+    }
+
+    fillStyle(color: ColorArg): Animation {
+        return this.pipe(fillStyle(color));
+    }
+
+    fillRect(xy: PointArg, width_height: PointArg): Animation {
+        return this.pipe(fillRect(xy, width_height));
+    }
+    take(frames: number): Animation {
+        return this.pipe(take(frames));
+    }
+    draw(drawFactory: () => ((tick: DrawTick) => void)): Animation {
+        return this.pipe(draw(drawFactory));
     }
 }
 
@@ -205,6 +235,16 @@ export function assertClock(assertClock: number[], after?: Animation): Animation
     }, after);
 }
 
+/**
+ * Creates a new Animation by piping the animation flow of A into B
+ */
+export function combine2(a: Animation, b: Animation) {
+    return new Animation(
+        (upstream: DrawStream) => {
+            return b.attach(a.attach(upstream));
+        }
+    );
+}
 
 /**
  * plays several animations, finishes when they are all done.
@@ -349,14 +389,14 @@ export function loop(
 }
 
 export function draw(
-    initDraw: () => ((tick: DrawTick) => void),
-    animation?: Animation
+    drawFactory: () => ((tick: DrawTick) => void),
+    after?: Animation
 ): Animation
 {
     return new Animation(function (previous: DrawStream): DrawStream {
-        var draw: (tick: DrawTick) => void = initDraw();
+        var draw: (tick: DrawTick) => void = drawFactory();
         return previous.tapOnNext(draw);
-    }, animation);
+    }, after);
 }
 
 export function move(
@@ -396,6 +436,7 @@ export function velocity(
     velocity: PointArg,
     animation?: Animation
 ): Animation {
+    if (DEBUG) console.log("velocity: attached");
     return draw(
         () => {
             var pos: Point = [0.0,0.0];
@@ -412,51 +453,61 @@ export function velocity(
 export function tween_linear(
     from: PointArg,
     to:   PointArg,
-    time: number,
-    animation: Animation /* copies */
+    time: NumberArg,
+    animation?: Animation /* copies */
 ): Animation
 {
-    var scale = 1.0 / time;
-
     return new Animation(function(prev: DrawStream): DrawStream {
         var t = 0;
         var from_next = Parameter.from(from).init();
         var to_next   = Parameter.from(to).init();
+        var time_next   = Parameter.from(time).init();
         return prev.map(function(tick: DrawTick) {
             if (DEBUG) console.log("tween: inner");
             var from = from_next(tick.clock);
             var to   = to_next(tick.clock);
+            var time = time_next(tick.clock);
 
             t = t + tick.dt;
             if (t > time) t = time;
-            var x = from[0] + (to[0] - from[0]) * t * scale;
-            var y = from[1] + (to[1] - from[1]) * t * scale;
+            var x = from[0] + (to[0] - from[0]) * t / time;
+            var y = from[1] + (to[1] - from[1]) * t / time;
             tick.ctx.transform(1, 0, 0, 1, x, y);
             return tick;
         }).takeWhile(function(tick) {return t < time;})
     }, animation);
 }
 
-export function rect(
-    p1: Point, //todo dynamic params instead
-    p2: Point, //todo dynamic params instead
+export function fillRect(
+    xy: PointArg,
+    width_height: PointArg,
     animation?: Animation
 ): Animation {
     return draw(
         () => {
+            if (DEBUG) console.log("fillRect: attach");
+            var xy_next = Parameter.from(xy).init();
+            var width_height_next = Parameter.from(width_height).init();
+
             return function (tick: DrawTick) {
-                if (DEBUG) console.log("rect: fillRect");
-                tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
+                var xy: Point = xy_next(tick.clock);
+                var width_height: Point = width_height_next(tick.clock);
+                if (DEBUG) console.log("fillRect: fillRect", xy, width_height);
+                tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
             }
         }, animation);
 }
-export function changeColor(
-    color: string, //todo
+export function fillStyle(
+    color: ColorArg,
     animation?: Animation
 ): Animation {
     return draw(
         () => {
+            if (DEBUG) console.log("fillStyle: attach");
+            var color_next = Parameter.from(color).init();
             return function (tick: DrawTick) {
+                var color = color_next(tick.clock);
+                if (DEBUG) console.log("fillStyle: fillStyle", color);
                 tick.ctx.fillStyle = color;
             }
         }, animation);
@@ -709,12 +760,13 @@ function map(
 }
 
 export function take(
-    iterations: number,
+    frames: number,
     animation?: Animation
 ): Animation
 {
     return new Animation(function(prev: DrawStream): DrawStream {
-        return prev.take(iterations);
+        if (DEBUG) console.log("take: attach");
+        return prev.take(frames);
     }, animation);
 }
 

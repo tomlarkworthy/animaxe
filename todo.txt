@@ -33,24 +33,39 @@
 // Engineering
 
 // figure out why example3 cannot have move than 1000 particles without a stack overflow
-// fix test randomness with a random seed
+// fix test randomness with a random seed (seed random with animation seed?)
 // replace parralel with its own internal animator OR make parrallel the only option
-// replace Ax.sin() with Ax.sin(Ax.t)
-// Maybe operators should chain, Ax.move([50,50]).velocity(), instead of wrapping? *
-// extract color spaces into own file (rgba, hsl)
 // change order of playExample parameters
 
 * refactor
-// Parameter to go in own module, params chained to make value read left to right
-// Parameter.rnd().first()
-// Parameter.rnd().map(x => x*x)
-// Note, return values end up Parameter.Parameter<T> which is not good. Maybe we make an alias in Ax. type does not work as it
+// (done) Parameter to go in own module, params chained to make value read left to right
+// (done) Parameter.rnd().first()        // maybe we should just make it pure by seeding the rnd by epock or tree position?
+// (done) Parameter.rnd().map(x => x*x)
+// (done) Ax.Parameter() for construciton
+// (partial) Make methods chain as an alternative to wrapping, e.g. Ax.move(...).velocity(...)
+// add .pipe(animation) so users can chain themselves
+// align names of methods with context name, e.g. fillStyle(Color)
+     - finish that API!
+     - withinClip, withinTx
+
+
+
 
 
 
 // Marketing
 
 // API documentation
+Improve README.me
+- method chaining
+- lifecycle
+- making your own Animation
+- making your own Parameters
+- overriding the prototype
+- using .pipe()
+- example of switching from the canvas API to a linear chain
+- how a new chain resets the context
+
 // website
 // - npm
 // - hosting

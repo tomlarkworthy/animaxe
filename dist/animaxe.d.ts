@@ -33,6 +33,15 @@ export declare class Animation {
      * the follower consumers events and the values are used as output, until the follower animation completes
      */
     then(follower: Animation): Animation;
+    pipe(after: Animation): Animation;
+    move(position: PointArg): Animation;
+    velocity(vector: PointArg): Animation;
+    loop(inner: Animation): Animation;
+    tween_linear(from: PointArg, to: PointArg, time: NumberArg): Animation;
+    fillStyle(color: ColorArg): Animation;
+    fillRect(xy: PointArg, width_height: PointArg): Animation;
+    take(frames: number): Animation;
+    draw(drawFactory: () => ((tick: DrawTick) => void)): Animation;
 }
 export declare class Animator {
     ctx: CanvasRenderingContext2D;
@@ -53,6 +62,10 @@ export declare class Animator {
 export declare function assertDt(expectedDt: Rx.Observable<number>, after?: Animation): Animation;
 export declare function assertClock(assertClock: number[], after?: Animation): Animation;
 /**
+ * Creates a new Animation by piping the animation flow of A into B
+ */
+export declare function combine2(a: Animation, b: Animation): Animation;
+/**
  * plays several animations, finishes when they are all done.
  * @param animations
  * @returns {Animation}
@@ -72,13 +85,13 @@ export declare function emit(animation: Animation): Animation;
  * @returns {Animation}
  */
 export declare function loop(animation: Animation): Animation;
-export declare function draw(initDraw: () => ((tick: DrawTick) => void), animation?: Animation): Animation;
+export declare function draw(drawFactory: () => ((tick: DrawTick) => void), after?: Animation): Animation;
 export declare function move(delta: PointArg, animation?: Animation): Animation;
 export declare function composite(composite_mode: string, animation?: Animation): Animation;
 export declare function velocity(velocity: PointArg, animation?: Animation): Animation;
-export declare function tween_linear(from: PointArg, to: PointArg, time: number, animation: Animation): Animation;
-export declare function rect(p1: Point, p2: Point, animation?: Animation): Animation;
-export declare function changeColor(color: string, animation?: Animation): Animation;
+export declare function tween_linear(from: PointArg, to: PointArg, time: NumberArg, animation?: Animation): Animation;
+export declare function fillRect(xy: PointArg, width_height: PointArg, animation?: Animation): Animation;
+export declare function fillStyle(color: ColorArg, animation?: Animation): Animation;
 export declare function glow(decay?: number, after?: Animation): Animation;
-export declare function take(iterations: number, animation?: Animation): Animation;
+export declare function take(frames: number, animation?: Animation): Animation;
 export declare function save(width: number, height: number, path: string): Animation;
