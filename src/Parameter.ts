@@ -232,3 +232,5 @@ export function cos(period: number| Parameter<number>): Parameter<number> {
 }
 
 
+
+

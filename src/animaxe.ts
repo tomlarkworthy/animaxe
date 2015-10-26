@@ -165,12 +165,6 @@ export class Animation {
     clone(n: number, inner: Animation): Animation {
         return this.pipe(clone(n, inner));
     }
-    /**
-     * translates the drawing context by velocity * tick.clock
-     */
-    velocity(vector: PointArg): Animation {
-        return this.pipe(velocity(vector));
-    }
 
     tween_linear(
         from: PointArg,
@@ -250,6 +244,18 @@ export class Animation {
         return this.pipe(globalCompositeOperation(operation));
     }
     // End Canvas API
+
+
+    /**
+     * translates the drawing context by velocity * tick.clock
+     */
+    velocity(vector: PointArg): Animation {
+        return this.pipe(velocity(vector));
+    }
+
+    glow(decay: NumberArg): Animation {
+        return this.pipe(glow(decay));
+    }
 
 }
 
@@ -385,12 +391,6 @@ export function clone(
 ): Animation {
     return parallel(Rx.Observable.return(animation).repeat(n));
 }
-
-
-function sequence(
-    animation: Animation[]
-): Animation
-{ return null;}
 
 /**
  * The child animation is started every frame
@@ -727,12 +727,13 @@ export function lineWidth(
 
 
 export function glow(
-    decay: number = 0.1,
+    decay: NumberArg = 0.1,
     after ?: Animation
 ): Animation
 {
     return draw(
         () => {
+            var decay_next = Parameter.from(decay).init();
             return function (tick: DrawTick) {
                 var ctx = tick.ctx;
 
@@ -742,6 +743,7 @@ export function glow(
                 var pixels = width * height;
                 var imgData = ctx.getImageData(0,0,width,height);
                 var data = imgData.data;
+                var decay = decay_next(tick.clock);
 
                 // console.log("original data", imgData.data)
 
@@ -927,15 +929,6 @@ export function glow(
                 ctx.putImageData(imgData, 0, 0);
             }
         }, after);
-}
-
-function map(
-    map_fn: (prev: DrawTick) => DrawTick,
-    animation?: Animation
-): Animation {
-    return new Animation(function (previous: DrawStream): DrawStream {
-        return previous.map(map_fn)
-    }, animation)
 }
 
 export function take(

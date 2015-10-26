@@ -41,12 +41,12 @@
 // (done) Parameter to go in own module, params chained to make value read left to right
 // (done) Parameter.rnd().first()        // maybe we should just make it pure by seeding the rnd by epock or tree position?
 // (done) Parameter.rnd().map(x => x*x)
-// (done) Ax.Parameter() for construciton
-// (partial) Make methods chain as an alternative to wrapping, e.g. Ax.move(...).velocity(...)
-// add .pipe(animation) so users can chain themselves
-// align names of methods with canvas context name, e.g. fillStyle(Color)
+// (done) Ax.Parameter() for construction
+// (done) Make methods chain as an alternative to wrapping, e.g. Ax.move(...).velocity(...)
+// (done) add .pipe(animation) so users can chain themselves
+// (partial) align names of methods with canvas context name, e.g. fillStyle(Color)
      - finish that API!
-     - withinClip, withinTx, withinPath
+     - withinClip, withinTx, (done) withinPath
 
 
 
