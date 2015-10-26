@@ -34,14 +34,23 @@ export declare class Animation {
      */
     then(follower: Animation): Animation;
     pipe(after: Animation): Animation;
-    move(position: PointArg): Animation;
+    translate(position: PointArg): Animation;
     velocity(vector: PointArg): Animation;
     loop(inner: Animation): Animation;
+    emit(inner: Animation): Animation;
+    clone(n: number, inner: Animation): Animation;
+    parallel(inner: Rx.Observable<Animation> | Animation[]): Animation;
     tween_linear(from: PointArg, to: PointArg, time: NumberArg): Animation;
-    fillStyle(color: ColorArg): Animation;
-    fillRect(xy: PointArg, width_height: PointArg): Animation;
     take(frames: number): Animation;
     draw(drawFactory: () => ((tick: DrawTick) => void)): Animation;
+    strokeStyle(color: ColorArg): Animation;
+    fillStyle(color: ColorArg): Animation;
+    fillRect(xy: PointArg, width_height: PointArg): Animation;
+    withinPath(inner: Animation): Animation;
+    moveTo(xy: PointArg): Animation;
+    lineTo(xy: PointArg): Animation;
+    stroke(): Animation;
+    globalCompositeOperation(operation: string): Animation;
 }
 export declare class Animator {
     ctx: CanvasRenderingContext2D;
@@ -86,12 +95,18 @@ export declare function emit(animation: Animation): Animation;
  */
 export declare function loop(animation: Animation): Animation;
 export declare function draw(drawFactory: () => ((tick: DrawTick) => void), after?: Animation): Animation;
-export declare function move(delta: PointArg, animation?: Animation): Animation;
-export declare function composite(composite_mode: string, animation?: Animation): Animation;
+export declare function translate(delta: PointArg, animation?: Animation): Animation;
+export declare function globalCompositeOperation(composite_mode: string, animation?: Animation): Animation;
 export declare function velocity(velocity: PointArg, animation?: Animation): Animation;
 export declare function tween_linear(from: PointArg, to: PointArg, time: NumberArg, animation?: Animation): Animation;
 export declare function fillRect(xy: PointArg, width_height: PointArg, animation?: Animation): Animation;
 export declare function fillStyle(color: ColorArg, animation?: Animation): Animation;
+export declare function strokeStyle(color: ColorArg, animation?: Animation): Animation;
+export declare function withinPath(inner: Animation): Animation;
+export declare function moveTo(xy: PointArg, animation?: Animation): Animation;
+export declare function lineTo(xy: PointArg, animation?: Animation): Animation;
+export declare function stroke(animation?: Animation): Animation;
+export declare function lineWidth(width: NumberArg, animation?: Animation): Animation;
 export declare function glow(decay?: number, after?: Animation): Animation;
 export declare function take(frames: number, animation?: Animation): Animation;
 export declare function save(width: number, height: number, path: string): Animation;

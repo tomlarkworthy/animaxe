@@ -44,9 +44,9 @@
 // (done) Ax.Parameter() for construciton
 // (partial) Make methods chain as an alternative to wrapping, e.g. Ax.move(...).velocity(...)
 // add .pipe(animation) so users can chain themselves
-// align names of methods with context name, e.g. fillStyle(Color)
+// align names of methods with canvas context name, e.g. fillStyle(Color)
      - finish that API!
-     - withinClip, withinTx
+     - withinClip, withinTx, withinPath
 
 
 

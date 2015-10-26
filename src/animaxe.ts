@@ -126,8 +126,8 @@ export class Animation {
         return combine2(this, after);
     }
 
-    move(position: PointArg): Animation {
-        return this.pipe(move(position));
+    translate(position: PointArg): Animation {
+        return this.pipe(translate(position));
     }
     velocity(vector: PointArg): Animation {
         return this.pipe(velocity(vector));
@@ -137,6 +137,15 @@ export class Animation {
         return this.pipe(loop(inner));
     }
 
+    emit(inner: Animation): Animation {
+        return this.pipe(emit(inner));
+    }
+    clone(n: number, inner: Animation): Animation {
+        return this.pipe(clone(n, inner));
+    }
+    parallel(inner: Rx.Observable<Animation> | Animation[]): Animation {
+        return this.pipe(parallel(inner));
+    }
     tween_linear(
         from: PointArg,
         to:   PointArg,
@@ -144,19 +153,40 @@ export class Animation {
         return this.pipe(tween_linear(from, to, time));
     }
 
-    fillStyle(color: ColorArg): Animation {
-        return this.pipe(fillStyle(color));
-    }
-
-    fillRect(xy: PointArg, width_height: PointArg): Animation {
-        return this.pipe(fillRect(xy, width_height));
-    }
     take(frames: number): Animation {
         return this.pipe(take(frames));
     }
     draw(drawFactory: () => ((tick: DrawTick) => void)): Animation {
         return this.pipe(draw(drawFactory));
     }
+
+    // Canvas API
+    strokeStyle(color: ColorArg): Animation {
+        return this.pipe(strokeStyle(color));
+    }
+    fillStyle(color: ColorArg): Animation {
+        return this.pipe(fillStyle(color));
+    }
+    fillRect(xy: PointArg, width_height: PointArg): Animation {
+        return this.pipe(fillRect(xy, width_height));
+    }
+    withinPath(inner: Animation): Animation {
+        return this.pipe(withinPath(inner));
+    }
+    moveTo(xy: PointArg): Animation {
+        return this.pipe(moveTo(xy));
+    }
+    lineTo(xy: PointArg): Animation {
+        return this.pipe(lineTo(xy));
+    }
+    stroke(): Animation {
+        return this.pipe(stroke());
+    }
+    globalCompositeOperation(operation: string): Animation {
+        return this.pipe(globalCompositeOperation(operation));
+    }
+    // End Canvas API
+
 }
 
 export class Animator {
@@ -286,7 +316,7 @@ export function parallel(
 }
 
 export function clone(
-    n: number,
+    n: number, // todo make dynamic
     animation: Animation
 ): Animation {
     return parallel(Rx.Observable.return(animation).repeat(n));
@@ -399,26 +429,25 @@ export function draw(
     }, after);
 }
 
-export function move(
+export function translate(
     delta: PointArg,
     animation?: Animation
 ): Animation {
-    if (DEBUG) console.log("move: attached");
+    if (DEBUG) console.log("translate: attached");
     return draw(
         () => {
             var point_next = Parameter.from(delta).init();
             return function(tick) {
                 var point = point_next(tick.clock);
-                if (DEBUG) console.log("move:", point);
-                if (tick)
-                    tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
+                if (DEBUG) console.log("translate:", point);
+                tick.ctx.translate(point[0], point[1]);
                 return tick;
             }
         }
     , animation);
 }
 
-export function composite(
+export function globalCompositeOperation(
     composite_mode: string,
     animation?: Animation
 ): Animation {
@@ -509,6 +538,92 @@ export function fillStyle(
                 var color = color_next(tick.clock);
                 if (DEBUG) console.log("fillStyle: fillStyle", color);
                 tick.ctx.fillStyle = color;
+            }
+        }, animation);
+}
+
+export function strokeStyle(
+    color: ColorArg,
+    animation?: Animation
+): Animation {
+    return draw(
+        () => {
+            if (DEBUG) console.log("strokeStyle: attach");
+            var color_next = Parameter.from(color).init();
+            return function (tick: DrawTick) {
+                var color = color_next(tick.clock);
+                if (DEBUG) console.log("strokeStyle: strokeStyle", color);
+                tick.ctx.strokeStyle = color;
+            }
+        }, animation);
+}
+export function withinPath(
+    inner: Animation
+): Animation {
+    return new Animation(
+        (upstream: DrawStream) => {
+            if (DEBUG) console.log("withinPath: attach");
+            var beginPathBeforeInner = upstream.tapOnNext((tick: DrawTick) => tick.ctx.beginPath());
+            return inner.attach(beginPathBeforeInner).tapOnNext((tick: DrawTick) => tick.ctx.closePath())
+        });
+}
+
+export function moveTo(
+    xy: PointArg,
+    animation?: Animation
+): Animation {
+    return draw(
+        () => {
+            if (DEBUG) console.log("moveTo: attach");
+            var xy_next = Parameter.from(xy).init();
+            return function (tick: DrawTick) {
+                var xy = xy_next(tick.clock);
+                if (DEBUG) console.log("moveTo: moveTo", xy);
+                tick.ctx.moveTo(xy[0], xy[1]);
+            }
+        }, animation);
+}
+
+export function lineTo(
+    xy: PointArg,
+    animation?: Animation
+): Animation {
+    return draw(
+        () => {
+            if (DEBUG) console.log("lineTo: attach");
+            var xy_next = Parameter.from(xy).init();
+            return function (tick: DrawTick) {
+                var xy = xy_next(tick.clock);
+                if (DEBUG) console.log("lineTo: lineTo", xy);
+                tick.ctx.lineTo(xy[0], xy[1]);
+            }
+        }, animation);
+}
+export function stroke(
+    animation?: Animation
+): Animation {
+    return draw(
+        () => {
+            if (DEBUG) console.log("stroke: attach");
+            return function (tick: DrawTick) {
+                if (DEBUG) console.log("stroke: stroke");
+                tick.ctx.stroke();
+            }
+        }, animation);
+}
+
+export function lineWidth(
+    width: NumberArg,
+    animation?: Animation
+): Animation {
+    return draw(
+        () => {
+            if (DEBUG) console.log("lineWidth: attach");
+            var width_next = Parameter.from(width).init();
+            return function (tick: DrawTick) {
+                var width = width_next(tick.clock);
+                if (DEBUG) console.log("lineWidth: lineWidth", width);
+                tick.ctx.lineWidth = width;
             }
         }, animation);
 }

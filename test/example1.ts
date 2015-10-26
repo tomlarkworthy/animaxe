@@ -38,7 +38,7 @@ animator.play(Ax.fillStyle("#000000").fillRect([0,0],[100,100]));
 // so the frame of reference moves over time.
 // then draw our 2 frame spark animation in a loop so it draws forever
 animator.play(Ax
-    .move([50,50])
+    .translate([50,50])
     .velocity([50,0])
     .loop(
         spark("#FFFFFF")
@@ -48,7 +48,7 @@ animator.play(Ax
 // move the draw context to a coordinate determined by trig (i.e. in a circle)
 animator.play(Ax
     .loop(Ax
-        .move(Parameter.point(bigSin, bigCos))
+        .translate(Parameter.point(bigSin, bigCos))
         .pipe(
             spark(Parameter.rgba(red, green, 0, 1))
         )

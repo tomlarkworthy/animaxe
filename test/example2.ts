@@ -17,27 +17,15 @@ function thickLine1tick(
     end: Ax.PointArg,
     css_color: string | Ax.ColorArg)
 : Ax.Animation {
-    //console.log("thickLine1tick: ", thickness, start, end, css_color);
-    return Ax.take(1, Ax.draw(
-        () => {
-            var css_next = Parameter.from(css_color).init();
-            var start_next = Parameter.from(start).init();
-            var end_next = Parameter.from(end).init();
-            return function(tick: Ax.DrawTick) {
-                tick.ctx.strokeStyle = css_next(tick.clock);
-                tick.ctx.beginPath();
-                var startVal = start_next(tick.clock);
-                var endVal = end_next(tick.clock);
-                var ctx = tick.ctx;
-                ctx.lineWidth = thickness;
-                //console.log("thickLine1tick: drawing between ", tick.clock, startVal, endVal);
-                ctx.moveTo(startVal[0], startVal[1]);
-                ctx.lineTo(endVal[0], endVal[1]);
-                ctx.closePath();
-                ctx.stroke();
-            }
-        }
-    ));
+    return Ax
+        .take(1)
+        .strokeStyle(css_color)
+        .withinPath(Ax
+            .lineWidth(thickness)
+            .moveTo(start)
+            .lineTo(end)
+        )
+        .stroke();
 }
 
 /**
@@ -67,8 +55,9 @@ var red   = 255;
 var green = Parameter.sin(2).map(x => x * 100 + 55);
 var blue = 50;
 
+//each frame, first draw black background to erase the previous contents
+animator.play(Ax.fillStyle("#000000").fillRect([0,0],[100,100]));
 
-animator.play(Ax.changeColor("#000000", Ax.rect([0,0],[100,100]))); //draw black background
 animator.play(
         Ax.emit(
                 sparkLine(
