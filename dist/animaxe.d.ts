@@ -79,11 +79,17 @@ export declare type TickStream = Rx.Observable<Tick>;
  *
  * Animations have a lifecycle, they can be finite or infinite in length. You can start temporally compose animations
  * using ```anim1.then(anim2)```, which creates a new animation that plays animation 2 when animation 1 finishes.
+ *
+ * When an animation is sequenced into the animation pipeline. Its attach method is called which atcually builds the
+ * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
  */
 export declare class Animation {
     _attach: (upstream: TickStream) => TickStream;
     after: Animation;
     constructor(_attach: (upstream: TickStream) => TickStream, after?: Animation);
+    /**
+     * Apply the animation to a new RxJS pipeline.
+     */
     attach(upstream: TickStream): TickStream;
     /**
      * send the downstream context of 'this' animation, as the upstream context to supplied animation.

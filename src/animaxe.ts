@@ -107,7 +107,7 @@ export class Animation {
     }
 
     /**
-     * Apply the animation to a new RxJS pipeline. 
+     * Apply the animation to a new RxJS pipeline.
      */
     attach(upstream: TickStream): TickStream {
         var processed = this._attach(upstream);

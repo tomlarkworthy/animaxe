@@ -55,21 +55,26 @@ var Ax =
 	/// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 	/// <reference path="../types/node.d.ts" />
 	var Rx = __webpack_require__(2);
+	var Parameter = __webpack_require__(3);
 	exports.DEBUG_LOOP = false;
 	exports.DEBUG_THEN = false;
 	exports.DEBUG_EMIT = false;
 	exports.DEBUG = false;
-	var husl = __webpack_require__(3);
 	console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
-	var DrawTick = (function () {
-	    function DrawTick(ctx, clock, dt) {
+	/**
+	 * Each frame an animation is provided a Tick. The tick exposes access to the local animation time, the
+	 * time delta between the previous frame (dt) and the drawing context. Animators typically use the drawing context
+	 * directly, and pass the clock onto any time varying parameters.
+	 */
+	var Tick = (function () {
+	    function Tick(ctx, clock, dt) {
 	        this.ctx = ctx;
 	        this.clock = clock;
 	        this.dt = dt;
 	    }
-	    return DrawTick;
+	    return Tick;
 	})();
-	exports.DrawTick = DrawTick;
+	exports.Tick = Tick;
 	function assert(predicate, message) {
 	    if (!predicate) {
 	        console.error(stackTrace());
@@ -80,82 +85,47 @@ var Ax =
 	    var err = new Error();
 	    return err.stack;
 	}
-	var Parameter = (function () {
-	    function Parameter(init) {
-	        this.init = init;
-	    }
-	    Parameter.prototype.init = function () { throw new Error('This method is abstract'); };
-	    Parameter.prototype.map = function (fn) {
-	        var base = this;
-	        return new Parameter(function () {
-	            var base_next = base.init();
-	            return function (t) {
-	                return fn(base_next(t));
-	            };
-	        });
-	    };
-	    Parameter.prototype.clone = function () {
-	        return this.map(function (x) { return x; });
-	    };
-	    return Parameter;
-	})();
-	exports.Parameter = Parameter;
-	function fixed(val) {
-	    if (typeof val.init === 'function') {
-	        // we were passed in a Parameter object
-	        return new Parameter(function () {
-	            var generate = true;
-	            var next = val.init();
-	            var value = null;
-	            return function (clock) {
-	                if (generate) {
-	                    generate = false;
-	                    value = next(clock);
-	                }
-	                // console.log("fixed: val from parameter", value);
-	                return value;
-	            };
-	        });
-	    }
-	    else {
-	        return new Parameter(function () {
-	            return function (clock) {
-	                // console.log("fixed: val from constant", val);
-	                return val;
-	            };
-	        });
-	    }
-	}
-	exports.fixed = fixed;
-	function toStreamNumber(x) {
-	    return (typeof x.init === 'function' ? x : fixed(x));
-	}
-	exports.toStreamNumber = toStreamNumber;
-	function toStreamPoint(x) {
-	    return (typeof x.init === 'function' ? x : fixed(x));
-	}
-	exports.toStreamPoint = toStreamPoint;
-	function toStreamColor(x) {
-	    return (typeof x.init === 'function' ? x : fixed(x));
-	}
-	exports.toStreamColor = toStreamColor;
+	/**
+	 * An animation is pipeline that modifies the drawing context found in an animation Tick. Animations can be chained
+	 * together to create a more complicated Animation. They are composeable,
+	 *
+	 * e.g. ```animation1 = Ax.translate([50, 50]).fillStyle("red").fillRect([0,0], [20,20])```
+	 * is one animation which has been formed from three subanimations.
+	 *
+	 * Animations have a lifecycle, they can be finite or infinite in length. You can start temporally compose animations
+	 * using ```anim1.then(anim2)```, which creates a new animation that plays animation 2 when animation 1 finishes.
+	 *
+	 * When an animation is sequenced into the animation pipeline. Its attach method is called which atcually builds the
+	 * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
+	 */
 	var Animation = (function () {
 	    function Animation(_attach, after) {
 	        this._attach = _attach;
 	        this.after = after;
 	    }
+	    /**
+	     * Apply the animation to a new RxJS pipeline.
+	     */
 	    Animation.prototype.attach = function (upstream) {
-	        var self = this;
-	        //console.log("animation initialized ", clock);
-	        var instream = null;
-	        instream = upstream;
-	        //console.log("animation: instream", instream, "upstream", upstream);
-	        var processed = this._attach(instream);
+	        var processed = this._attach(upstream);
 	        return this.after ? this.after.attach(processed) : processed;
 	    };
 	    /**
-	     * delivers events to this first, then when that animation is finished
-	     * the follower consumers events and the values are used as output, until the follower animation completes
+	     * send the downstream context of 'this' animation, as the upstream context to supplied animation.
+	     *
+	     * This allows you to chain custom animations.
+	     *
+	     * ```Ax.move(...).pipe(myAnimation());```
+	     */
+	    Animation.prototype.pipe = function (downstream) {
+	        return combine2(this, downstream);
+	    };
+	    /**
+	     * delivers upstream events to 'this' first, then when 'this' animation is finished
+	     * the upstream is switched to the the follower animation.
+	     *
+	     * This allows you to sequence animations temporally.
+	     * frame1Animation().then(frame2Animation).then(frame3Animation)
 	     */
 	    Animation.prototype.then = function (follower) {
 	        var self = this;
@@ -212,6 +182,273 @@ var Ax =
 	            }).subscribeOn(Rx.Scheduler.immediate); //todo remove subscribeOns
 	        });
 	    };
+	    /**
+	     * Creates an animation that replays the inner animation each time the inner animation completes.
+	     *
+	     * The resultant animation is always runs forever while upstream is live. Only a single inner animation
+	     * plays at a time (unlike emit())
+	     */
+	    Animation.prototype.loop = function (inner) {
+	        return this.pipe(loop(inner));
+	    };
+	    /**
+	     * Creates an animation that sequences the inner animation every time frame.
+	     *
+	     * The resultant animation is always runs forever while upstream is live. Multiple inner animations
+	     * can be playing at the same time (unlike loop)
+	     */
+	    Animation.prototype.emit = function (inner) {
+	        return this.pipe(emit(inner));
+	    };
+	    /**
+	     * Plays all the inner animations at the same time. Parallel completes when all inner animations are over.
+	     *
+	     * The canvas states are restored before each fork, so styling and transforms of different child animations do not
+	     * interact (although obsviously the pixel buffer is affected by each animation)
+	     */
+	    Animation.prototype.parallel = function (inner_animations) {
+	        return this.pipe(parallel(inner_animations));
+	    };
+	    /**
+	     * Sequences n copies of the inner animation. Clone completes when all inner animations are over.
+	     */
+	    Animation.prototype.clone = function (n, inner) {
+	        return this.pipe(clone(n, inner));
+	    };
+	    Animation.prototype.tween_linear = function (from, to, time) {
+	        return this.pipe(tween_linear(from, to, time));
+	    };
+	    /**
+	     * Creates an animation that is at most n frames from 'this'.
+	     */
+	    Animation.prototype.take = function (frames) {
+	        return this.pipe(take(frames));
+	    };
+	    /**
+	     * helper method for implementing simple animations (that don't fork the animation tree).
+	     * You just have to supply a function that does something with the draw tick.
+	     */
+	    Animation.prototype.draw = function (drawFactory) {
+	        return this.pipe(draw(drawFactory));
+	    };
+	    // Canvas API
+	    /**
+	     * Dynamic chainable wrapper for strokeStyle in the canvas API.
+	     */
+	    Animation.prototype.strokeStyle = function (color) {
+	        return this.pipe(strokeStyle(color));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for fillStyle in the canvas API.
+	     */
+	    Animation.prototype.fillStyle = function (color) {
+	        return this.pipe(fillStyle(color));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for shadowColor in the canvas API.
+	     */
+	    Animation.prototype.shadowColor = function (color) {
+	        return this.pipe(shadowColor(color));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for shadowBlur in the canvas API.
+	     */
+	    Animation.prototype.shadowBlur = function (level) {
+	        return this.pipe(shadowBlur(level));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for shadowOffsetX and shadowOffsetY in the canvas API.
+	     */
+	    Animation.prototype.shadowOffset = function (xy) {
+	        return this.pipe(shadowOffset(xy));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for lineCap in the canvas API.
+	     */
+	    Animation.prototype.lineCap = function (style) {
+	        return this.pipe(lineCap(style));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for lineJoin in the canvas API.
+	     */
+	    Animation.prototype.lineJoin = function (style) {
+	        return this.pipe(lineJoin(style));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for lineWidth in the canvas API.
+	     */
+	    Animation.prototype.lineWidth = function (width) {
+	        return this.pipe(lineWidth(width));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for miterLimit in the canvas API.
+	     */
+	    Animation.prototype.miterLimit = function (limit) {
+	        return this.pipe(miterLimit(limit));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for rect in the canvas API.
+	     */
+	    Animation.prototype.rect = function (xy, width_height) {
+	        return this.pipe(rect(xy, width_height));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for fillRect in the canvas API.
+	     */
+	    Animation.prototype.fillRect = function (xy, width_height) {
+	        return this.pipe(fillRect(xy, width_height));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for strokeRect in the canvas API.
+	     */
+	    Animation.prototype.strokeRect = function (xy, width_height) {
+	        return this.pipe(strokeRect(xy, width_height));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for clearRect in the canvas API.
+	     */
+	    Animation.prototype.clearRect = function (xy, width_height) {
+	        return this.pipe(clearRect(xy, width_height));
+	    };
+	    /**
+	     * Encloses the inner animation with a beginpath() and endpath() from the canvas API.
+	     */
+	    Animation.prototype.withinPath = function (inner) {
+	        return this.pipe(withinPath(inner));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for fill in the canvas API. Use with withinPath.
+	     */
+	    Animation.prototype.fill = function () {
+	        return this.pipe(fill());
+	    };
+	    /**
+	     * Dynamic chainable wrapper for stroke in the canvas API.
+	     */
+	    Animation.prototype.stroke = function () {
+	        return this.pipe(stroke());
+	    };
+	    /**
+	     * Dynamic chainable wrapper for moveTo in the canvas API. Use with withinPath.
+	     */
+	    Animation.prototype.moveTo = function (xy) {
+	        return this.pipe(moveTo(xy));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for lineTo in the canvas API. Use with withinPath.
+	     */
+	    Animation.prototype.lineTo = function (xy) {
+	        return this.pipe(lineTo(xy));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for clip in the canvas API. Use with withinPath.
+	     */
+	    Animation.prototype.clip = function () {
+	        return this.pipe(clip());
+	    };
+	    /**
+	     * Dynamic chainable wrapper for quadraticCurveTo in the canvas API. Use with withinPath.
+	     */
+	    Animation.prototype.quadraticCurveTo = function (control, end) {
+	        return this.pipe(quadraticCurveTo(control, end));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
+	     */
+	    Animation.prototype.bezierCurveTo = function (control1, control2, end) {
+	        return this.pipe(bezierCurveTo(control1, control2, end));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
+	     */
+	    Animation.prototype.arc = function (center, radius, radStartAngle, radEndAngle, counterclockwise) {
+	        return this.pipe(arc(center, radius, radStartAngle, radEndAngle, counterclockwise));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
+	     */
+	    Animation.prototype.arcTo = function (tangent1, tangent2, radius) {
+	        return this.pipe(arcTo(tangent1, tangent2, radius));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for scale in the canvas API.
+	     */
+	    Animation.prototype.scale = function (xy) {
+	        return this.pipe(scale(xy));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for rotate in the canvas API.
+	     */
+	    Animation.prototype.rotate = function (rads) {
+	        return this.pipe(rotate(rads));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for translate in the canvas API.
+	     */
+	    Animation.prototype.translate = function (xy) {
+	        return this.pipe(translate(xy));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for translate in the canvas API.
+	     * [ a c e
+	     *   b d f
+	     *   0 0 1 ]
+	     */
+	    Animation.prototype.transform = function (a, b, c, d, e, f) {
+	        return this.pipe(transform(a, b, c, d, e, f));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for setTransform in the canvas API.
+	     */
+	    Animation.prototype.setTransform = function (a, b, c, d, e, f) {
+	        return this.pipe(setTransform(a, b, c, d, e, f));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for font in the canvas API.
+	     */
+	    Animation.prototype.font = function (style) {
+	        return this.pipe(font(style));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for textAlign in the canvas API.
+	     */
+	    Animation.prototype.textAlign = function (style) {
+	        return this.pipe(textAlign(style));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for textBaseline in the canvas API.
+	     */
+	    Animation.prototype.textBaseline = function (style) {
+	        return this.pipe(textBaseline(style));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for textBaseline in the canvas API.
+	     */
+	    Animation.prototype.fillText = function (text, xy, maxWidth) {
+	        return this.pipe(fillText(text, xy, maxWidth));
+	    };
+	    /**
+	     * Dynamic chainable wrapper for drawImage in the canvas API.
+	     */
+	    Animation.prototype.drawImage = function (img, xy) {
+	        return this.pipe(drawImage(img, xy));
+	    };
+	    /**
+	     * * Dynamic chainable wrapper for globalCompositeOperation in the canvas API.
+	     */
+	    Animation.prototype.globalCompositeOperation = function (operation) {
+	        return this.pipe(globalCompositeOperation(operation));
+	    };
+	    // End Canvas API
+	    /**
+	     * translates the drawing context by velocity * tick.clock
+	     */
+	    Animation.prototype.velocity = function (vector) {
+	        return this.pipe(velocity(vector));
+	    };
+	    Animation.prototype.glow = function (decay) {
+	        return this.pipe(glow(decay));
+	    };
 	    return Animation;
 	})();
 	exports.Animation = Animation;
@@ -226,7 +463,7 @@ var Ax =
 	    Animator.prototype.ticker = function (tick) {
 	        var self = this;
 	        this.tickerSubscription = tick.map(function (dt) {
-	            var tick = new DrawTick(self.ctx, self.t, dt);
+	            var tick = new Tick(self.ctx, self.t, dt);
 	            self.t += dt;
 	            return tick;
 	        }).subscribe(this.root);
@@ -257,107 +494,9 @@ var Ax =
 	    return Animator;
 	})();
 	exports.Animator = Animator;
-	function point(x, y) {
-	    var x_stream = toStreamNumber(x);
-	    var y_stream = toStreamNumber(y);
-	    //if (DEBUG) console.log("point: init", x_stream, y_stream);
-	    return new Parameter(function () {
-	        var x_next = x_stream.init();
-	        var y_next = y_stream.init();
-	        return function (t) {
-	            var result = [x_next(t), y_next(t)];
-	            //if (DEBUG) console.log("point: next", result);
-	            return result;
-	        };
-	    });
-	}
-	exports.point = point;
-	/*
-	    RGB between 0 and 255
-	    a between 0 - 1
-	 */
-	function rgba(r, g, b, a) {
-	    var r_stream = toStreamNumber(r);
-	    var g_stream = toStreamNumber(g);
-	    var b_stream = toStreamNumber(b);
-	    var a_stream = toStreamNumber(a);
-	    return new Parameter(function () {
-	        var r_next = r_stream.init();
-	        var g_next = g_stream.init();
-	        var b_next = b_stream.init();
-	        var a_next = a_stream.init();
-	        return function (t) {
-	            var r_val = Math.floor(r_next(t));
-	            var g_val = Math.floor(g_next(t));
-	            var b_val = Math.floor(b_next(t));
-	            var a_val = a_next(t);
-	            var val = "rgba(" + r_val + "," + g_val + "," + b_val + "," + a_val + ")";
-	            if (exports.DEBUG)
-	                console.log("color: ", val);
-	            return val;
-	        };
-	    });
-	}
-	exports.rgba = rgba;
-	function hsl(h, s, l) {
-	    var h_stream = toStreamNumber(h);
-	    var s_stream = toStreamNumber(s);
-	    var l_stream = toStreamNumber(l);
-	    return new Parameter(function () {
-	        var h_next = h_stream.init();
-	        var s_next = s_stream.init();
-	        var l_next = l_stream.init();
-	        return function (t) {
-	            var h_val = Math.floor(h_next(t));
-	            var s_val = Math.floor(s_next(t));
-	            var l_val = Math.floor(l_next(t));
-	            var val = "hsl(" + h_val + "," + s_val + "%," + l_val + "%)";
-	            // if (DEBUG) console.log("hsl: ", val);
-	            return val;
-	        };
-	    });
-	}
-	exports.hsl = hsl;
-	function t() {
-	    return new Parameter(function () { return function (t) {
-	        return t;
-	    }; });
-	}
-	exports.t = t;
-	function rnd() {
-	    return new Parameter(function () { return function (t) {
-	        return Math.random();
-	    }; });
-	}
-	exports.rnd = rnd;
-	function rndNormal(scale) {
-	    if (scale === void 0) { scale = 1; }
-	    var scale_ = toStreamNumber(scale);
-	    return new Parameter(function () {
-	        if (exports.DEBUG)
-	            console.log("rndNormal: init");
-	        var scale_next = scale_.init();
-	        return function (t) {
-	            var scale = scale_next(t);
-	            // generate random numbers
-	            var norm2 = 100;
-	            while (norm2 > 1) {
-	                var x = (Math.random() - 0.5) * 2;
-	                var y = (Math.random() - 0.5) * 2;
-	                norm2 = x * x + y * y;
-	            }
-	            var norm = Math.sqrt(norm2);
-	            var val = [scale * x / norm, scale * y / norm];
-	            if (exports.DEBUG)
-	                console.log("rndNormal: val", val);
-	            return val;
-	        };
-	    });
-	}
-	exports.rndNormal = rndNormal;
 	/**
 	 * NOTE: currently fails if the streams are different lengths
-	 * @param assertDt the expected clock tick values
+	 * @param expectedDt the expected clock tick values
 	 * @param after
 	 * @returns {Animation}
 	 */
@@ -389,56 +528,15 @@ var Ax =
 	    }, after);
 	}
 	exports.assertClock = assertClock;
-	function displaceT(displacement, value) {
-	    var deltat = toStreamNumber(displacement);
-	    return new Parameter(function () {
-	        var dt_next = deltat.init();
-	        var value_next = value.init();
-	        return function (t) {
-	            var dt = dt_next(t);
-	            if (exports.DEBUG)
-	                console.log("displaceT: ", dt);
-	            return value_next(t + dt);
-	        };
+	/**
+	 * Creates a new Animation by piping the animation flow of A into B
+	 */
+	function combine2(a, b) {
+	    return new Animation(function (upstream) {
+	        return b.attach(a.attach(upstream));
 	    });
 	}
-	exports.displaceT = displaceT;
-	//todo: should be t as a parameter to a non tempor
-	function sin(period) {
-	    if (exports.DEBUG)
-	        console.log("sin: new");
-	    var period_stream = toStreamNumber(period);
-	    return new Parameter(function () {
-	        var period_next = period_stream.init();
-	        return function (t) {
-	            var value = Math.sin(t * (Math.PI * 2) / period_next(t));
-	            if (exports.DEBUG)
-	                console.log("sin: tick", t, value);
-	            return value;
-	        };
-	    });
-	}
-	exports.sin = sin;
-	function cos(period) {
-	    if (exports.DEBUG)
-	        console.log("cos: new");
-	    var period_stream = toStreamNumber(period);
-	    return new Parameter(function () {
-	        var period_next = period_stream.init();
-	        return function (t) {
-	            var value = Math.cos(t * (Math.PI * 2) / period_next(t));
-	            if (exports.DEBUG)
-	                console.log("cos: tick", t, value);
-	            return value;
-	        };
-	    });
-	}
-	exports.cos = cos;
-	function scale_x(scale, x) { return 0; }
-	function storeTx(n, /*pass though context but store transform in variable*/ animation //passthrough
-	    ) { return null; }
-	function loadTx(n, /*pass though context but store transform in variable*/ animation //passthrough
-	    ) { return null; }
+	exports.combine2 = combine2;
 	/**
 	 * plays several animations, finishes when they are all done.
 	 * @param animations
@@ -471,11 +569,11 @@ var Ax =
 	    });
 	}
 	exports.parallel = parallel;
-	function clone(n, animation) {
+	function clone(n, // todo make dynamic
+	    animation) {
 	    return parallel(Rx.Observable.return(animation).repeat(n));
 	}
 	exports.clone = clone;
-	function sequence(animation) { return null; }
 	/**
 	 * The child animation is started every frame
 	 * @param animation
@@ -555,43 +653,42 @@ var Ax =
 	    });
 	}
 	exports.loop = loop;
-	function draw(initDraw, animation) {
+	function draw(drawFactory, after) {
 	    return new Animation(function (previous) {
-	        var draw = initDraw();
+	        var draw = drawFactory();
 	        return previous.tapOnNext(draw);
-	    }, animation);
+	    }, after);
 	}
 	exports.draw = draw;
-	function move(delta, animation) {
+	function translate(delta, animation) {
 	    if (exports.DEBUG)
-	        console.log("move: attached");
-	    var pointStream = toStreamPoint(delta);
+	        console.log("translate: attached");
 	    return draw(function () {
-	        var point_next = pointStream.init();
+	        var point_next = Parameter.from(delta).init();
 	        return function (tick) {
 	            var point = point_next(tick.clock);
 	            if (exports.DEBUG)
-	                console.log("move:", point);
-	            if (tick)
-	                tick.ctx.transform(1, 0, 0, 1, point[0], point[1]);
+	                console.log("translate:", point);
+	            tick.ctx.translate(point[0], point[1]);
 	            return tick;
 	        };
 	    }, animation);
 	}
-	exports.move = move;
-	function composite(composite_mode, animation) {
+	exports.translate = translate;
+	function globalCompositeOperation(composite_mode, animation) {
 	    return draw(function () {
 	        return function (tick) {
 	            tick.ctx.globalCompositeOperation = composite_mode;
 	        };
 	    }, animation);
 	}
-	exports.composite = composite;
+	exports.globalCompositeOperation = globalCompositeOperation;
 	function velocity(velocity, animation) {
-	    var velocityStream = toStreamPoint(velocity);
+	    if (exports.DEBUG)
+	        console.log("velocity: attached");
 	    return draw(function () {
 	        var pos = [0.0, 0.0];
-	        var velocity_next = velocityStream.init();
+	        var velocity_next = Parameter.from(velocity).init();
 	        return function (tick) {
 	            tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
 	            var velocity = velocity_next(tick.clock);
@@ -602,50 +699,558 @@ var Ax =
 	}
 	exports.velocity = velocity;
 	function tween_linear(from, to, time, animation /* copies */) {
-	    var from_stream = toStreamPoint(from);
-	    var to_stream = toStreamPoint(to);
-	    var scale = 1.0 / time;
 	    return new Animation(function (prev) {
 	        var t = 0;
-	        var from_next = from_stream.init();
-	        var to_next = to_stream.init();
+	        var from_next = Parameter.from(from).init();
+	        var to_next = Parameter.from(to).init();
+	        var time_next = Parameter.from(time).init();
 	        return prev.map(function (tick) {
 	            if (exports.DEBUG)
 	                console.log("tween: inner");
 	            var from = from_next(tick.clock);
 	            var to = to_next(tick.clock);
+	            var time = time_next(tick.clock);
 	            t = t + tick.dt;
 	            if (t > time)
 	                t = time;
-	            var x = from[0] + (to[0] - from[0]) * t * scale;
-	            var y = from[1] + (to[1] - from[1]) * t * scale;
+	            var x = from[0] + (to[0] - from[0]) * t / time;
+	            var y = from[1] + (to[1] - from[1]) * t / time;
 	            tick.ctx.transform(1, 0, 0, 1, x, y);
 	            return tick;
 	        }).takeWhile(function (tick) { return t < time; });
 	    }, animation);
 	}
 	exports.tween_linear = tween_linear;
-	function rect(p1, //todo dynamic params instead
-	    p2, //todo dynamic params instead
-	    animation) {
+	function fillStyle(color, animation) {
 	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("fillStyle: attach");
+	        var color_next = Parameter.from(color).init();
 	        return function (tick) {
+	            var color = color_next(tick.clock);
 	            if (exports.DEBUG)
-	                console.log("rect: fillRect");
-	            tick.ctx.fillRect(p1[0], p1[1], p2[0], p2[1]); //todo observer stream if necissary
-	        };
-	    }, animation);
-	}
-	exports.rect = rect;
-	function changeColor(color, //todo
-	    animation) {
-	    return draw(function () {
-	        return function (tick) {
+	                console.log("fillStyle: fillStyle", color);
 	            tick.ctx.fillStyle = color;
 	        };
 	    }, animation);
 	}
-	exports.changeColor = changeColor;
+	exports.fillStyle = fillStyle;
+	function strokeStyle(color, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("strokeStyle: attach");
+	        var color_next = Parameter.from(color).init();
+	        return function (tick) {
+	            var color = color_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("strokeStyle: strokeStyle", color);
+	            tick.ctx.strokeStyle = color;
+	        };
+	    }, animation);
+	}
+	exports.strokeStyle = strokeStyle;
+	function shadowColor(color, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("shadowColor: attach");
+	        var color_next = Parameter.from(color).init();
+	        return function (tick) {
+	            var color = color_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("shadowColor: shadowColor", color);
+	            tick.ctx.shadowColor = color;
+	        };
+	    }, animation);
+	}
+	exports.shadowColor = shadowColor;
+	function shadowBlur(level, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("shadowBlur: attach");
+	        var level_next = Parameter.from(level).init();
+	        return function (tick) {
+	            var level = level_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("shadowBlur: shadowBlur", level);
+	            tick.ctx.shadowBlur = level;
+	        };
+	    }, animation);
+	}
+	exports.shadowBlur = shadowBlur;
+	function shadowOffset(xy, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("shadowOffset: attach");
+	        var xy_next = Parameter.from(xy).init();
+	        return function (tick) {
+	            var xy = xy_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("shadowOffset: shadowBlur", xy);
+	            tick.ctx.shadowOffsetX = xy[0];
+	            tick.ctx.shadowOffsetY = xy[1];
+	        };
+	    }, animation);
+	}
+	exports.shadowOffset = shadowOffset;
+	function lineCap(style, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("lineCap: attach");
+	        var arg_next = Parameter.from(style).init();
+	        return function (tick) {
+	            var arg = arg_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("lineCap: lineCap", arg);
+	            tick.ctx.lineCap = arg;
+	        };
+	    }, animation);
+	}
+	exports.lineCap = lineCap;
+	function lineJoin(style, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("lineJoin: attach");
+	        var arg_next = Parameter.from(style).init();
+	        return function (tick) {
+	            var arg = arg_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("lineJoin: lineCap", arg);
+	            tick.ctx.lineJoin = arg;
+	        };
+	    }, animation);
+	}
+	exports.lineJoin = lineJoin;
+	function lineWidth(width, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("lineWidth: attach");
+	        var width_next = Parameter.from(width).init();
+	        return function (tick) {
+	            var width = width_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("lineWidth: lineWidth", width);
+	            tick.ctx.lineWidth = width;
+	        };
+	    }, animation);
+	}
+	exports.lineWidth = lineWidth;
+	function miterLimit(limit, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("miterLimit: attach");
+	        var arg_next = Parameter.from(limit).init();
+	        return function (tick) {
+	            var arg = arg_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("miterLimit: miterLimit", arg);
+	            tick.ctx.miterLimit = arg;
+	        };
+	    }, animation);
+	}
+	exports.miterLimit = miterLimit;
+	function rect(xy, width_height, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("rect: attach");
+	        var xy_next = Parameter.from(xy).init();
+	        var width_height_next = Parameter.from(width_height).init();
+	        return function (tick) {
+	            var xy = xy_next(tick.clock);
+	            var width_height = width_height_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("rect: rect", xy, width_height);
+	            tick.ctx.rect(xy[0], xy[1], width_height[0], width_height[1]);
+	        };
+	    }, animation);
+	}
+	exports.rect = rect;
+	function fillRect(xy, width_height, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("fillRect: attach");
+	        var xy_next = Parameter.from(xy).init();
+	        var width_height_next = Parameter.from(width_height).init();
+	        return function (tick) {
+	            var xy = xy_next(tick.clock);
+	            var width_height = width_height_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("fillRect: fillRect", xy, width_height);
+	            tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
+	        };
+	    }, animation);
+	}
+	exports.fillRect = fillRect;
+	function strokeRect(xy, width_height, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("strokeRect: attach");
+	        var xy_next = Parameter.from(xy).init();
+	        var width_height_next = Parameter.from(width_height).init();
+	        return function (tick) {
+	            var xy = xy_next(tick.clock);
+	            var width_height = width_height_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("strokeRect: strokeRect", xy, width_height);
+	            tick.ctx.strokeRect(xy[0], xy[1], width_height[0], width_height[1]);
+	        };
+	    }, animation);
+	}
+	exports.strokeRect = strokeRect;
+	function clearRect(xy, width_height, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("clearRect: attach");
+	        var xy_next = Parameter.from(xy).init();
+	        var width_height_next = Parameter.from(width_height).init();
+	        return function (tick) {
+	            var xy = xy_next(tick.clock);
+	            var width_height = width_height_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("clearRect: clearRect", xy, width_height);
+	            tick.ctx.clearRect(xy[0], xy[1], width_height[0], width_height[1]);
+	        };
+	    }, animation);
+	}
+	exports.clearRect = clearRect;
+	function withinPath(inner) {
+	    return new Animation(function (upstream) {
+	        if (exports.DEBUG)
+	            console.log("withinPath: attach");
+	        var beginPathBeforeInner = upstream.tapOnNext(function (tick) { return tick.ctx.beginPath(); });
+	        return inner.attach(beginPathBeforeInner).tapOnNext(function (tick) { return tick.ctx.closePath(); });
+	    });
+	}
+	exports.withinPath = withinPath;
+	function stroke(animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("stroke: attach");
+	        return function (tick) {
+	            if (exports.DEBUG)
+	                console.log("stroke: stroke");
+	            tick.ctx.stroke();
+	        };
+	    }, animation);
+	}
+	exports.stroke = stroke;
+	function fill(animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("fill: attach");
+	        return function (tick) {
+	            if (exports.DEBUG)
+	                console.log("fill: stroke");
+	            tick.ctx.fill();
+	        };
+	    }, animation);
+	}
+	exports.fill = fill;
+	function moveTo(xy, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("moveTo: attach");
+	        var xy_next = Parameter.from(xy).init();
+	        return function (tick) {
+	            var xy = xy_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("moveTo: moveTo", xy);
+	            tick.ctx.moveTo(xy[0], xy[1]);
+	        };
+	    }, animation);
+	}
+	exports.moveTo = moveTo;
+	function lineTo(xy, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("lineTo: attach");
+	        var xy_next = Parameter.from(xy).init();
+	        return function (tick) {
+	            var xy = xy_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("lineTo: lineTo", xy);
+	            tick.ctx.lineTo(xy[0], xy[1]);
+	        };
+	    }, animation);
+	}
+	exports.lineTo = lineTo;
+	function clip(animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("clip: attach");
+	        return function (tick) {
+	            if (exports.DEBUG)
+	                console.log("clip: clip");
+	            tick.ctx.clip();
+	        };
+	    }, animation);
+	}
+	exports.clip = clip;
+	function quadraticCurveTo(control, end, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("quadraticCurveTo: attach");
+	        var arg1_next = Parameter.from(control).init();
+	        var arg2_next = Parameter.from(end).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            var arg2 = arg2_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("quadraticCurveTo: quadraticCurveTo", arg1, arg2);
+	            tick.ctx.quadraticCurveTo(arg1[0], arg1[1], arg2[0], arg2[1]);
+	        };
+	    }, animation);
+	}
+	exports.quadraticCurveTo = quadraticCurveTo;
+	/**
+	 * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
+	 */
+	function bezierCurveTo(control1, control2, end, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("bezierCurveTo: attach");
+	        var arg1_next = Parameter.from(control1).init();
+	        var arg2_next = Parameter.from(control2).init();
+	        var arg3_next = Parameter.from(end).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            var arg2 = arg2_next(tick.clock);
+	            var arg3 = arg3_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("bezierCurveTo: bezierCurveTo", arg1, arg2, arg3);
+	            tick.ctx.bezierCurveTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3[0], arg3[1]);
+	        };
+	    }, animation);
+	}
+	exports.bezierCurveTo = bezierCurveTo;
+	/**
+	 * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
+	 */
+	function arc(center, radius, radStartAngle, radEndAngle, counterclockwise, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("arc: attach");
+	        var arg1_next = Parameter.from(center).init();
+	        var arg2_next = Parameter.from(radius).init();
+	        var arg3_next = Parameter.from(radStartAngle).init();
+	        var arg4_next = Parameter.from(radEndAngle).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            var arg2 = arg2_next(tick.clock);
+	            var arg3 = arg3_next(tick.clock);
+	            var arg4 = arg4_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("arc: arc", arg1, arg2, arg3, arg4);
+	            tick.ctx.arc(arg1[0], arg1[1], arg2, arg3, arg4, counterclockwise);
+	        };
+	    }, animation);
+	}
+	exports.arc = arc;
+	/**
+	 * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
+	 */
+	function arcTo(tangent1, tangent2, radius, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("arc: attach");
+	        var arg1_next = Parameter.from(tangent1).init();
+	        var arg2_next = Parameter.from(tangent2).init();
+	        var arg3_next = Parameter.from(radius).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            var arg2 = arg2_next(tick.clock);
+	            var arg3 = arg3_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("arc: arc", arg1, arg2, arg3);
+	            tick.ctx.arcTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3);
+	        };
+	    }, animation);
+	}
+	exports.arcTo = arcTo;
+	/**
+	 * Dynamic chainable wrapper for scale in the canvas API.
+	 */
+	function scale(xy, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("scale: attach");
+	        var arg1_next = Parameter.from(xy).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("scale: scale", arg1);
+	            tick.ctx.scale(arg1[0], arg1[1]);
+	        };
+	    }, animation);
+	}
+	exports.scale = scale;
+	/**
+	 * Dynamic chainable wrapper for rotate in the canvas API.
+	 */
+	function rotate(rads, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("rotate: attach");
+	        var arg1_next = Parameter.from(rads).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("rotate: rotate", arg1);
+	            tick.ctx.scale(arg1[0], arg1[1]);
+	        };
+	    }, animation);
+	}
+	exports.rotate = rotate;
+	/**
+	 * Dynamic chainable wrapper for translate in the canvas API.
+	 * [ a c e
+	 *   b d f
+	 *   0 0 1 ]
+	 */
+	function transform(a, b, c, d, e, f, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("transform: attach");
+	        var arg1_next = Parameter.from(a).init();
+	        var arg2_next = Parameter.from(b).init();
+	        var arg3_next = Parameter.from(c).init();
+	        var arg4_next = Parameter.from(d).init();
+	        var arg5_next = Parameter.from(e).init();
+	        var arg6_next = Parameter.from(f).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            var arg2 = arg2_next(tick.clock);
+	            var arg3 = arg3_next(tick.clock);
+	            var arg4 = arg4_next(tick.clock);
+	            var arg5 = arg5_next(tick.clock);
+	            var arg6 = arg6_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("transform: transform", arg1, arg2, arg3, arg4, arg5, arg6);
+	            tick.ctx.transform(arg1, arg2, arg3, arg4, arg5, arg6);
+	        };
+	    }, animation);
+	}
+	exports.transform = transform;
+	/**
+	 * Dynamic chainable wrapper for setTransform in the canvas API.
+	 */
+	function setTransform(a, b, c, d, e, f, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("setTransform: attach");
+	        var arg1_next = Parameter.from(a).init();
+	        var arg2_next = Parameter.from(b).init();
+	        var arg3_next = Parameter.from(c).init();
+	        var arg4_next = Parameter.from(d).init();
+	        var arg5_next = Parameter.from(e).init();
+	        var arg6_next = Parameter.from(f).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            var arg2 = arg2_next(tick.clock);
+	            var arg3 = arg3_next(tick.clock);
+	            var arg4 = arg4_next(tick.clock);
+	            var arg5 = arg5_next(tick.clock);
+	            var arg6 = arg6_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("setTransform: setTransform", arg1, arg2, arg3, arg4, arg5, arg6);
+	            tick.ctx.setTransform(arg1, arg2, arg3, arg4, arg5, arg6);
+	        };
+	    }, animation);
+	}
+	exports.setTransform = setTransform;
+	/**
+	 * Dynamic chainable wrapper for font in the canvas API.
+	 */
+	function font(style, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("font: attach");
+	        var arg1_next = Parameter.from(style).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("font: font", arg1);
+	            tick.ctx.font = arg1;
+	        };
+	    }, animation);
+	}
+	exports.font = font;
+	/**
+	 * Dynamic chainable wrapper for textAlign in the canvas API.
+	 */
+	function textAlign(style, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("textAlign: attach");
+	        var arg1_next = Parameter.from(style).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("textAlign: textAlign", arg1);
+	            tick.ctx.textAlign = arg1;
+	        };
+	    }, animation);
+	}
+	exports.textAlign = textAlign;
+	/**
+	 * Dynamic chainable wrapper for textBaseline in the canvas API.
+	 */
+	function textBaseline(style, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("textBaseline: attach");
+	        var arg1_next = Parameter.from(style).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("textBaseline: textBaseline", arg1);
+	            tick.ctx.textBaseline = arg1;
+	        };
+	    }, animation);
+	}
+	exports.textBaseline = textBaseline;
+	/**
+	 * Dynamic chainable wrapper for textBaseline in the canvas API.
+	 */
+	function fillText(text, xy, maxWidth, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("fillText: attach");
+	        var arg1_next = Parameter.from(text).init();
+	        var arg2_next = Parameter.from(xy).init();
+	        var arg3_next = maxWidth ? Parameter.from(maxWidth).init() : undefined;
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            var arg2 = arg2_next(tick.clock);
+	            var arg3 = maxWidth ? arg3_next(tick.clock) : undefined;
+	            if (exports.DEBUG)
+	                console.log("fillText: fillText", arg1, arg2, arg3);
+	            if (maxWidth) {
+	                tick.ctx.fillText(arg1, arg2[0], arg2[0], arg3);
+	            }
+	            else {
+	                tick.ctx.fillText(arg1, arg2[0], arg2[0]);
+	            }
+	        };
+	    }, animation);
+	}
+	exports.fillText = fillText;
+	/**
+	 * Dynamic chainable wrapper for textBaseline in the canvas API.
+	 */
+	function drawImage(img, xy, animation) {
+	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("drawImage: attach");
+	        var arg1_next = Parameter.from(xy).init();
+	        return function (tick) {
+	            var arg1 = arg1_next(tick.clock);
+	            if (exports.DEBUG)
+	                console.log("drawImage: drawImage", arg1);
+	            tick.ctx.drawImage(img, arg1[0], arg1[1]);
+	        };
+	    }, animation);
+	}
+	exports.drawImage = drawImage;
 	// foreground color used to define emmitter regions around the canvas
 	//  the hue, is reused in the particles
 	//  the lightness is use to describe the quantity (max lightness leads to total saturation)
@@ -678,6 +1283,7 @@ var Ax =
 	function glow(decay, after) {
 	    if (decay === void 0) { decay = 0.1; }
 	    return draw(function () {
+	        var decay_next = Parameter.from(decay).init();
 	        return function (tick) {
 	            var ctx = tick.ctx;
 	            // our src pixel data
@@ -686,6 +1292,7 @@ var Ax =
 	            var pixels = width * height;
 	            var imgData = ctx.getImageData(0, 0, width, height);
 	            var data = imgData.data;
+	            var decay = decay_next(tick.clock);
 	            // console.log("original data", imgData.data)
 	            // our target data
 	            // todo if we used a Typed array throughout we could save some zeroing and other crappy conversions
@@ -830,20 +1437,17 @@ var Ax =
 	    }, after);
 	}
 	exports.glow = glow;
-	function map(map_fn, animation) {
-	    return new Animation(function (previous) {
-	        return previous.map(map_fn);
-	    }, animation);
-	}
-	function take(iterations, animation) {
+	function take(frames, animation) {
 	    return new Animation(function (prev) {
-	        return prev.take(iterations);
+	        if (exports.DEBUG)
+	            console.log("take: attach");
+	        return prev.take(frames);
 	    }, animation);
 	}
 	exports.take = take;
 	function save(width, height, path) {
-	    var GIFEncoder = __webpack_require__(6);
-	    var fs = __webpack_require__(33);
+	    var GIFEncoder = __webpack_require__(4);
+	    var fs = __webpack_require__(31);
 	    var encoder = new GIFEncoder(width, height);
 	    encoder.createReadStream()
 	        .pipe(encoder.createWriteStream({ repeat: 10000, delay: 100, quality: 1 }))
@@ -955,425 +1559,210 @@ var Ax =
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module) {// Generated by CoffeeScript 1.9.3
-	(function() {
-	  var L_to_Y, Y_to_L, conv, distanceFromPole, dotProduct, epsilon, fromLinear, getBounds, intersectLineLine, kappa, lengthOfRayUntilIntersect, m, m_inv, maxChromaForLH, maxSafeChromaForL, refU, refV, root, toLinear;
-
-	  m = {
-	    R: [3.2409699419045214, -1.5373831775700935, -0.49861076029300328],
-	    G: [-0.96924363628087983, 1.8759675015077207, 0.041555057407175613],
-	    B: [0.055630079696993609, -0.20397695888897657, 1.0569715142428786]
-	  };
-
-	  m_inv = {
-	    X: [0.41239079926595948, 0.35758433938387796, 0.18048078840183429],
-	    Y: [0.21263900587151036, 0.71516867876775593, 0.072192315360733715],
-	    Z: [0.019330818715591851, 0.11919477979462599, 0.95053215224966058]
-	  };
-
-	  refU = 0.19783000664283681;
-
-	  refV = 0.468319994938791;
-
-	  kappa = 903.2962962962963;
-
-	  epsilon = 0.0088564516790356308;
-
-	  getBounds = function(L) {
-	    var bottom, channel, j, k, len1, len2, m1, m2, m3, ref, ref1, ref2, ret, sub1, sub2, t, top1, top2;
-	    sub1 = Math.pow(L + 16, 3) / 1560896;
-	    sub2 = sub1 > epsilon ? sub1 : L / kappa;
-	    ret = [];
-	    ref = ['R', 'G', 'B'];
-	    for (j = 0, len1 = ref.length; j < len1; j++) {
-	      channel = ref[j];
-	      ref1 = m[channel], m1 = ref1[0], m2 = ref1[1], m3 = ref1[2];
-	      ref2 = [0, 1];
-	      for (k = 0, len2 = ref2.length; k < len2; k++) {
-	        t = ref2[k];
-	        top1 = (284517 * m1 - 94839 * m3) * sub2;
-	        top2 = (838422 * m3 + 769860 * m2 + 731718 * m1) * L * sub2 - 769860 * t * L;
-	        bottom = (632260 * m3 - 126452 * m2) * sub2 + 126452 * t;
-	        ret.push([top1 / bottom, top2 / bottom]);
-	      }
+	exports.DEBUG = false;
+	var Parameter = (function () {
+	    /**
+	     * Before a parameter is used, the enclosing animation must call init. This returns a function which
+	     * can be used to find the value of the function for specific values of time.
+	     */
+	    function Parameter(init) {
+	        this.init = init;
 	    }
-	    return ret;
-	  };
+	    /**
+	     * Before a parameter is used, the enclosing animation must call init. This returns a function which
+	     * can be used to find the value of the function for specific values of time.
+	     */
+	    Parameter.prototype.init = function () { throw new Error('This method is abstract'); };
+	    /**
+	     * map the value of 'this' to a new parameter
+	     */
+	    Parameter.prototype.map = function (fn) {
+	        var base = this;
+	        return new Parameter(function () {
+	            var base_next = base.init();
+	            return function (t) {
+	                return fn(base_next(t));
+	            };
+	        });
+	    };
+	    /**
+	     * Returns a parameter whose value is forever the first value next picked from this.
+	     * @returns {Parameter<T>}
+	     */
+	    Parameter.prototype.first = function () {
+	        var self = this;
+	        return new Parameter(function () {
+	            var generate = true;
+	            var next = self.init();
+	            var value = null;
+	            return function (clock) {
+	                if (generate) {
+	                    generate = false;
+	                    value = next(clock);
+	                }
+	                // console.log("fixed: val from parameter", value);
+	                return value;
+	            };
+	        });
+	    };
+	    return Parameter;
+	})();
+	exports.Parameter = Parameter;
+	function from(source) {
+	    if (source instanceof Parameter)
+	        return source;
+	    else
+	        return constant(source);
+	}
+	exports.from = from;
+	function point(x, y) {
+	    return new Parameter(function () {
+	        var x_next = from(x).init();
+	        var y_next = from(y).init();
+	        return function (t) {
+	            var result = [x_next(t), y_next(t)];
+	            //if (DEBUG) console.log("point: next", result);
+	            return result;
+	        };
+	    });
+	}
+	exports.point = point;
+	function displaceT(displacement, value) {
+	    return new Parameter(function () {
+	        var dt_next = from(displacement).init();
+	        var value_next = from(value).init();
+	        return function (t) {
+	            var dt = dt_next(t);
+	            if (exports.DEBUG)
+	                console.log("displaceT: ", dt);
+	            return value_next(t + dt);
+	        };
+	    });
+	}
+	exports.displaceT = displaceT;
+	/*
+	    RGB between 0 and 255
+	    a between 0 - 1
+	 */
+	function rgba(r, g, b, a) {
+	    return new Parameter(function () {
+	        var r_next = from(r).init();
+	        var g_next = from(g).init();
+	        var b_next = from(b).init();
+	        var a_next = from(a).init();
+	        return function (t) {
+	            var r_val = Math.floor(r_next(t));
+	            var g_val = Math.floor(g_next(t));
+	            var b_val = Math.floor(b_next(t));
+	            var a_val = a_next(t);
+	            var val = "rgba(" + r_val + "," + g_val + "," + b_val + "," + a_val + ")";
+	            if (exports.DEBUG)
+	                console.log("color: ", val);
+	            return val;
+	        };
+	    });
+	}
+	exports.rgba = rgba;
+	function hsl(h, s, l) {
+	    return new Parameter(function () {
+	        var h_next = from(h).init();
+	        var s_next = from(s).init();
+	        var l_next = from(l).init();
+	        return function (t) {
+	            var h_val = Math.floor(h_next(t));
+	            var s_val = Math.floor(s_next(t));
+	            var l_val = Math.floor(l_next(t));
+	            var val = "hsl(" + h_val + "," + s_val + "%," + l_val + "%)";
+	            // if (DEBUG) console.log("hsl: ", val);
+	            return val;
+	        };
+	    });
+	}
+	exports.hsl = hsl;
+	function t() {
+	    return new Parameter(function () { return function (t) {
+	        return t;
+	    }; });
+	}
+	exports.t = t;
+	function rnd() {
+	    return new Parameter(function () { return function (t) {
+	        return Math.random();
+	    }; });
+	}
+	exports.rnd = rnd;
+	function constant(val) {
+	    return new Parameter(function () { return function (t) {
+	        return val;
+	    }; });
+	}
+	exports.constant = constant;
+	function rndNormal(scale) {
+	    if (scale === void 0) { scale = 1; }
+	    return new Parameter(function () {
+	        if (exports.DEBUG)
+	            console.log("rndNormal: init");
+	        var scale_next = from(scale).init();
+	        return function (t) {
+	            var scale = scale_next(t);
+	            // generate random numbers
+	            var norm2 = 100;
+	            while (norm2 > 1) {
+	                var x = (Math.random() - 0.5) * 2;
+	                var y = (Math.random() - 0.5) * 2;
+	                norm2 = x * x + y * y;
+	            }
+	            var norm = Math.sqrt(norm2);
+	            var val = [scale * x / norm, scale * y / norm];
+	            if (exports.DEBUG)
+	                console.log("rndNormal: val", val);
+	            return val;
+	        };
+	    });
+	}
+	exports.rndNormal = rndNormal;
+	//todo: should be t as a parameter to a non tempor
+	function sin(period) {
+	    if (exports.DEBUG)
+	        console.log("sin: new");
+	    return new Parameter(function () {
+	        var period_next = from(period).init();
+	        return function (t) {
+	            var value = Math.sin(t * (Math.PI * 2) / period_next(t));
+	            if (exports.DEBUG)
+	                console.log("sin: tick", t, value);
+	            return value;
+	        };
+	    });
+	}
+	exports.sin = sin;
+	function cos(period) {
+	    if (exports.DEBUG)
+	        console.log("cos: new");
+	    return new Parameter(function () {
+	        var period_next = from(period).init();
+	        return function (t) {
+	            var value = Math.cos(t * (Math.PI * 2) / period_next(t));
+	            if (exports.DEBUG)
+	                console.log("cos: tick", t, value);
+	            return value;
+	        };
+	    });
+	}
+	exports.cos = cos;
 
-	  intersectLineLine = function(line1, line2) {
-	    return (line1[1] - line2[1]) / (line2[0] - line1[0]);
-	  };
-
-	  distanceFromPole = function(point) {
-	    return Math.sqrt(Math.pow(point[0], 2) + Math.pow(point[1], 2));
-	  };
-
-	  lengthOfRayUntilIntersect = function(theta, line) {
-	    var b1, len, m1;
-	    m1 = line[0], b1 = line[1];
-	    len = b1 / (Math.sin(theta) - m1 * Math.cos(theta));
-	    if (len < 0) {
-	      return null;
-	    }
-	    return len;
-	  };
-
-	  maxSafeChromaForL = function(L) {
-	    var b1, j, len1, lengths, m1, ref, ref1, x;
-	    lengths = [];
-	    ref = getBounds(L);
-	    for (j = 0, len1 = ref.length; j < len1; j++) {
-	      ref1 = ref[j], m1 = ref1[0], b1 = ref1[1];
-	      x = intersectLineLine([m1, b1], [-1 / m1, 0]);
-	      lengths.push(distanceFromPole([x, b1 + x * m1]));
-	    }
-	    return Math.min.apply(Math, lengths);
-	  };
-
-	  maxChromaForLH = function(L, H) {
-	    var hrad, j, l, len1, lengths, line, ref;
-	    hrad = H / 360 * Math.PI * 2;
-	    lengths = [];
-	    ref = getBounds(L);
-	    for (j = 0, len1 = ref.length; j < len1; j++) {
-	      line = ref[j];
-	      l = lengthOfRayUntilIntersect(hrad, line);
-	      if (l !== null) {
-	        lengths.push(l);
-	      }
-	    }
-	    return Math.min.apply(Math, lengths);
-	  };
-
-	  dotProduct = function(a, b) {
-	    var i, j, ref, ret;
-	    ret = 0;
-	    for (i = j = 0, ref = a.length - 1; 0 <= ref ? j <= ref : j >= ref; i = 0 <= ref ? ++j : --j) {
-	      ret += a[i] * b[i];
-	    }
-	    return ret;
-	  };
-
-	  fromLinear = function(c) {
-	    if (c <= 0.0031308) {
-	      return 12.92 * c;
-	    } else {
-	      return 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
-	    }
-	  };
-
-	  toLinear = function(c) {
-	    var a;
-	    a = 0.055;
-	    if (c > 0.04045) {
-	      return Math.pow((c + a) / (1 + a), 2.4);
-	    } else {
-	      return c / 12.92;
-	    }
-	  };
-
-	  conv = {
-	    'xyz': {},
-	    'luv': {},
-	    'lch': {},
-	    'husl': {},
-	    'huslp': {},
-	    'rgb': {},
-	    'hex': {}
-	  };
-
-	  conv.xyz.rgb = function(tuple) {
-	    var B, G, R;
-	    R = fromLinear(dotProduct(m.R, tuple));
-	    G = fromLinear(dotProduct(m.G, tuple));
-	    B = fromLinear(dotProduct(m.B, tuple));
-	    return [R, G, B];
-	  };
-
-	  conv.rgb.xyz = function(tuple) {
-	    var B, G, R, X, Y, Z, rgbl;
-	    R = tuple[0], G = tuple[1], B = tuple[2];
-	    rgbl = [toLinear(R), toLinear(G), toLinear(B)];
-	    X = dotProduct(m_inv.X, rgbl);
-	    Y = dotProduct(m_inv.Y, rgbl);
-	    Z = dotProduct(m_inv.Z, rgbl);
-	    return [X, Y, Z];
-	  };
-
-	  Y_to_L = function(Y) {
-	    if (Y <= epsilon) {
-	      return Y * kappa;
-	    } else {
-	      return 116 * Math.pow(Y, 1 / 3) - 16;
-	    }
-	  };
-
-	  L_to_Y = function(L) {
-	    if (L <= 8) {
-	      return L / kappa;
-	    } else {
-	      return Math.pow((L + 16) / 116, 3);
-	    }
-	  };
-
-	  conv.xyz.luv = function(tuple) {
-	    var L, U, V, X, Y, Z, varU, varV;
-	    X = tuple[0], Y = tuple[1], Z = tuple[2];
-	    if (Y === 0) {
-	      return [0, 0, 0];
-	    }
-	    L = Y_to_L(Y);
-	    varU = (4 * X) / (X + (15 * Y) + (3 * Z));
-	    varV = (9 * Y) / (X + (15 * Y) + (3 * Z));
-	    U = 13 * L * (varU - refU);
-	    V = 13 * L * (varV - refV);
-	    return [L, U, V];
-	  };
-
-	  conv.luv.xyz = function(tuple) {
-	    var L, U, V, X, Y, Z, varU, varV;
-	    L = tuple[0], U = tuple[1], V = tuple[2];
-	    if (L === 0) {
-	      return [0, 0, 0];
-	    }
-	    varU = U / (13 * L) + refU;
-	    varV = V / (13 * L) + refV;
-	    Y = L_to_Y(L);
-	    X = 0 - (9 * Y * varU) / ((varU - 4) * varV - varU * varV);
-	    Z = (9 * Y - (15 * varV * Y) - (varV * X)) / (3 * varV);
-	    return [X, Y, Z];
-	  };
-
-	  conv.luv.lch = function(tuple) {
-	    var C, H, Hrad, L, U, V;
-	    L = tuple[0], U = tuple[1], V = tuple[2];
-	    C = Math.sqrt(Math.pow(U, 2) + Math.pow(V, 2));
-	    if (C < 0.00000001) {
-	      H = 0;
-	    } else {
-	      Hrad = Math.atan2(V, U);
-	      H = Hrad * 360 / 2 / Math.PI;
-	      if (H < 0) {
-	        H = 360 + H;
-	      }
-	    }
-	    return [L, C, H];
-	  };
-
-	  conv.lch.luv = function(tuple) {
-	    var C, H, Hrad, L, U, V;
-	    L = tuple[0], C = tuple[1], H = tuple[2];
-	    Hrad = H / 360 * 2 * Math.PI;
-	    U = Math.cos(Hrad) * C;
-	    V = Math.sin(Hrad) * C;
-	    return [L, U, V];
-	  };
-
-	  conv.husl.lch = function(tuple) {
-	    var C, H, L, S, max;
-	    H = tuple[0], S = tuple[1], L = tuple[2];
-	    if (L > 99.9999999 || L < 0.00000001) {
-	      C = 0;
-	    } else {
-	      max = maxChromaForLH(L, H);
-	      C = max / 100 * S;
-	    }
-	    return [L, C, H];
-	  };
-
-	  conv.lch.husl = function(tuple) {
-	    var C, H, L, S, max;
-	    L = tuple[0], C = tuple[1], H = tuple[2];
-	    if (L > 99.9999999 || L < 0.00000001) {
-	      S = 0;
-	    } else {
-	      max = maxChromaForLH(L, H);
-	      S = C / max * 100;
-	    }
-	    return [H, S, L];
-	  };
-
-	  conv.huslp.lch = function(tuple) {
-	    var C, H, L, S, max;
-	    H = tuple[0], S = tuple[1], L = tuple[2];
-	    if (L > 99.9999999 || L < 0.00000001) {
-	      C = 0;
-	    } else {
-	      max = maxSafeChromaForL(L);
-	      C = max / 100 * S;
-	    }
-	    return [L, C, H];
-	  };
-
-	  conv.lch.huslp = function(tuple) {
-	    var C, H, L, S, max;
-	    L = tuple[0], C = tuple[1], H = tuple[2];
-	    if (L > 99.9999999 || L < 0.00000001) {
-	      S = 0;
-	    } else {
-	      max = maxSafeChromaForL(L);
-	      S = C / max * 100;
-	    }
-	    return [H, S, L];
-	  };
-
-	  conv.rgb.hex = function(tuple) {
-	    var ch, hex, j, len1;
-	    hex = "#";
-	    for (j = 0, len1 = tuple.length; j < len1; j++) {
-	      ch = tuple[j];
-	      ch = Math.round(ch * 1e6) / 1e6;
-	      if (ch < 0 || ch > 1) {
-	        throw new Error("Illegal rgb value: " + ch);
-	      }
-	      ch = Math.round(ch * 255).toString(16);
-	      if (ch.length === 1) {
-	        ch = "0" + ch;
-	      }
-	      hex += ch;
-	    }
-	    return hex;
-	  };
-
-	  conv.hex.rgb = function(hex) {
-	    var b, g, j, len1, n, r, ref, results;
-	    if (hex.charAt(0) === "#") {
-	      hex = hex.substring(1, 7);
-	    }
-	    r = hex.substring(0, 2);
-	    g = hex.substring(2, 4);
-	    b = hex.substring(4, 6);
-	    ref = [r, g, b];
-	    results = [];
-	    for (j = 0, len1 = ref.length; j < len1; j++) {
-	      n = ref[j];
-	      results.push(parseInt(n, 16) / 255);
-	    }
-	    return results;
-	  };
-
-	  conv.lch.rgb = function(tuple) {
-	    return conv.xyz.rgb(conv.luv.xyz(conv.lch.luv(tuple)));
-	  };
-
-	  conv.rgb.lch = function(tuple) {
-	    return conv.luv.lch(conv.xyz.luv(conv.rgb.xyz(tuple)));
-	  };
-
-	  conv.husl.rgb = function(tuple) {
-	    return conv.lch.rgb(conv.husl.lch(tuple));
-	  };
-
-	  conv.rgb.husl = function(tuple) {
-	    return conv.lch.husl(conv.rgb.lch(tuple));
-	  };
-
-	  conv.huslp.rgb = function(tuple) {
-	    return conv.lch.rgb(conv.huslp.lch(tuple));
-	  };
-
-	  conv.rgb.huslp = function(tuple) {
-	    return conv.lch.huslp(conv.rgb.lch(tuple));
-	  };
-
-	  root = {};
-
-	  root.fromRGB = function(R, G, B) {
-	    return conv.rgb.husl([R, G, B]);
-	  };
-
-	  root.fromHex = function(hex) {
-	    return conv.rgb.husl(conv.hex.rgb(hex));
-	  };
-
-	  root.toRGB = function(H, S, L) {
-	    return conv.husl.rgb([H, S, L]);
-	  };
-
-	  root.toHex = function(H, S, L) {
-	    return conv.rgb.hex(conv.husl.rgb([H, S, L]));
-	  };
-
-	  root.p = {};
-
-	  root.p.toRGB = function(H, S, L) {
-	    return conv.xyz.rgb(conv.luv.xyz(conv.lch.luv(conv.huslp.lch([H, S, L]))));
-	  };
-
-	  root.p.toHex = function(H, S, L) {
-	    return conv.rgb.hex(conv.xyz.rgb(conv.luv.xyz(conv.lch.luv(conv.huslp.lch([H, S, L])))));
-	  };
-
-	  root.p.fromRGB = function(R, G, B) {
-	    return conv.lch.huslp(conv.luv.lch(conv.xyz.luv(conv.rgb.xyz([R, G, B]))));
-	  };
-
-	  root.p.fromHex = function(hex) {
-	    return conv.lch.huslp(conv.luv.lch(conv.xyz.luv(conv.rgb.xyz(conv.hex.rgb(hex)))));
-	  };
-
-	  root._conv = conv;
-
-	  root._getBounds = getBounds;
-
-	  root._maxChromaForLH = maxChromaForLH;
-
-	  root._maxSafeChromaForL = maxSafeChromaForL;
-
-	  if (!((typeof module !== "undefined" && module !== null) || (typeof jQuery !== "undefined" && jQuery !== null) || (typeof requirejs !== "undefined" && requirejs !== null))) {
-	    this.HUSL = root;
-	  }
-
-	  if (typeof module !== "undefined" && module !== null) {
-	    module.exports = root;
-	  }
-
-	  if (typeof jQuery !== "undefined" && jQuery !== null) {
-	    jQuery.husl = root;
-	  }
-
-	  if ((typeof requirejs !== "undefined" && requirejs !== null) && ("function" !== "undefined" && __webpack_require__(5) !== null)) {
-	    !(__WEBPACK_AMD_DEFINE_FACTORY__ = (root), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	  }
-
-	}).call(this);
-
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)(module)))
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function(module) {
-		if(!module.webpackPolyfill) {
-			module.deprecate = function() {};
-			module.paths = [];
-			// module.parent = undefined by default
-			module.children = [];
-			module.webpackPolyfill = 1;
-		}
-		return module;
-	}
+	module.exports = __webpack_require__(5);
 
 
 /***/ },
 /* 5 */
-/***/ function(module, exports) {
-
-	module.exports = function() { throw new Error("define cannot be used indirect"); };
-
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(7);
-
-
-/***/ },
-/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {/*
@@ -1386,9 +1775,9 @@ var Ax =
 	  Eugene Ware (node.js streaming version - eugene@noblesmaurai.com)
 	*/
 
-	var stream = __webpack_require__(12);
-	var NeuQuant = __webpack_require__(31);
-	var LZWEncoder = __webpack_require__(32);
+	var stream = __webpack_require__(10);
+	var NeuQuant = __webpack_require__(29);
+	var LZWEncoder = __webpack_require__(30);
 
 	function ByteArray() {
 	  this.data = [];
@@ -1827,10 +2216,10 @@ var Ax =
 
 	module.exports = GIFEncoder;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6).Buffer))
 
 /***/ },
-/* 8 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer, global) {/*!
@@ -1841,9 +2230,9 @@ var Ax =
 	 */
 	/* eslint-disable no-proto */
 
-	var base64 = __webpack_require__(9)
-	var ieee754 = __webpack_require__(10)
-	var isArray = __webpack_require__(11)
+	var base64 = __webpack_require__(7)
+	var ieee754 = __webpack_require__(8)
+	var isArray = __webpack_require__(9)
 
 	exports.Buffer = Buffer
 	exports.SlowBuffer = SlowBuffer
@@ -3378,10 +3767,10 @@ var Ax =
 	  return i
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8).Buffer, (function() { return this; }())))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6).Buffer, (function() { return this; }())))
 
 /***/ },
-/* 9 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -3511,7 +3900,7 @@ var Ax =
 
 
 /***/ },
-/* 10 */
+/* 8 */
 /***/ function(module, exports) {
 
 	exports.read = function (buffer, offset, isLE, mLen, nBytes) {
@@ -3601,7 +3990,7 @@ var Ax =
 
 
 /***/ },
-/* 11 */
+/* 9 */
 /***/ function(module, exports) {
 
 	
@@ -3640,7 +4029,7 @@ var Ax =
 
 
 /***/ },
-/* 12 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -3666,15 +4055,15 @@ var Ax =
 
 	module.exports = Stream;
 
-	var EE = __webpack_require__(13).EventEmitter;
-	var inherits = __webpack_require__(14);
+	var EE = __webpack_require__(11).EventEmitter;
+	var inherits = __webpack_require__(12);
 
 	inherits(Stream, EE);
-	Stream.Readable = __webpack_require__(15);
-	Stream.Writable = __webpack_require__(27);
-	Stream.Duplex = __webpack_require__(28);
-	Stream.Transform = __webpack_require__(29);
-	Stream.PassThrough = __webpack_require__(30);
+	Stream.Readable = __webpack_require__(13);
+	Stream.Writable = __webpack_require__(25);
+	Stream.Duplex = __webpack_require__(26);
+	Stream.Transform = __webpack_require__(27);
+	Stream.PassThrough = __webpack_require__(28);
 
 	// Backwards-compat with node 0.4.x
 	Stream.Stream = Stream;
@@ -3773,7 +4162,7 @@ var Ax =
 
 
 /***/ },
-/* 13 */
+/* 11 */
 /***/ function(module, exports) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -4077,7 +4466,7 @@ var Ax =
 
 
 /***/ },
-/* 14 */
+/* 12 */
 /***/ function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -4106,20 +4495,20 @@ var Ax =
 
 
 /***/ },
-/* 15 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
-	exports = module.exports = __webpack_require__(16);
-	exports.Stream = __webpack_require__(12);
+	exports = module.exports = __webpack_require__(14);
+	exports.Stream = __webpack_require__(10);
 	exports.Readable = exports;
-	exports.Writable = __webpack_require__(23);
-	exports.Duplex = __webpack_require__(22);
-	exports.Transform = __webpack_require__(25);
-	exports.PassThrough = __webpack_require__(26);
+	exports.Writable = __webpack_require__(21);
+	exports.Duplex = __webpack_require__(20);
+	exports.Transform = __webpack_require__(23);
+	exports.PassThrough = __webpack_require__(24);
 
 
 /***/ },
-/* 16 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -4146,17 +4535,17 @@ var Ax =
 	module.exports = Readable;
 
 	/*<replacement>*/
-	var isArray = __webpack_require__(18);
+	var isArray = __webpack_require__(16);
 	/*</replacement>*/
 
 
 	/*<replacement>*/
-	var Buffer = __webpack_require__(8).Buffer;
+	var Buffer = __webpack_require__(6).Buffer;
 	/*</replacement>*/
 
 	Readable.ReadableState = ReadableState;
 
-	var EE = __webpack_require__(13).EventEmitter;
+	var EE = __webpack_require__(11).EventEmitter;
 
 	/*<replacement>*/
 	if (!EE.listenerCount) EE.listenerCount = function(emitter, type) {
@@ -4164,18 +4553,18 @@ var Ax =
 	};
 	/*</replacement>*/
 
-	var Stream = __webpack_require__(12);
+	var Stream = __webpack_require__(10);
 
 	/*<replacement>*/
-	var util = __webpack_require__(19);
-	util.inherits = __webpack_require__(20);
+	var util = __webpack_require__(17);
+	util.inherits = __webpack_require__(18);
 	/*</replacement>*/
 
 	var StringDecoder;
 
 
 	/*<replacement>*/
-	var debug = __webpack_require__(21);
+	var debug = __webpack_require__(19);
 	if (debug && debug.debuglog) {
 	  debug = debug.debuglog('stream');
 	} else {
@@ -4187,7 +4576,7 @@ var Ax =
 	util.inherits(Readable, Stream);
 
 	function ReadableState(options, stream) {
-	  var Duplex = __webpack_require__(22);
+	  var Duplex = __webpack_require__(20);
 
 	  options = options || {};
 
@@ -4248,14 +4637,14 @@ var Ax =
 	  this.encoding = null;
 	  if (options.encoding) {
 	    if (!StringDecoder)
-	      StringDecoder = __webpack_require__(24).StringDecoder;
+	      StringDecoder = __webpack_require__(22).StringDecoder;
 	    this.decoder = new StringDecoder(options.encoding);
 	    this.encoding = options.encoding;
 	  }
 	}
 
 	function Readable(options) {
-	  var Duplex = __webpack_require__(22);
+	  var Duplex = __webpack_require__(20);
 
 	  if (!(this instanceof Readable))
 	    return new Readable(options);
@@ -4358,7 +4747,7 @@ var Ax =
 	// backwards compatibility.
 	Readable.prototype.setEncoding = function(enc) {
 	  if (!StringDecoder)
-	    StringDecoder = __webpack_require__(24).StringDecoder;
+	    StringDecoder = __webpack_require__(22).StringDecoder;
 	  this._readableState.decoder = new StringDecoder(enc);
 	  this._readableState.encoding = enc;
 	  return this;
@@ -5074,10 +5463,10 @@ var Ax =
 	  return -1;
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)))
 
 /***/ },
-/* 17 */
+/* 15 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -5174,7 +5563,7 @@ var Ax =
 
 
 /***/ },
-/* 18 */
+/* 16 */
 /***/ function(module, exports) {
 
 	module.exports = Array.isArray || function (arr) {
@@ -5183,7 +5572,7 @@ var Ax =
 
 
 /***/ },
-/* 19 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {// Copyright Joyent, Inc. and other Node contributors.
@@ -5293,10 +5682,10 @@ var Ax =
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8).Buffer))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6).Buffer))
 
 /***/ },
-/* 20 */
+/* 18 */
 /***/ function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -5325,13 +5714,13 @@ var Ax =
 
 
 /***/ },
-/* 21 */
+/* 19 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 22 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -5372,12 +5761,12 @@ var Ax =
 
 
 	/*<replacement>*/
-	var util = __webpack_require__(19);
-	util.inherits = __webpack_require__(20);
+	var util = __webpack_require__(17);
+	util.inherits = __webpack_require__(18);
 	/*</replacement>*/
 
-	var Readable = __webpack_require__(16);
-	var Writable = __webpack_require__(23);
+	var Readable = __webpack_require__(14);
+	var Writable = __webpack_require__(21);
 
 	util.inherits(Duplex, Readable);
 
@@ -5424,10 +5813,10 @@ var Ax =
 	  }
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)))
 
 /***/ },
-/* 23 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -5458,18 +5847,18 @@ var Ax =
 	module.exports = Writable;
 
 	/*<replacement>*/
-	var Buffer = __webpack_require__(8).Buffer;
+	var Buffer = __webpack_require__(6).Buffer;
 	/*</replacement>*/
 
 	Writable.WritableState = WritableState;
 
 
 	/*<replacement>*/
-	var util = __webpack_require__(19);
-	util.inherits = __webpack_require__(20);
+	var util = __webpack_require__(17);
+	util.inherits = __webpack_require__(18);
 	/*</replacement>*/
 
-	var Stream = __webpack_require__(12);
+	var Stream = __webpack_require__(10);
 
 	util.inherits(Writable, Stream);
 
@@ -5480,7 +5869,7 @@ var Ax =
 	}
 
 	function WritableState(options, stream) {
-	  var Duplex = __webpack_require__(22);
+	  var Duplex = __webpack_require__(20);
 
 	  options = options || {};
 
@@ -5568,7 +5957,7 @@ var Ax =
 	}
 
 	function Writable(options) {
-	  var Duplex = __webpack_require__(22);
+	  var Duplex = __webpack_require__(20);
 
 	  // Writable ctor is applied to Duplexes, though they're not
 	  // instanceof Writable, they're instanceof Readable.
@@ -5908,10 +6297,10 @@ var Ax =
 	  state.ended = true;
 	}
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)))
 
 /***/ },
-/* 24 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -5935,7 +6324,7 @@ var Ax =
 	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 	// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-	var Buffer = __webpack_require__(8).Buffer;
+	var Buffer = __webpack_require__(6).Buffer;
 
 	var isBufferEncoding = Buffer.isEncoding
 	  || function(encoding) {
@@ -6138,7 +6527,7 @@ var Ax =
 
 
 /***/ },
-/* 25 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -6207,11 +6596,11 @@ var Ax =
 
 	module.exports = Transform;
 
-	var Duplex = __webpack_require__(22);
+	var Duplex = __webpack_require__(20);
 
 	/*<replacement>*/
-	var util = __webpack_require__(19);
-	util.inherits = __webpack_require__(20);
+	var util = __webpack_require__(17);
+	util.inherits = __webpack_require__(18);
 	/*</replacement>*/
 
 	util.inherits(Transform, Duplex);
@@ -6353,7 +6742,7 @@ var Ax =
 
 
 /***/ },
-/* 26 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	// Copyright Joyent, Inc. and other Node contributors.
@@ -6383,11 +6772,11 @@ var Ax =
 
 	module.exports = PassThrough;
 
-	var Transform = __webpack_require__(25);
+	var Transform = __webpack_require__(23);
 
 	/*<replacement>*/
-	var util = __webpack_require__(19);
-	util.inherits = __webpack_require__(20);
+	var util = __webpack_require__(17);
+	util.inherits = __webpack_require__(18);
 	/*</replacement>*/
 
 	util.inherits(PassThrough, Transform);
@@ -6405,6 +6794,20 @@ var Ax =
 
 
 /***/ },
+/* 25 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(21)
+
+
+/***/ },
+/* 26 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(20)
+
+
+/***/ },
 /* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -6415,25 +6818,11 @@ var Ax =
 /* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(22)
+	module.exports = __webpack_require__(24)
 
 
 /***/ },
 /* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(25)
-
-
-/***/ },
-/* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(26)
-
-
-/***/ },
-/* 31 */
 /***/ function(module, exports) {
 
 	/* NeuQuant Neural-Net Quantization Algorithm
@@ -6870,7 +7259,7 @@ var Ax =
 
 
 /***/ },
-/* 32 */
+/* 30 */
 /***/ function(module, exports) {
 
 	/*
@@ -7085,7 +7474,7 @@ var Ax =
 
 
 /***/ },
-/* 33 */
+/* 31 */
 /***/ function(module, exports) {
 
 	

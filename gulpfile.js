@@ -6,10 +6,14 @@ var gutil = require('gulp-util');
 var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 var del = require('del');
+var fs = require('fs');
 var tslint = require('gulp-tslint');
 var webpack = require('webpack');
 var typedoc = require("gulp-typedoc");
 var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"))
+
+
+var npm_info = JSON.parse(fs.readFileSync("package.json"));
 
 var num_examples = 4;
 
@@ -44,6 +48,8 @@ gulp.task('compile', function() {
 
 projects = {}; // each example has a set of ts projects to enable continuous compilation
 
+deploy_tasks = [];
+
 function exampleTask(i) {
     var TS_SETTINGS = {
       outDir: ".",
@@ -68,6 +74,8 @@ function exampleTask(i) {
         return gulp.src('test/' + exampleNameJS, { read: false })
             .pipe(mocha({ reporter: 'list' }));
     });
+
+    deploy_tasks.push('test-' + exampleName);
 
     gulp.task('watch-' + exampleName, ['compile', 'compile-' + exampleName, 'test-' + exampleName], function() {
         gulp.watch('src/*.ts', ['compile']);
@@ -179,15 +187,17 @@ gulp.task("typedoc", function() {
     ;
 });
 
-// TODO delete this after getting documentation generator working properly
-gulp.task('compile_gen', function() {
-    var tsResult = gulp.src('scripts/*.ts')
-                    .pipe(sourcemaps.init())
-                    .pipe(ts(tsProject));
-    return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
-        tsResult.dts.pipe(gulp.dest('compiled/definitions')),
-        tsResult.js
-            .pipe(sourcemaps.write())
-            .pipe(gulp.dest('compiled/scripts'))
-    ]);
+
+deploy_tasks.push("webpack");
+deploy_tasks.push("typedoc");
+gulp.task("deploy", deploy_tasks, function() {
+  console.log("deploying");
+  console.log(npm_info);
+  var imgs     = gulp.src('./images/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/master/images"));
+  var lib_dist = gulp.src('./dist/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/libs"));
+  var docs     = gulp.src('./docs/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site"));
+
+  return merge([imgs, lib_dist, docs]);
 });
+
+
