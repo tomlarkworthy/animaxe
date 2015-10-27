@@ -70,6 +70,18 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>An animation is pipeline that modifies the drawing context found in an animation Tick. Animations can be chained
+						together to create a more complicated Animation. They are composeable,</p>
+					</div>
+					<p>e.g. <code>animation1 = Ax.translate([50, 50]).fillStyle(&quot;red&quot;).fillRect([0,0], [20,20])</code>
+					is one animation which has been formed from three subanimations.</p>
+					<p>Animations have a lifecycle, they can be finite or infinite in length. You can start temporally compose animations
+					using <code>anim1.then(anim2)</code>, which creates a new animation that plays animation 2 when animation 1 finishes.</p>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -98,8 +110,52 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#arc" class="tsd-kind-icon">arc</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#arcto" class="tsd-kind-icon">arc<wbr>To</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#attach" class="tsd-kind-icon">attach</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#beziercurveto" class="tsd-kind-icon">bezier<wbr>Curve<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#clearrect" class="tsd-kind-icon">clear<wbr>Rect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#clip" class="tsd-kind-icon">clip</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#clone" class="tsd-kind-icon">clone</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#draw" class="tsd-kind-icon">draw</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#drawimage" class="tsd-kind-icon">draw<wbr>Image</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#emit" class="tsd-kind-icon">emit</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#fill" class="tsd-kind-icon">fill</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#fillrect" class="tsd-kind-icon">fill<wbr>Rect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#fillstyle" class="tsd-kind-icon">fill<wbr>Style</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#filltext" class="tsd-kind-icon">fill<wbr>Text</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#font" class="tsd-kind-icon">font</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#globalcompositeoperation" class="tsd-kind-icon">global<wbr>Composite<wbr>Operation</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#glow" class="tsd-kind-icon">glow</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#linecap" class="tsd-kind-icon">line<wbr>Cap</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#linejoin" class="tsd-kind-icon">line<wbr>Join</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#lineto" class="tsd-kind-icon">line<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#linewidth" class="tsd-kind-icon">line<wbr>Width</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#loop" class="tsd-kind-icon">loop</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#miterlimit" class="tsd-kind-icon">miter<wbr>Limit</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#moveto" class="tsd-kind-icon">move<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#parallel" class="tsd-kind-icon">parallel</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#pipe" class="tsd-kind-icon">pipe</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#quadraticcurveto" class="tsd-kind-icon">quadratic<wbr>Curve<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#rect" class="tsd-kind-icon">rect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#rotate" class="tsd-kind-icon">rotate</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#scale" class="tsd-kind-icon">scale</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#settransform" class="tsd-kind-icon">set<wbr>Transform</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#shadowblur" class="tsd-kind-icon">shadow<wbr>Blur</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#shadowcolor" class="tsd-kind-icon">shadow<wbr>Color</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#shadowoffset" class="tsd-kind-icon">shadow<wbr>Offset</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#stroke" class="tsd-kind-icon">stroke</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#strokerect" class="tsd-kind-icon">stroke<wbr>Rect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#strokestyle" class="tsd-kind-icon">stroke<wbr>Style</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#take" class="tsd-kind-icon">take</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#textalign" class="tsd-kind-icon">text<wbr>Align</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#textbaseline" class="tsd-kind-icon">text<wbr>Baseline</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#then" class="tsd-kind-icon">then</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#transform" class="tsd-kind-icon">transform</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#translate" class="tsd-kind-icon">translate</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#tween_linear" class="tsd-kind-icon">tween_<wbr>linear</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#velocity" class="tsd-kind-icon">velocity</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#withinpath" class="tsd-kind-icon">within<wbr>Path</a></li>
 							</ul>
 						</section>
 					</div>
@@ -117,7 +173,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L102">animaxe.ts:102</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L101">animaxe.ts:101</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -127,17 +183,17 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>upstream<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>upstream<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
 													<h4 class="tsd-parameters-title">Parameters</h4>
 													<ul class="tsd-parameters">
 														<li>
-															<h5>upstream: <a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></h5>
+															<h5>upstream: <a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></h5>
 														</li>
 													</ul>
-													<h4 class="tsd-returns-title">Returns <a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></h4>
+													<h4 class="tsd-returns-title">Returns <a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></h4>
 												</li>
 											</ul>
 										</li>
@@ -160,7 +216,7 @@
 					<div class="tsd-signature tsd-kind-icon">_attach<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L104">animaxe.ts:104</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L103">animaxe.ts:103</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -168,17 +224,17 @@
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-siganture">
 								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-class tsd-is-not-exported">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>upstream<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></li>
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>upstream<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></li>
 								</ul>
 								<ul class="tsd-descriptions">
 									<li class="tsd-description">
 										<h4 class="tsd-parameters-title">Parameters</h4>
 										<ul class="tsd-parameters">
 											<li>
-												<h5>upstream: <a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></h5>
+												<h5>upstream: <a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></h5>
 											</li>
 										</ul>
-										<h4 class="tsd-returns-title">Returns <a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></h4>
+										<h4 class="tsd-returns-title">Returns <a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></h4>
 									</li>
 								</ul>
 							</li>
@@ -191,7 +247,7 @@
 					<div class="tsd-signature tsd-kind-icon">after<span class="tsd-signature-symbol">:</span> <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L104">animaxe.ts:104</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L103">animaxe.ts:103</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -199,25 +255,1201 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="attach" class="tsd-anchor"></a>
-					<h3>attach</h3>
+					<a name="arc" class="tsd-anchor"></a>
+					<h3>arc</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">attach<span class="tsd-signature-symbol">(</span>upstream<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></li>
+						<li class="tsd-signature tsd-kind-icon">arc<span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, radius<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, radStartAngle<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, radEndAngle<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, counterclockwise<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L106">animaxe.ts:106</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L382">animaxe.ts:382</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>center: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>radius: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>radStartAngle: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>radEndAngle: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> counterclockwise: <span class="tsd-signature-type">boolean</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="arcto" class="tsd-anchor"></a>
+					<h3>arc<wbr>To</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">arc<wbr>To<span class="tsd-signature-symbol">(</span>tangent1<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, tangent2<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, radius<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L391">animaxe.ts:391</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>tangent1: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>tangent2: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>radius: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="attach" class="tsd-anchor"></a>
+					<h3>attach</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">attach<span class="tsd-signature-symbol">(</span>upstream<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L105">animaxe.ts:105</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>upstream: <a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></h5>
+									<h5>upstream: <a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../modules/_animaxe_.html#drawstream" class="tsd-signature-type">DrawStream</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../modules/_animaxe_.html#tickstream" class="tsd-signature-type">TickStream</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="beziercurveto" class="tsd-anchor"></a>
+					<h3>bezier<wbr>Curve<wbr>To</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">bezier<wbr>Curve<wbr>To<span class="tsd-signature-symbol">(</span>control1<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, control2<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, end<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L376">animaxe.ts:376</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>control1: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>control2: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>end: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="clearrect" class="tsd-anchor"></a>
+					<h3>clear<wbr>Rect</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">clear<wbr>Rect<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, width_height<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L328">animaxe.ts:328</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for clearRect in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>width_height: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="clip" class="tsd-anchor"></a>
+					<h3>clip</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">clip<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L364">animaxe.ts:364</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for clip in the canvas API. Use with withinPath.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="clone" class="tsd-anchor"></a>
+					<h3>clone</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">clone<span class="tsd-signature-symbol">(</span>n<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, inner<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L226">animaxe.ts:226</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Sequences n copies of the inner animation. Clone completes when all inner animations are over.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>n: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>inner: <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="draw" class="tsd-anchor"></a>
+					<h3>draw</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">draw<span class="tsd-signature-symbol">(</span>drawFactory<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L248">animaxe.ts:248</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>helper method for implementing simple animations (that don&#39;t fork the animation tree).
+									You just have to supply a function that does something with the draw tick.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>drawFactory: <span class="tsd-signature-type">function</span></h5>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter-siganture">
+											<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span></li>
+											</ul>
+											<ul class="tsd-descriptions">
+												<li class="tsd-description">
+													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">function</span></h4>
+													<ul class="tsd-parameters">
+														<li class="tsd-parameter-siganture">
+															<ul class="tsd-signatures tsd-kind-type-literal tsd-is-not-exported">
+																<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>tick<span class="tsd-signature-symbol">: </span><a href="_animaxe_.tick.html" class="tsd-signature-type">Tick</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+															</ul>
+															<ul class="tsd-descriptions">
+																<li class="tsd-description">
+																	<h4 class="tsd-parameters-title">Parameters</h4>
+																	<ul class="tsd-parameters">
+																		<li>
+																			<h5>tick: <a href="_animaxe_.tick.html" class="tsd-signature-type">Tick</a></h5>
+																		</li>
+																	</ul>
+																	<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+																</li>
+															</ul>
+														</li>
+													</ul>
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="drawimage" class="tsd-anchor"></a>
+					<h3>draw<wbr>Image</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">draw<wbr>Image<span class="tsd-signature-symbol">(</span>img<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L456">animaxe.ts:456</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for drawImage in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>img: <span class="tsd-signature-type">any</span></h5>
+								</li>
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="emit" class="tsd-anchor"></a>
+					<h3>emit</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">emit<span class="tsd-signature-symbol">(</span>inner<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L209">animaxe.ts:209</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Creates an animation that sequences the inner animation every time frame.</p>
+								</div>
+								<p>The resultant animation is always runs forever while upstream is live. Multiple inner animations
+								can be playing at the same time (unlike loop)</p>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>inner: <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="fill" class="tsd-anchor"></a>
+					<h3>fill</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">fill<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L340">animaxe.ts:340</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for fill in the canvas API. Use with withinPath.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="fillrect" class="tsd-anchor"></a>
+					<h3>fill<wbr>Rect</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">fill<wbr>Rect<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, width_height<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L316">animaxe.ts:316</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for fillRect in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>width_height: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="fillstyle" class="tsd-anchor"></a>
+					<h3>fill<wbr>Style</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">fill<wbr>Style<span class="tsd-signature-symbol">(</span>color<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L262">animaxe.ts:262</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for fillStyle in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>color: <a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="filltext" class="tsd-anchor"></a>
+					<h3>fill<wbr>Text</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">fill<wbr>Text<span class="tsd-signature-symbol">(</span>text<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#stringarg" class="tsd-signature-type">StringArg</a>, xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, maxWidth<span class="tsd-signature-symbol">?: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L450">animaxe.ts:450</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for textBaseline in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>text: <a href="../modules/_animaxe_.html#stringarg" class="tsd-signature-type">StringArg</a></h5>
+								</li>
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> maxWidth: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="font" class="tsd-anchor"></a>
+					<h3>font</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">font<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L432">animaxe.ts:432</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for font in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>style: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="globalcompositeoperation" class="tsd-anchor"></a>
+					<h3>global<wbr>Composite<wbr>Operation</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">global<wbr>Composite<wbr>Operation<span class="tsd-signature-symbol">(</span>operation<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L462">animaxe.ts:462</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<ul>
+										<li>Dynamic chainable wrapper for globalCompositeOperation in the canvas API.</li>
+									</ul>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>operation: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="glow" class="tsd-anchor"></a>
+					<h3>glow</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">glow<span class="tsd-signature-symbol">(</span>decay<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L475">animaxe.ts:475</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>decay: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="linecap" class="tsd-anchor"></a>
+					<h3>line<wbr>Cap</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">line<wbr>Cap<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L286">animaxe.ts:286</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for lineCap in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>style: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="linejoin" class="tsd-anchor"></a>
+					<h3>line<wbr>Join</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">line<wbr>Join<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L292">animaxe.ts:292</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for lineJoin in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>style: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="lineto" class="tsd-anchor"></a>
+					<h3>line<wbr>To</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">line<wbr>To<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L358">animaxe.ts:358</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for lineTo in the canvas API. Use with withinPath.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="linewidth" class="tsd-anchor"></a>
+					<h3>line<wbr>Width</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">line<wbr>Width<span class="tsd-signature-symbol">(</span>width<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L298">animaxe.ts:298</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for lineWidth in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>width: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="loop" class="tsd-anchor"></a>
+					<h3>loop</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">loop<span class="tsd-signature-symbol">(</span>inner<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L200">animaxe.ts:200</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Creates an animation that replays the inner animation each time the inner animation completes.</p>
+								</div>
+								<p>The resultant animation is always runs forever while upstream is live. Only a single inner animation
+								plays at a time (unlike emit())</p>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>inner: <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="miterlimit" class="tsd-anchor"></a>
+					<h3>miter<wbr>Limit</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">miter<wbr>Limit<span class="tsd-signature-symbol">(</span>limit<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L304">animaxe.ts:304</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for miterLimit in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>limit: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="moveto" class="tsd-anchor"></a>
+					<h3>move<wbr>To</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">move<wbr>To<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L352">animaxe.ts:352</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for moveTo in the canvas API. Use with withinPath.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="parallel" class="tsd-anchor"></a>
+					<h3>parallel</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">parallel<span class="tsd-signature-symbol">(</span>inner_animations<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L219">animaxe.ts:219</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Plays all the inner animations at the same time. Parallel completes when all inner animations are over.</p>
+								</div>
+								<p>The canvas states are restored before each fork, so styling and transforms of different child animations do not
+								interact (although obsviously the pixel buffer is affected by each animation)</p>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>inner_animations: <span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="pipe" class="tsd-anchor"></a>
+					<h3>pipe</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">pipe<span class="tsd-signature-symbol">(</span>downstream<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L117">animaxe.ts:117</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>send the downstream context of &#39;this&#39; animation, as the upstream context to supplied animation.</p>
+								</div>
+								<p>This allows you to chain custom animations.</p>
+								<p><code>Ax.move(...).pipe(myAnimation());</code></p>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>downstream: <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="quadraticcurveto" class="tsd-anchor"></a>
+					<h3>quadratic<wbr>Curve<wbr>To</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">quadratic<wbr>Curve<wbr>To<span class="tsd-signature-symbol">(</span>control<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, end<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L370">animaxe.ts:370</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for quadraticCurveTo in the canvas API. Use with withinPath.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>control: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>end: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="rect" class="tsd-anchor"></a>
+					<h3>rect</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">rect<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, width_height<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L310">animaxe.ts:310</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for rect in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>width_height: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="rotate" class="tsd-anchor"></a>
+					<h3>rotate</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">rotate<span class="tsd-signature-symbol">(</span>rads<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L403">animaxe.ts:403</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for rotate in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>rads: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="scale" class="tsd-anchor"></a>
+					<h3>scale</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">scale<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L397">animaxe.ts:397</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for scale in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="settransform" class="tsd-anchor"></a>
+					<h3>set<wbr>Transform</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">set<wbr>Transform<span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, b<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, c<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, d<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, e<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, f<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L425">animaxe.ts:425</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for setTransform in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>a: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>b: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>c: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>d: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>e: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>f: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="shadowblur" class="tsd-anchor"></a>
+					<h3>shadow<wbr>Blur</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">shadow<wbr>Blur<span class="tsd-signature-symbol">(</span>level<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L274">animaxe.ts:274</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for shadowBlur in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>level: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="shadowcolor" class="tsd-anchor"></a>
+					<h3>shadow<wbr>Color</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">shadow<wbr>Color<span class="tsd-signature-symbol">(</span>color<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L268">animaxe.ts:268</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for shadowColor in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>color: <a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="shadowoffset" class="tsd-anchor"></a>
+					<h3>shadow<wbr>Offset</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">shadow<wbr>Offset<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L280">animaxe.ts:280</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for shadowOffsetX and shadowOffsetY in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="stroke" class="tsd-anchor"></a>
+					<h3>stroke</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">stroke<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L346">animaxe.ts:346</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for stroke in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="strokerect" class="tsd-anchor"></a>
+					<h3>stroke<wbr>Rect</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">stroke<wbr>Rect<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, width_height<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L322">animaxe.ts:322</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for strokeRect in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>width_height: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="strokestyle" class="tsd-anchor"></a>
+					<h3>stroke<wbr>Style</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">stroke<wbr>Style<span class="tsd-signature-symbol">(</span>color<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L256">animaxe.ts:256</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for strokeStyle in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>color: <a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="take" class="tsd-anchor"></a>
+					<h3>take</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">take<span class="tsd-signature-symbol">(</span>frames<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L240">animaxe.ts:240</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Creates an animation that is at most n frames from &#39;this&#39;.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>frames: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="textalign" class="tsd-anchor"></a>
+					<h3>text<wbr>Align</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">text<wbr>Align<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L438">animaxe.ts:438</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for textAlign in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>style: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="textbaseline" class="tsd-anchor"></a>
+					<h3>text<wbr>Baseline</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">text<wbr>Baseline<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L444">animaxe.ts:444</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for textBaseline in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>style: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -231,19 +1463,180 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L120">animaxe.ts:120</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L128">animaxe.ts:128</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>delivers events to this first, then when that animation is finished
-									the follower consumers events and the values are used as output, until the follower animation completes</p>
+									<p>delivers upstream events to &#39;this&#39; first, then when &#39;this&#39; animation is finished
+									the upstream is switched to the the follower animation.</p>
 								</div>
+								<p>This allows you to sequence animations temporally.
+								frame1Animation().then(frame2Animation).then(frame3Animation)</p>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>follower: <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="transform" class="tsd-anchor"></a>
+					<h3>transform</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">transform<span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, b<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, c<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, d<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, e<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, f<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L418">animaxe.ts:418</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for translate in the canvas API.
+										[ a c e
+										b d f
+									0 0 1 ]</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>a: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>b: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>c: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>d: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>e: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+								<li>
+									<h5>f: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="translate" class="tsd-anchor"></a>
+					<h3>translate</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">translate<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L409">animaxe.ts:409</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Dynamic chainable wrapper for translate in the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xy: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="tween_linear" class="tsd-anchor"></a>
+					<h3>tween_<wbr>linear</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">tween_<wbr>linear<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, to<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, time<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L230">animaxe.ts:230</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>from: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>to: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+								<li>
+									<h5>time: <a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="velocity" class="tsd-anchor"></a>
+					<h3>velocity</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">velocity<span class="tsd-signature-symbol">(</span>vector<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L471">animaxe.ts:471</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>translates the drawing context by velocity * tick.clock</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vector: <a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="withinpath" class="tsd-anchor"></a>
+					<h3>within<wbr>Path</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">within<wbr>Path<span class="tsd-signature-symbol">(</span>inner<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L334">animaxe.ts:334</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Encloses the inner animation with a beginpath() and endpath() from the canvas API.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>inner: <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
@@ -264,6 +1657,9 @@
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_helper_.html">"helper"</a>
 					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_parameter_.html">"parameter"</a>
+					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
@@ -283,10 +1679,142 @@
 								<a href="_animaxe_.animation.html#after" class="tsd-kind-icon">after</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#arc" class="tsd-kind-icon">arc</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#arcto" class="tsd-kind-icon">arc<wbr>To</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_animaxe_.animation.html#attach" class="tsd-kind-icon">attach</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#beziercurveto" class="tsd-kind-icon">bezier<wbr>Curve<wbr>To</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#clearrect" class="tsd-kind-icon">clear<wbr>Rect</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#clip" class="tsd-kind-icon">clip</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#clone" class="tsd-kind-icon">clone</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#draw" class="tsd-kind-icon">draw</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#drawimage" class="tsd-kind-icon">draw<wbr>Image</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#emit" class="tsd-kind-icon">emit</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#fill" class="tsd-kind-icon">fill</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#fillrect" class="tsd-kind-icon">fill<wbr>Rect</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#fillstyle" class="tsd-kind-icon">fill<wbr>Style</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#filltext" class="tsd-kind-icon">fill<wbr>Text</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#font" class="tsd-kind-icon">font</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#globalcompositeoperation" class="tsd-kind-icon">global<wbr>Composite<wbr>Operation</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#glow" class="tsd-kind-icon">glow</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#linecap" class="tsd-kind-icon">line<wbr>Cap</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#linejoin" class="tsd-kind-icon">line<wbr>Join</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#lineto" class="tsd-kind-icon">line<wbr>To</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#linewidth" class="tsd-kind-icon">line<wbr>Width</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#loop" class="tsd-kind-icon">loop</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#miterlimit" class="tsd-kind-icon">miter<wbr>Limit</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#moveto" class="tsd-kind-icon">move<wbr>To</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#parallel" class="tsd-kind-icon">parallel</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#pipe" class="tsd-kind-icon">pipe</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#quadraticcurveto" class="tsd-kind-icon">quadratic<wbr>Curve<wbr>To</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#rect" class="tsd-kind-icon">rect</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#rotate" class="tsd-kind-icon">rotate</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#scale" class="tsd-kind-icon">scale</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#settransform" class="tsd-kind-icon">set<wbr>Transform</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#shadowblur" class="tsd-kind-icon">shadow<wbr>Blur</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#shadowcolor" class="tsd-kind-icon">shadow<wbr>Color</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#shadowoffset" class="tsd-kind-icon">shadow<wbr>Offset</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#stroke" class="tsd-kind-icon">stroke</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#strokerect" class="tsd-kind-icon">stroke<wbr>Rect</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#strokestyle" class="tsd-kind-icon">stroke<wbr>Style</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#take" class="tsd-kind-icon">take</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#textalign" class="tsd-kind-icon">text<wbr>Align</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#textbaseline" class="tsd-kind-icon">text<wbr>Baseline</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_animaxe_.animation.html#then" class="tsd-kind-icon">then</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#transform" class="tsd-kind-icon">transform</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#translate" class="tsd-kind-icon">translate</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#tween_linear" class="tsd-kind-icon">tween_<wbr>linear</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#velocity" class="tsd-kind-icon">velocity</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animation.html#withinpath" class="tsd-kind-icon">within<wbr>Path</a>
 							</li>
 						</ul>
 					</li>

@@ -6,58 +6,120 @@ export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare var DEBUG_EMIT: boolean;
 export declare var DEBUG: boolean;
+/**
+ * A parameter is used for time varying values to animation functions.
+ * Before a parameter is used, the enclosing animation must call init. This returns a function which
+ * can be used to find the value of the function for specific values of time. Typically this is done within the
+ * animation's closure. For example:
+```
+function moveTo(
+    xy: PointArg,
+    animation?: Animation
+): Animation {
+    return draw(
+        () => {
+            var xy_next = Parameter.from(xy).init(); // init to obtain 'next'
+
+            return function (tick: DrawTick) {
+                var xy = xy_next(tick.clock); // use 'next' to get value
+                tick.ctx.moveTo(xy[0], xy[1]);
+            }
+        }, animation);
+}
+```
+ *
+ */
 export interface Parameter<T> extends Parameter.Parameter<T> {
 }
+/**
+ * A css encoded color, e.g. "rgba(255, 125, 32, 0.5)" or "red"
+ */
 export declare type Color = string;
+/**
+ * A 2D array of numbers used for representing points or vectors
+ */
 export declare type Point = [number, number];
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
 export declare type NumberArg = number | Parameter<number>;
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
 export declare type PointArg = Point | Parameter<Point>;
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
 export declare type ColorArg = Color | Parameter<Color>;
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
 export declare type StringArg = string | Parameter<string>;
 /**
- * Animators are updated with a DrawTick, which provides the local animation time, the
+ * Each frame an animation is provided a Tick. The tick exposes access to the local animation time, the
+ * time delta between the previous frame (dt) and the drawing context. Animators typically use the drawing context
+ * directly, and pass the clock onto any time varying parameters.
  */
-export declare class DrawTick {
+export declare class Tick {
     ctx: CanvasRenderingContext2D;
     clock: number;
     dt: number;
     constructor(ctx: CanvasRenderingContext2D, clock: number, dt: number);
 }
-export declare type DrawStream = Rx.Observable<DrawTick>;
+/**
+ * The stream of Tick's an animation is provided with is represented by a reactive extension observable.
+ */
+export declare type TickStream = Rx.Observable<Tick>;
+/**
+ * An animation is pipeline that modifies the drawing context found in an animation Tick. Animations can be chained
+ * together to create a more complicated Animation. They are composeable,
+ *
+ * e.g. ```animation1 = Ax.translate([50, 50]).fillStyle("red").fillRect([0,0], [20,20])```
+ * is one animation which has been formed from three subanimations.
+ *
+ * Animations have a lifecycle, they can be finite or infinite in length. You can start temporally compose animations
+ * using ```anim1.then(anim2)```, which creates a new animation that plays animation 2 when animation 1 finishes.
+ */
 export declare class Animation {
-    _attach: (upstream: DrawStream) => DrawStream;
+    _attach: (upstream: TickStream) => TickStream;
     after: Animation;
-    constructor(_attach: (upstream: DrawStream) => DrawStream, after?: Animation);
-    attach(upstream: DrawStream): DrawStream;
+    constructor(_attach: (upstream: TickStream) => TickStream, after?: Animation);
+    attach(upstream: TickStream): TickStream;
     /**
      * send the downstream context of 'this' animation, as the upstream context to supplied animation.
-     * This allows you to chain custom animation.
-     * Ax.move(...).pipe(myAnimation());
+     *
+     * This allows you to chain custom animations.
+     *
+     * ```Ax.move(...).pipe(myAnimation());```
      */
     pipe(downstream: Animation): Animation;
     /**
      * delivers upstream events to 'this' first, then when 'this' animation is finished
      * the upstream is switched to the the follower animation.
+     *
      * This allows you to sequence animations temporally.
      * frame1Animation().then(frame2Animation).then(frame3Animation)
      */
     then(follower: Animation): Animation;
     /**
      * Creates an animation that replays the inner animation each time the inner animation completes.
+     *
      * The resultant animation is always runs forever while upstream is live. Only a single inner animation
      * plays at a time (unlike emit())
      */
     loop(inner: Animation): Animation;
     /**
-     * Creates an animation that sequences the inner animation every time frame
+     * Creates an animation that sequences the inner animation every time frame.
+     *
      * The resultant animation is always runs forever while upstream is live. Multiple inner animations
      * can be playing at the same time (unlike loop)
      */
     emit(inner: Animation): Animation;
     /**
      * Plays all the inner animations at the same time. Parallel completes when all inner animations are over.
-     * The canvas states are restored each time, so styling and transforms of different animations do not
-     * affect each other (although obsviously the pixel buffer is affected by each animation)
+     *
+     * The canvas states are restored before each fork, so styling and transforms of different child animations do not
+     * interact (although obsviously the pixel buffer is affected by each animation)
      */
     parallel(inner_animations: Rx.Observable<Animation> | Animation[]): Animation;
     /**
@@ -73,7 +135,7 @@ export declare class Animation {
      * helper method for implementing simple animations (that don't fork the animation tree).
      * You just have to supply a function that does something with the draw tick.
      */
-    draw(drawFactory: () => ((tick: DrawTick) => void)): Animation;
+    draw(drawFactory: () => ((tick: Tick) => void)): Animation;
     /**
      * Dynamic chainable wrapper for strokeStyle in the canvas API.
      */
@@ -206,7 +268,7 @@ export declare class Animation {
      */
     fillText(text: StringArg, xy: PointArg, maxWidth?: NumberArg): Animation;
     /**
-     * Dynamic chainable wrapper for textBaseline in the canvas API.
+     * Dynamic chainable wrapper for drawImage in the canvas API.
      */
     drawImage(img: any, xy: PointArg): Animation;
     /**
@@ -222,7 +284,7 @@ export declare class Animation {
 export declare class Animator {
     ctx: CanvasRenderingContext2D;
     tickerSubscription: Rx.Disposable;
-    root: Rx.Subject<DrawTick>;
+    root: Rx.Subject<Tick>;
     animationSubscriptions: Rx.IDisposable[];
     t: number;
     constructor(ctx: CanvasRenderingContext2D);
@@ -261,7 +323,7 @@ export declare function emit(animation: Animation): Animation;
  * @returns {Animation}
  */
 export declare function loop(animation: Animation): Animation;
-export declare function draw(drawFactory: () => ((tick: DrawTick) => void), after?: Animation): Animation;
+export declare function draw(drawFactory: () => ((tick: Tick) => void), after?: Animation): Animation;
 export declare function translate(delta: PointArg, animation?: Animation): Animation;
 export declare function globalCompositeOperation(composite_mode: string, animation?: Animation): Animation;
 export declare function velocity(velocity: PointArg, animation?: Animation): Animation;

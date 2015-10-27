@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>DrawTick | Animaxe</title>
+	<title>Tick | Animaxe</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -60,10 +60,10 @@
 					<a href="../modules/_animaxe_.html">&quot;animaxe&quot;</a>
 				</li>
 				<li>
-					<a href="_animaxe_.drawtick.html">DrawTick</a>
+					<a href="_animaxe_.tick.html">Tick</a>
 				</li>
 			</ul>
-			<h1>Class DrawTick</h1>
+			<h1>Class Tick</h1>
 		</div>
 	</div>
 </header>
@@ -73,7 +73,9 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Animators are updated with a DrawTick, which provides the local animation time, the</p>
+						<p>Each frame an animation is provided a Tick. The tick exposes access to the local animation time, the
+							time delta between the previous frame (dt) and the drawing context. Animators typically use the drawing context
+						directly, and pass the clock onto any time varying parameters.</p>
 					</div>
 				</div>
 			</section>
@@ -81,7 +83,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">DrawTick</span>
+						<span class="target">Tick</span>
 					</li>
 				</ul>
 			</section>
@@ -92,15 +94,15 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_animaxe_.drawtick.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_animaxe_.tick.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.drawtick.html#clock" class="tsd-kind-icon">clock</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.drawtick.html#ctx" class="tsd-kind-icon">ctx</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.drawtick.html#dt" class="tsd-kind-icon">dt</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.tick.html#clock" class="tsd-kind-icon">clock</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.tick.html#ctx" class="tsd-kind-icon">ctx</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.tick.html#dt" class="tsd-kind-icon">dt</a></li>
 							</ul>
 						</section>
 					</div>
@@ -112,13 +114,13 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Draw<wbr>Tick<span class="tsd-signature-symbol">(</span>ctx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">CanvasRenderingContext2D</span>, clock<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, dt<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.drawtick.html" class="tsd-signature-type">DrawTick</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Tick<span class="tsd-signature-symbol">(</span>ctx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">CanvasRenderingContext2D</span>, clock<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, dt<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.tick.html" class="tsd-signature-type">Tick</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L15">animaxe.ts:15</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L69">animaxe.ts:69</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -133,7 +135,7 @@
 									<h5>dt: <span class="tsd-signature-type">number</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.drawtick.html" class="tsd-signature-type">DrawTick</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.tick.html" class="tsd-signature-type">Tick</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -146,7 +148,7 @@
 					<div class="tsd-signature tsd-kind-icon">clock<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L16">animaxe.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L70">animaxe.ts:70</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -156,7 +158,7 @@
 					<div class="tsd-signature tsd-kind-icon">ctx<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">CanvasRenderingContext2D</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L16">animaxe.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L70">animaxe.ts:70</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -166,7 +168,7 @@
 					<div class="tsd-signature tsd-kind-icon">dt<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L16">animaxe.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L70">animaxe.ts:70</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -184,6 +186,9 @@
 					<li class=" tsd-kind-external-module">
 						<a href="../modules/_helper_.html">"helper"</a>
 					</li>
+					<li class=" tsd-kind-external-module">
+						<a href="../modules/_parameter_.html">"parameter"</a>
+					</li>
 				</ul>
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
@@ -191,19 +196,19 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_animaxe_.drawtick.html" class="tsd-kind-icon">Draw<wbr>Tick</a>
+						<a href="_animaxe_.tick.html" class="tsd-kind-icon">Tick</a>
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="_animaxe_.drawtick.html#constructor" class="tsd-kind-icon">constructor</a>
+								<a href="_animaxe_.tick.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_animaxe_.drawtick.html#clock" class="tsd-kind-icon">clock</a>
+								<a href="_animaxe_.tick.html#clock" class="tsd-kind-icon">clock</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_animaxe_.drawtick.html#ctx" class="tsd-kind-icon">ctx</a>
+								<a href="_animaxe_.tick.html#ctx" class="tsd-kind-icon">ctx</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_animaxe_.drawtick.html#dt" class="tsd-kind-icon">dt</a>
+								<a href="_animaxe_.tick.html#dt" class="tsd-kind-icon">dt</a>
 							</li>
 						</ul>
 					</li>

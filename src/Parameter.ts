@@ -12,13 +12,23 @@ export type PointArg  = Point | Parameter<Point>
 
 
 export class Parameter<Value> {
-    constructor(init: () => ((t: number) => Value)) {
+    /**
+     * Before a parameter is used, the enclosing animation must call init. This returns a function which
+     * can be used to find the value of the function for specific values of time.
+     */
+    constructor(init: () => ((clock: number) => Value)) {
         this.init = init;
     }
 
-
+    /**
+     * Before a parameter is used, the enclosing animation must call init. This returns a function which
+     * can be used to find the value of the function for specific values of time.
+     */
     init(): (clock: number) => Value {throw new Error('This method is abstract');}
 
+    /**
+     * map the value of 'this' to a new parameter
+     */
     map<V>(fn: (Value) => V): Parameter<V> {
         var base = this;
         return new Parameter(
@@ -30,12 +40,6 @@ export class Parameter<Value> {
             }
         );
     }
-
-    clone(): Parameter<Value> {
-        return this.map(x => x);
-    }
-
-
     /**
      * Returns a parameter whose value is forever the first value next picked from this.
      * @returns {Parameter<T>}

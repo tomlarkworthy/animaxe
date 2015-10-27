@@ -11,17 +11,17 @@ import Rx = require("rx");
 var counterA = 0;
 var counterB = 0;
 function countA(time:number):Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
-    return Ax.take(time, Ax.draw(function (tick:Ax.DrawTick) {
+    return Ax.take(time, Ax.draw(function (tick:Ax.Tick) {
         console.log("countA");
         counterA++;
     }));
 }
 
 function countAthenCountB():Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
-    return Ax.take(1, Ax.draw(function (tick:Ax.DrawTick) {
+    return Ax.take(1, Ax.draw(function (tick:Ax.Tick) {
         //console.log("countA");
         counterA++;
-    })).then(Ax.take(1, Ax.draw(function (tick:Ax.DrawTick) {
+    })).then(Ax.take(1, Ax.draw(function (tick:Ax.Tick) {
         //console.log("countB");
         counterB++;
     })));
@@ -51,7 +51,7 @@ describe('then', function () {
         counterA.should.equal(0);
         var upstream =
             Rx.Observable.from([0, 0.1, 0.2, 0.3, 0.4, 0.5])
-            .map(x => new Ax.DrawTick(null, x, x));
+            .map(x => new Ax.Tick(null, x, x));
         anim.attach(upstream).subscribe(downstream);
         counterA.should.equal(3);
     });
@@ -63,7 +63,7 @@ describe('then', function () {
         var anim = countAthenCountB().then(countAthenCountB());
         counterA.should.equal(0);
         counterA.should.equal(0);
-        var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0, 0)).repeat(10);
+        var upstream = Rx.Observable.return(new Ax.Tick(null, 0, 0)).repeat(10);
         anim.attach(upstream).subscribe(downstream);
         counterA.should.equal(2);
         counterB.should.equal(2);
@@ -77,7 +77,7 @@ describe('then', function () {
         var anim = countAthenCountB();
         counterA.should.equal(0);
         counterB.should.equal(0);
-        var upstream = Rx.Observable.return(new Ax.DrawTick(null, 0, 0)).repeat(1);
+        var upstream = Rx.Observable.return(new Ax.Tick(null, 0, 0)).repeat(1);
         anim.attach(upstream.tap(function (next) {
             console.log("upstream");
         })).tap(function (next) {
@@ -92,7 +92,7 @@ describe('then', function () {
     it('passes on clock', function () { //todo generic animation contract
         var upstream =
             Rx.Observable.from([0, 0.1, 0.2, 0.3])
-            .map(x => new Ax.DrawTick(null, x, x));
+            .map(x => new Ax.Tick(null, x, x));
 
         counterA = 0;
         var expectedClock = [0, 0.1, 0.2, 0.3];

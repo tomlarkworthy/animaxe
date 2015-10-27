@@ -10,25 +10,70 @@ export var DEBUG = false;
 
 console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 
+/**
+ * A parameter is used for time varying values to animation functions.
+ * Before a parameter is used, the enclosing animation must call init. This returns a function which
+ * can be used to find the value of the function for specific values of time. Typically this is done within the
+ * animation's closure. For example:
+```
+function moveTo(
+    xy: PointArg,
+    animation?: Animation
+): Animation {
+    return draw(
+        () => {
+            var xy_next = Parameter.from(xy).init(); // init to obtain 'next'
+
+            return function (tick: DrawTick) {
+                var xy = xy_next(tick.clock); // use 'next' to get value
+                tick.ctx.moveTo(xy[0], xy[1]);
+            }
+        }, animation);
+}
+```
+ *
+ */
 export interface Parameter<T> extends Parameter.Parameter<T> {}
 
 // todo we should move these into an ES6 module but my IDE does not support it yet
+/**
+ * A css encoded color, e.g. "rgba(255, 125, 32, 0.5)" or "red"
+ */
 export type Color = string
+/**
+ * A 2D array of numbers used for representing points or vectors
+ */
 export type Point     = [number, number]
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
 export type NumberArg = number | Parameter<number>
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
 export type PointArg  = Point | Parameter<Point>
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
 export type ColorArg  = Color | Parameter<Color>
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
 export type StringArg = string | Parameter<string>
 
-
 /**
- * Animators are updated with a DrawTick, which provides the local animation time, the
+ * Each frame an animation is provided a Tick. The tick exposes access to the local animation time, the
+ * time delta between the previous frame (dt) and the drawing context. Animators typically use the drawing context
+ * directly, and pass the clock onto any time varying parameters.
  */
-export class DrawTick {
+export class Tick {
     constructor (public ctx: CanvasRenderingContext2D, public clock: number, public dt: number) {}
 }
 
-export type DrawStream = Rx.Observable<DrawTick>;
+/**
+ * The stream of Tick's an animation is provided with is represented by a reactive extension observable.
+ */
+export type TickStream = Rx.Observable<Tick>;
 
 
 function assert(predicate: boolean, message ?: string) {
@@ -43,20 +88,38 @@ function stackTrace() {
     return (<any>err).stack;
 }
 
-
+/**
+ * An animation is pipeline that modifies the drawing context found in an animation Tick. Animations can be chained
+ * together to create a more complicated Animation. They are composeable,
+ *
+ * e.g. ```animation1 = Ax.translate([50, 50]).fillStyle("red").fillRect([0,0], [20,20])```
+ * is one animation which has been formed from three subanimations.
+ *
+ * Animations have a lifecycle, they can be finite or infinite in length. You can start temporally compose animations
+ * using ```anim1.then(anim2)```, which creates a new animation that plays animation 2 when animation 1 finishes.
+ *
+ * When an animation is sequenced into the animation pipeline. Its attach method is called which atcually builds the
+ * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
+ */
 export class Animation {
 
-    constructor(public _attach: (upstream: DrawStream) => DrawStream, public after?: Animation) {
+    constructor(public _attach: (upstream: TickStream) => TickStream, public after?: Animation) {
     }
-    attach(upstream: DrawStream): DrawStream {
+
+    /**
+     * Apply the animation to a new RxJS pipeline. 
+     */
+    attach(upstream: TickStream): TickStream {
         var processed = this._attach(upstream);
         return this.after? this.after.attach(processed): processed;
     }
 
     /**
      * send the downstream context of 'this' animation, as the upstream context to supplied animation.
-     * This allows you to chain custom animation.
-     * Ax.move(...).pipe(myAnimation());
+     *
+     * This allows you to chain custom animations.
+     *
+     * ```Ax.move(...).pipe(myAnimation());```
      */
     pipe(downstream: Animation): Animation {
         return combine2(this, downstream);
@@ -65,16 +128,17 @@ export class Animation {
     /**
      * delivers upstream events to 'this' first, then when 'this' animation is finished
      * the upstream is switched to the the follower animation.
+     *
      * This allows you to sequence animations temporally.
      * frame1Animation().then(frame2Animation).then(frame3Animation)
      */
     then(follower: Animation): Animation {
         var self = this;
 
-        return new Animation(function (prev: DrawStream) : DrawStream {
-            return Rx.Observable.create<DrawTick>(function (observer) {
-                var first  = new Rx.Subject<DrawTick>();
-                var second = new Rx.Subject<DrawTick>();
+        return new Animation(function (prev: TickStream) : TickStream {
+            return Rx.Observable.create<Tick>(function (observer) {
+                var first  = new Rx.Subject<Tick>();
+                var second = new Rx.Subject<Tick>();
 
                 var firstTurn = true;
 
@@ -136,6 +200,7 @@ export class Animation {
     }
     /**
      * Creates an animation that replays the inner animation each time the inner animation completes.
+     *
      * The resultant animation is always runs forever while upstream is live. Only a single inner animation
      * plays at a time (unlike emit())
      */
@@ -143,7 +208,8 @@ export class Animation {
         return this.pipe(loop(inner));
     }
     /**
-     * Creates an animation that sequences the inner animation every time frame
+     * Creates an animation that sequences the inner animation every time frame.
+     *
      * The resultant animation is always runs forever while upstream is live. Multiple inner animations
      * can be playing at the same time (unlike loop)
      */
@@ -153,8 +219,9 @@ export class Animation {
 
     /**
      * Plays all the inner animations at the same time. Parallel completes when all inner animations are over.
-     * The canvas states are restored each time, so styling and transforms of different animations do not
-     * affect each other (although obsviously the pixel buffer is affected by each animation)
+     *
+     * The canvas states are restored before each fork, so styling and transforms of different child animations do not
+     * interact (although obsviously the pixel buffer is affected by each animation)
      */
     parallel(inner_animations: Rx.Observable<Animation> | Animation[]): Animation {
         return this.pipe(parallel(inner_animations));
@@ -185,7 +252,7 @@ export class Animation {
      * helper method for implementing simple animations (that don't fork the animation tree).
      * You just have to supply a function that does something with the draw tick.
      */
-    draw(drawFactory: () => ((tick: DrawTick) => void)): Animation {
+    draw(drawFactory: () => ((tick: Tick) => void)): Animation {
         return this.pipe(draw(drawFactory));
     }
 
@@ -391,7 +458,7 @@ export class Animation {
         return this.pipe(fillText(text, xy, maxWidth));
     }
     /**
-     * Dynamic chainable wrapper for textBaseline in the canvas API.
+     * Dynamic chainable wrapper for drawImage in the canvas API.
      */
     drawImage(img, xy: PointArg): Animation {
         return this.pipe(drawImage(img, xy));
@@ -420,18 +487,18 @@ export class Animation {
 
 export class Animator {
     tickerSubscription: Rx.Disposable = null;
-    root: Rx.Subject<DrawTick>;
+    root: Rx.Subject<Tick>;
     animationSubscriptions: Rx.IDisposable[] = [];
     t: number = 0;
 
     constructor(public ctx: CanvasRenderingContext2D) {
-        this.root = new Rx.Subject<DrawTick>()
+        this.root = new Rx.Subject<Tick>()
     }
     ticker(tick: Rx.Observable<number>): void {
         var self = this;
 
         this.tickerSubscription = tick.map(function(dt: number) { //map the ticker onto any -> context
-            var tick = new DrawTick(self.ctx, self.t, dt);
+            var tick = new Tick(self.ctx, self.t, dt);
             self.t += dt;
             return tick;
         }).subscribe(this.root);
@@ -469,7 +536,7 @@ export class Animator {
  */
 export function assertDt(expectedDt: Rx.Observable<number>, after?: Animation): Animation {
     return new Animation(function(upstream) {
-        return upstream.zip(expectedDt, function(tick: DrawTick, expectedDtValue: number) {
+        return upstream.zip(expectedDt, function(tick: Tick, expectedDtValue: number) {
             if (tick.dt != expectedDtValue) throw new Error("unexpected dt observed: " + tick.dt + ", expected:" + expectedDtValue);
             return tick;
         });
@@ -482,7 +549,7 @@ export function assertClock(assertClock: number[], after?: Animation): Animation
     var index = 0;
 
     return new Animation(function(upstream) {
-        return upstream.tapOnNext(function(tick: DrawTick) {
+        return upstream.tapOnNext(function(tick: Tick) {
             if (DEBUG) console.log("assertClock: ", tick);
             if (tick.clock < assertClock[index] - 0.00001 || tick.clock > assertClock[index] + 0.00001) {
                 var errorMsg = "unexpected clock observed: " + tick.clock + ", expected:" + assertClock[index]
@@ -499,7 +566,7 @@ export function assertClock(assertClock: number[], after?: Animation): Animation
  */
 export function combine2(a: Animation, b: Animation) {
     return new Animation(
-        (upstream: DrawStream) => {
+        (upstream: TickStream) => {
             return b.attach(a.attach(upstream));
         }
     );
@@ -516,11 +583,11 @@ export function parallel(
     animations: Rx.Observable<Animation> | Animation[]
 ): Animation
 {
-    return new Animation(function (prev: DrawStream): DrawStream {
+    return new Animation(function (prev: TickStream): TickStream {
         if (DEBUG_EMIT) console.log("parallel: initializing");
 
         var activeAnimations = 0;
-        var attachPoint = new Rx.Subject<DrawTick>();
+        var attachPoint = new Rx.Subject<Tick>();
 
         function decrementActive() {
             if (DEBUG_EMIT) console.log("parallel: decrement active");
@@ -535,7 +602,7 @@ export function parallel(
                 decrementActive)
         });
 
-        return prev.takeWhile(() => activeAnimations > 0).tapOnNext(function(tick: DrawTick) {
+        return prev.takeWhile(() => activeAnimations > 0).tapOnNext(function(tick: Tick) {
                 if (DEBUG_EMIT) console.log("parallel: emitting, animations", tick);
                 attachPoint.onNext(tick);
                 if (DEBUG_EMIT) console.log("parallel: emitting finished");
@@ -559,11 +626,11 @@ export function emit(
     animation: Animation
 ): Animation
 {
-    return new Animation(function (prev: DrawStream): DrawStream {
+    return new Animation(function (prev: TickStream): TickStream {
         if (DEBUG_EMIT) console.log("emit: initializing");
-        var attachPoint = new Rx.Subject<DrawTick>();
+        var attachPoint = new Rx.Subject<Tick>();
 
-        return prev.tapOnNext(function(tick: DrawTick) {
+        return prev.tapOnNext(function(tick: Tick) {
                 if (DEBUG_EMIT) console.log("emit: emmitting", animation);
                 animation.attach(attachPoint).subscribe();
                 attachPoint.onNext(tick);
@@ -582,11 +649,11 @@ export function loop(
     animation: Animation
 ): Animation
 {
-    return new Animation(function (prev: DrawStream): DrawStream {
+    return new Animation(function (prev: TickStream): TickStream {
         if (DEBUG_LOOP) console.log("loop: initializing");
 
 
-        return Rx.Observable.create<DrawTick>(function(observer) {
+        return Rx.Observable.create<Tick>(function(observer) {
             if (DEBUG_LOOP) console.log("loop: create new loop");
             var loopStart = null;
             var loopSubscription = null;
@@ -595,7 +662,7 @@ export function loop(
             function attachLoop(next) { //todo I feel like we can remove a level from this somehow
                 if (DEBUG_LOOP) console.log("loop: new inner loop starting at", t);
 
-                loopStart = new Rx.Subject<DrawTick>();
+                loopStart = new Rx.Subject<Tick>();
 
                 loopSubscription = animation.attach(loopStart).subscribe(
                     function(next) {
@@ -642,12 +709,12 @@ export function loop(
 }
 
 export function draw(
-    drawFactory: () => ((tick: DrawTick) => void),
+    drawFactory: () => ((tick: Tick) => void),
     after?: Animation
 ): Animation
 {
-    return new Animation(function (previous: DrawStream): DrawStream {
-        var draw: (tick: DrawTick) => void = drawFactory();
+    return new Animation(function (previous: TickStream): TickStream {
+        var draw: (tick: Tick) => void = drawFactory();
         return previous.tapOnNext(draw);
     }, after);
 }
@@ -709,12 +776,12 @@ export function tween_linear(
     animation?: Animation /* copies */
 ): Animation
 {
-    return new Animation(function(prev: DrawStream): DrawStream {
+    return new Animation(function(prev: TickStream): TickStream {
         var t = 0;
         var from_next = Parameter.from(from).init();
         var to_next   = Parameter.from(to).init();
         var time_next   = Parameter.from(time).init();
-        return prev.map(function(tick: DrawTick) {
+        return prev.map(function(tick: Tick) {
             if (DEBUG) console.log("tween: inner");
             var from = from_next(tick.clock);
             var to   = to_next(tick.clock);
@@ -738,7 +805,7 @@ export function fillStyle(
         () => {
             if (DEBUG) console.log("fillStyle: attach");
             var color_next = Parameter.from(color).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var color = color_next(tick.clock);
                 if (DEBUG) console.log("fillStyle: fillStyle", color);
                 tick.ctx.fillStyle = color;
@@ -755,7 +822,7 @@ export function strokeStyle(
         () => {
             if (DEBUG) console.log("strokeStyle: attach");
             var color_next = Parameter.from(color).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var color = color_next(tick.clock);
                 if (DEBUG) console.log("strokeStyle: strokeStyle", color);
                 tick.ctx.strokeStyle = color;
@@ -771,7 +838,7 @@ export function shadowColor(
         () => {
             if (DEBUG) console.log("shadowColor: attach");
             var color_next = Parameter.from(color).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var color = color_next(tick.clock);
                 if (DEBUG) console.log("shadowColor: shadowColor", color);
                 tick.ctx.shadowColor = color;
@@ -786,7 +853,7 @@ export function shadowBlur(
         () => {
             if (DEBUG) console.log("shadowBlur: attach");
             var level_next = Parameter.from(level).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var level = level_next(tick.clock);
                 if (DEBUG) console.log("shadowBlur: shadowBlur", level);
                 tick.ctx.shadowBlur = level;
@@ -803,7 +870,7 @@ export function shadowOffset(
         () => {
             if (DEBUG) console.log("shadowOffset: attach");
             var xy_next = Parameter.from(xy).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var xy = xy_next(tick.clock);
                 if (DEBUG) console.log("shadowOffset: shadowBlur", xy);
                 tick.ctx.shadowOffsetX = xy[0];
@@ -820,7 +887,7 @@ export function lineCap(
         () => {
             if (DEBUG) console.log("lineCap: attach");
             var arg_next = Parameter.from(style).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg = arg_next(tick.clock);
                 if (DEBUG) console.log("lineCap: lineCap", arg);
                 tick.ctx.lineCap = arg;
@@ -835,7 +902,7 @@ export function lineJoin(
         () => {
             if (DEBUG) console.log("lineJoin: attach");
             var arg_next = Parameter.from(style).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg = arg_next(tick.clock);
                 if (DEBUG) console.log("lineJoin: lineCap", arg);
                 tick.ctx.lineJoin = arg;
@@ -851,7 +918,7 @@ export function lineWidth(
         () => {
             if (DEBUG) console.log("lineWidth: attach");
             var width_next = Parameter.from(width).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var width = width_next(tick.clock);
                 if (DEBUG) console.log("lineWidth: lineWidth", width);
                 tick.ctx.lineWidth = width;
@@ -867,7 +934,7 @@ export function miterLimit(
         () => {
             if (DEBUG) console.log("miterLimit: attach");
             var arg_next = Parameter.from(limit).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg = arg_next(tick.clock);
                 if (DEBUG) console.log("miterLimit: miterLimit", arg);
                 tick.ctx.miterLimit = arg;
@@ -887,7 +954,7 @@ export function rect(
             var xy_next = Parameter.from(xy).init();
             var width_height_next = Parameter.from(width_height).init();
 
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var xy: Point = xy_next(tick.clock);
                 var width_height: Point = width_height_next(tick.clock);
                 if (DEBUG) console.log("rect: rect", xy, width_height);
@@ -907,7 +974,7 @@ export function fillRect(
             var xy_next = Parameter.from(xy).init();
             var width_height_next = Parameter.from(width_height).init();
 
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var xy: Point = xy_next(tick.clock);
                 var width_height: Point = width_height_next(tick.clock);
                 if (DEBUG) console.log("fillRect: fillRect", xy, width_height);
@@ -927,7 +994,7 @@ export function strokeRect(
             var xy_next = Parameter.from(xy).init();
             var width_height_next = Parameter.from(width_height).init();
 
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var xy: Point = xy_next(tick.clock);
                 var width_height: Point = width_height_next(tick.clock);
                 if (DEBUG) console.log("strokeRect: strokeRect", xy, width_height);
@@ -946,7 +1013,7 @@ export function clearRect(
             var xy_next = Parameter.from(xy).init();
             var width_height_next = Parameter.from(width_height).init();
 
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var xy: Point = xy_next(tick.clock);
                 var width_height: Point = width_height_next(tick.clock);
                 if (DEBUG) console.log("clearRect: clearRect", xy, width_height);
@@ -960,10 +1027,10 @@ export function withinPath(
     inner: Animation
 ): Animation {
     return new Animation(
-        (upstream: DrawStream) => {
+        (upstream: TickStream) => {
             if (DEBUG) console.log("withinPath: attach");
-            var beginPathBeforeInner = upstream.tapOnNext((tick: DrawTick) => tick.ctx.beginPath());
-            return inner.attach(beginPathBeforeInner).tapOnNext((tick: DrawTick) => tick.ctx.closePath())
+            var beginPathBeforeInner = upstream.tapOnNext((tick: Tick) => tick.ctx.beginPath());
+            return inner.attach(beginPathBeforeInner).tapOnNext((tick: Tick) => tick.ctx.closePath())
         });
 }
 
@@ -973,7 +1040,7 @@ export function stroke(
     return draw(
         () => {
             if (DEBUG) console.log("stroke: attach");
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 if (DEBUG) console.log("stroke: stroke");
                 tick.ctx.stroke();
             }
@@ -986,7 +1053,7 @@ export function fill(
     return draw(
         () => {
             if (DEBUG) console.log("fill: attach");
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 if (DEBUG) console.log("fill: stroke");
                 tick.ctx.fill();
             }
@@ -1001,7 +1068,7 @@ export function moveTo(
         () => {
             if (DEBUG) console.log("moveTo: attach");
             var xy_next = Parameter.from(xy).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var xy = xy_next(tick.clock);
                 if (DEBUG) console.log("moveTo: moveTo", xy);
                 tick.ctx.moveTo(xy[0], xy[1]);
@@ -1017,7 +1084,7 @@ export function lineTo(
         () => {
             if (DEBUG) console.log("lineTo: attach");
             var xy_next = Parameter.from(xy).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var xy = xy_next(tick.clock);
                 if (DEBUG) console.log("lineTo: lineTo", xy);
                 tick.ctx.lineTo(xy[0], xy[1]);
@@ -1032,7 +1099,7 @@ export function clip(
     return draw(
         () => {
             if (DEBUG) console.log("clip: attach");
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 if (DEBUG) console.log("clip: clip");
                 tick.ctx.clip();
             }
@@ -1045,7 +1112,7 @@ export function quadraticCurveTo(control: PointArg, end: PointArg, animation?: A
             if (DEBUG) console.log("quadraticCurveTo: attach");
             var arg1_next = Parameter.from(control).init();
             var arg2_next = Parameter.from(end).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 var arg2 = arg2_next(tick.clock);
                 if (DEBUG) console.log("quadraticCurveTo: quadraticCurveTo", arg1, arg2);
@@ -1063,7 +1130,7 @@ export function bezierCurveTo(control1: PointArg, control2: PointArg, end: Point
             var arg1_next = Parameter.from(control1).init();
             var arg2_next = Parameter.from(control2).init();
             var arg3_next = Parameter.from(end).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 var arg2 = arg2_next(tick.clock);
                 var arg3 = arg3_next(tick.clock);
@@ -1085,7 +1152,7 @@ export function arc(center: PointArg, radius: NumberArg,
             var arg2_next = Parameter.from(radius).init();
             var arg3_next = Parameter.from(radStartAngle).init();
             var arg4_next = Parameter.from(radEndAngle).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 var arg2 = arg2_next(tick.clock);
                 var arg3 = arg3_next(tick.clock);
@@ -1106,7 +1173,7 @@ export function arcTo(tangent1: PointArg, tangent2: PointArg, radius: NumberArg,
             var arg1_next = Parameter.from(tangent1).init();
             var arg2_next = Parameter.from(tangent2).init();
             var arg3_next = Parameter.from(radius).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 var arg2 = arg2_next(tick.clock);
                 var arg3 = arg3_next(tick.clock);
@@ -1123,7 +1190,7 @@ export function scale(xy: PointArg, animation?: Animation): Animation {
         () => {
             if (DEBUG) console.log("scale: attach");
             var arg1_next = Parameter.from(xy).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 if (DEBUG) console.log("scale: scale", arg1);
                 tick.ctx.scale(arg1[0], arg1[1]);
@@ -1138,7 +1205,7 @@ export function rotate(rads: NumberArg, animation?: Animation): Animation {
         () => {
             if (DEBUG) console.log("rotate: attach");
             var arg1_next = Parameter.from(rads).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 if (DEBUG) console.log("rotate: rotate", arg1);
                 tick.ctx.scale(arg1[0], arg1[1]);
@@ -1162,7 +1229,7 @@ export function transform(a: NumberArg, b: NumberArg, c: NumberArg,
             var arg4_next = Parameter.from(d).init();
             var arg5_next = Parameter.from(e).init();
             var arg6_next = Parameter.from(f).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 var arg2 = arg2_next(tick.clock);
                 var arg3 = arg3_next(tick.clock);
@@ -1188,7 +1255,7 @@ export function setTransform(a: NumberArg, b: NumberArg, c: NumberArg,
             var arg4_next = Parameter.from(d).init();
             var arg5_next = Parameter.from(e).init();
             var arg6_next = Parameter.from(f).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 var arg2 = arg2_next(tick.clock);
                 var arg3 = arg3_next(tick.clock);
@@ -1208,7 +1275,7 @@ export function font(style: StringArg, animation?: Animation): Animation {
         () => {
             if (DEBUG) console.log("font: attach");
             var arg1_next = Parameter.from(style).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 if (DEBUG) console.log("font: font", arg1);
                 tick.ctx.font = arg1;
@@ -1223,7 +1290,7 @@ export function textAlign(style: StringArg, animation?: Animation): Animation {
         () => {
             if (DEBUG) console.log("textAlign: attach");
             var arg1_next = Parameter.from(style).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 if (DEBUG) console.log("textAlign: textAlign", arg1);
                 tick.ctx.textAlign = arg1;
@@ -1238,7 +1305,7 @@ export function textBaseline(style: string, animation?: Animation): Animation {
         () => {
             if (DEBUG) console.log("textBaseline: attach");
             var arg1_next = Parameter.from(style).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 if (DEBUG) console.log("textBaseline: textBaseline", arg1);
                 tick.ctx.textBaseline = arg1;
@@ -1255,7 +1322,7 @@ export function fillText(text: StringArg, xy: PointArg, maxWidth?: NumberArg, an
             var arg1_next = Parameter.from(text).init();
             var arg2_next = Parameter.from(xy).init();
             var arg3_next = maxWidth ? Parameter.from(maxWidth).init(): undefined;
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 var arg2 = arg2_next(tick.clock);
                 var arg3 = maxWidth? arg3_next(tick.clock): undefined;
@@ -1276,7 +1343,7 @@ export function drawImage(img, xy: PointArg, animation?: Animation): Animation {
         () => {
             if (DEBUG) console.log("drawImage: attach");
             var arg1_next = Parameter.from(xy).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 if (DEBUG) console.log("drawImage: drawImage", arg1);
                 tick.ctx.drawImage(img, arg1[0], arg1[1]);
@@ -1327,7 +1394,7 @@ export function glow(
     return draw(
         () => {
             var decay_next = Parameter.from(decay).init();
-            return function (tick: DrawTick) {
+            return function (tick: Tick) {
                 var ctx = tick.ctx;
 
                 // our src pixel data
@@ -1529,7 +1596,7 @@ export function take(
     animation?: Animation
 ): Animation
 {
-    return new Animation(function(prev: DrawStream): DrawStream {
+    return new Animation(function(prev: TickStream): TickStream {
         if (DEBUG) console.log("take: attach");
         return prev.take(frames);
     }, animation);
@@ -1547,9 +1614,9 @@ export function save(width:number, height:number, path: string): Animation {
       .pipe(fs.createWriteStream(path));
     encoder.start();
 
-    return new Animation(function (parent: DrawStream): DrawStream {
+    return new Animation(function (parent: TickStream): TickStream {
         return parent.tap(
-            function(tick: DrawTick) {
+            function(tick: Tick) {
                 if (DEBUG) console.log("save: wrote frame");
                 encoder.addFrame(tick.ctx);
             },

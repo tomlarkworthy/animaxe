@@ -6,10 +6,20 @@ export declare type Point = [number, number];
 export declare type NumberArg = number | Parameter<number>;
 export declare type PointArg = Point | Parameter<Point>;
 export declare class Parameter<Value> {
-    constructor(init: () => ((t: number) => Value));
+    /**
+     * Before a parameter is used, the enclosing animation must call init. This returns a function which
+     * can be used to find the value of the function for specific values of time.
+     */
+    constructor(init: () => ((clock: number) => Value));
+    /**
+     * Before a parameter is used, the enclosing animation must call init. This returns a function which
+     * can be used to find the value of the function for specific values of time.
+     */
     init(): (clock: number) => Value;
+    /**
+     * map the value of 'this' to a new parameter
+     */
     map<V>(fn: (Value) => V): Parameter<V>;
-    clone(): Parameter<Value>;
     /**
      * Returns a parameter whose value is forever the first value next picked from this.
      * @returns {Parameter<T>}
