@@ -47,10 +47,7 @@
 // (partial) align names of methods with canvas context name, e.g. fillStyle(Color)
      - finish that API!
      - withinClip, withinTx, (done) withinPath
-
-
-
-
+     - createLinearGradient, createPattern(), createRadialGradient(), addColorStop(), isPointInPath(), measureText(), drawImage()
 
 
 // Marketing
@@ -65,6 +62,7 @@ Improve README.me
 - using .pipe()
 - example of switching from the canvas API to a linear chain
 - how a new chain resets the context
+- using https://github.com/anthonydugois/svg-path-builder
 
 // website
 // - npm

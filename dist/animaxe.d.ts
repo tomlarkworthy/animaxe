@@ -13,6 +13,7 @@ export declare type Point = [number, number];
 export declare type NumberArg = number | Parameter<number>;
 export declare type PointArg = Point | Parameter<Point>;
 export declare type ColorArg = Color | Parameter<Color>;
+export declare type StringArg = string | Parameter<string>;
 /**
  * Animators are updated with a DrawTick, which provides the local animation time, the
  */
@@ -74,10 +75,6 @@ export declare class Animation {
      */
     draw(drawFactory: () => ((tick: DrawTick) => void)): Animation;
     /**
-     * Dynamic chainable wrapper for translate in the canvas API.
-     */
-    translate(position: PointArg): Animation;
-    /**
      * Dynamic chainable wrapper for strokeStyle in the canvas API.
      */
     strokeStyle(color: ColorArg): Animation;
@@ -86,13 +83,61 @@ export declare class Animation {
      */
     fillStyle(color: ColorArg): Animation;
     /**
+     * Dynamic chainable wrapper for shadowColor in the canvas API.
+     */
+    shadowColor(color: ColorArg): Animation;
+    /**
+     * Dynamic chainable wrapper for shadowBlur in the canvas API.
+     */
+    shadowBlur(level: NumberArg): Animation;
+    /**
+     * Dynamic chainable wrapper for shadowOffsetX and shadowOffsetY in the canvas API.
+     */
+    shadowOffset(xy: PointArg): Animation;
+    /**
+     * Dynamic chainable wrapper for lineCap in the canvas API.
+     */
+    lineCap(style: string): Animation;
+    /**
+     * Dynamic chainable wrapper for lineJoin in the canvas API.
+     */
+    lineJoin(style: string): Animation;
+    /**
+     * Dynamic chainable wrapper for lineWidth in the canvas API.
+     */
+    lineWidth(width: NumberArg): Animation;
+    /**
+     * Dynamic chainable wrapper for miterLimit in the canvas API.
+     */
+    miterLimit(limit: NumberArg): Animation;
+    /**
+     * Dynamic chainable wrapper for rect in the canvas API.
+     */
+    rect(xy: PointArg, width_height: PointArg): Animation;
+    /**
      * Dynamic chainable wrapper for fillRect in the canvas API.
      */
     fillRect(xy: PointArg, width_height: PointArg): Animation;
     /**
+     * Dynamic chainable wrapper for strokeRect in the canvas API.
+     */
+    strokeRect(xy: PointArg, width_height: PointArg): Animation;
+    /**
+     * Dynamic chainable wrapper for clearRect in the canvas API.
+     */
+    clearRect(xy: PointArg, width_height: PointArg): Animation;
+    /**
      * Encloses the inner animation with a beginpath() and endpath() from the canvas API.
      */
     withinPath(inner: Animation): Animation;
+    /**
+     * Dynamic chainable wrapper for fill in the canvas API. Use with withinPath.
+     */
+    fill(): Animation;
+    /**
+     * Dynamic chainable wrapper for stroke in the canvas API.
+     */
+    stroke(): Animation;
     /**
      * Dynamic chainable wrapper for moveTo in the canvas API. Use with withinPath.
      */
@@ -102,9 +147,68 @@ export declare class Animation {
      */
     lineTo(xy: PointArg): Animation;
     /**
-     * Dynamic chainable wrapper for stroke in the canvas API.
+     * Dynamic chainable wrapper for clip in the canvas API. Use with withinPath.
      */
-    stroke(): Animation;
+    clip(): Animation;
+    /**
+     * Dynamic chainable wrapper for quadraticCurveTo in the canvas API. Use with withinPath.
+     */
+    quadraticCurveTo(control: PointArg, end: PointArg): Animation;
+    /**
+     * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
+     */
+    bezierCurveTo(control1: PointArg, control2: PointArg, end: PointArg): Animation;
+    /**
+     * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
+     */
+    arc(center: PointArg, radius: NumberArg, radStartAngle: NumberArg, radEndAngle: NumberArg, counterclockwise?: boolean): Animation;
+    /**
+     * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
+     */
+    arcTo(tangent1: PointArg, tangent2: PointArg, radius: NumberArg): Animation;
+    /**
+     * Dynamic chainable wrapper for scale in the canvas API.
+     */
+    scale(xy: PointArg): Animation;
+    /**
+     * Dynamic chainable wrapper for rotate in the canvas API.
+     */
+    rotate(rads: NumberArg): Animation;
+    /**
+     * Dynamic chainable wrapper for translate in the canvas API.
+     */
+    translate(xy: PointArg): Animation;
+    /**
+     * Dynamic chainable wrapper for translate in the canvas API.
+     * [ a c e
+     *   b d f
+     *   0 0 1 ]
+     */
+    transform(a: NumberArg, b: NumberArg, c: NumberArg, d: NumberArg, e: NumberArg, f: NumberArg): Animation;
+    /**
+     * Dynamic chainable wrapper for setTransform in the canvas API.
+     */
+    setTransform(a: NumberArg, b: NumberArg, c: NumberArg, d: NumberArg, e: NumberArg, f: NumberArg): Animation;
+    /**
+     * Dynamic chainable wrapper for font in the canvas API.
+     */
+    font(style: string): Animation;
+    /**
+     * Dynamic chainable wrapper for textAlign in the canvas API.
+     */
+    textAlign(style: string): Animation;
+    /**
+     * Dynamic chainable wrapper for textBaseline in the canvas API.
+     */
+    textBaseline(style: string): Animation;
+    /**
+     * Dynamic chainable wrapper for textBaseline in the canvas API.
+     */
+    fillText(text: StringArg, xy: PointArg, maxWidth?: NumberArg): Animation;
+    /**
+     * Dynamic chainable wrapper for textBaseline in the canvas API.
+     */
+    drawImage(img: any, xy: PointArg): Animation;
     /**
      * * Dynamic chainable wrapper for globalCompositeOperation in the canvas API.
      */
@@ -162,14 +266,77 @@ export declare function translate(delta: PointArg, animation?: Animation): Anima
 export declare function globalCompositeOperation(composite_mode: string, animation?: Animation): Animation;
 export declare function velocity(velocity: PointArg, animation?: Animation): Animation;
 export declare function tween_linear(from: PointArg, to: PointArg, time: NumberArg, animation?: Animation): Animation;
-export declare function fillRect(xy: PointArg, width_height: PointArg, animation?: Animation): Animation;
 export declare function fillStyle(color: ColorArg, animation?: Animation): Animation;
 export declare function strokeStyle(color: ColorArg, animation?: Animation): Animation;
+export declare function shadowColor(color: ColorArg, animation?: Animation): Animation;
+export declare function shadowBlur(level: NumberArg, animation?: Animation): Animation;
+export declare function shadowOffset(xy: PointArg, animation?: Animation): Animation;
+export declare function lineCap(style: StringArg, animation?: Animation): Animation;
+export declare function lineJoin(style: StringArg, animation?: Animation): Animation;
+export declare function lineWidth(width: NumberArg, animation?: Animation): Animation;
+export declare function miterLimit(limit: NumberArg, animation?: Animation): Animation;
+export declare function rect(xy: PointArg, width_height: PointArg, animation?: Animation): Animation;
+export declare function fillRect(xy: PointArg, width_height: PointArg, animation?: Animation): Animation;
+export declare function strokeRect(xy: PointArg, width_height: PointArg, animation?: Animation): Animation;
+export declare function clearRect(xy: PointArg, width_height: PointArg, animation?: Animation): Animation;
 export declare function withinPath(inner: Animation): Animation;
+export declare function stroke(animation?: Animation): Animation;
+export declare function fill(animation?: Animation): Animation;
 export declare function moveTo(xy: PointArg, animation?: Animation): Animation;
 export declare function lineTo(xy: PointArg, animation?: Animation): Animation;
-export declare function stroke(animation?: Animation): Animation;
-export declare function lineWidth(width: NumberArg, animation?: Animation): Animation;
+export declare function clip(animation?: Animation): Animation;
+export declare function quadraticCurveTo(control: PointArg, end: PointArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
+ */
+export declare function bezierCurveTo(control1: PointArg, control2: PointArg, end: PointArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
+ */
+export declare function arc(center: PointArg, radius: NumberArg, radStartAngle: NumberArg, radEndAngle: NumberArg, counterclockwise?: boolean, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
+ */
+export declare function arcTo(tangent1: PointArg, tangent2: PointArg, radius: NumberArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for scale in the canvas API.
+ */
+export declare function scale(xy: PointArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for rotate in the canvas API.
+ */
+export declare function rotate(rads: NumberArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for translate in the canvas API.
+ * [ a c e
+ *   b d f
+ *   0 0 1 ]
+ */
+export declare function transform(a: NumberArg, b: NumberArg, c: NumberArg, d: NumberArg, e: NumberArg, f: NumberArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for setTransform in the canvas API.
+ */
+export declare function setTransform(a: NumberArg, b: NumberArg, c: NumberArg, d: NumberArg, e: NumberArg, f: NumberArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for font in the canvas API.
+ */
+export declare function font(style: StringArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for textAlign in the canvas API.
+ */
+export declare function textAlign(style: StringArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for textBaseline in the canvas API.
+ */
+export declare function textBaseline(style: string, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for textBaseline in the canvas API.
+ */
+export declare function fillText(text: StringArg, xy: PointArg, maxWidth?: NumberArg, animation?: Animation): Animation;
+/**
+ * Dynamic chainable wrapper for textBaseline in the canvas API.
+ */
+export declare function drawImage(img: any, xy: PointArg, animation?: Animation): Animation;
 export declare function glow(decay?: NumberArg, after?: Animation): Animation;
 export declare function take(frames: number, animation?: Animation): Animation;
 export declare function save(width: number, height: number, path: string): Animation;
