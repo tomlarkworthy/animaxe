@@ -135,6 +135,47 @@ gulp.task("webpack-ax", function(callback) {
     });
 });
 
+/**
+ * animaxe is loaded into global scope, so can be added in a script tag, and the user is able to write
+ * the examples in their own scripts. The need to include Rx themselves
+ */
+gulp.task("webpack-parameter", function(callback) {
+    // run webpack
+    webpack({
+      entry: {
+        "ax": ['./src/parameter.ts']
+      },
+      output: {
+        libraryTarget: "var",
+        library: "Parameter",
+        filename: './dist/px.js'
+      },
+      resolve: {
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
+      },
+      module: {
+        loaders: [
+          { test: /\.ts$/, loader: 'ts-loader'}
+        ]
+      },
+      externals: {
+          // require("rx") is external and on the Rx variable
+          "rx": "Rx"
+      },
+      node: {
+        fs: "empty"
+      },
+      plugins: [ignore]
+    }, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+        }));
+        callback();
+    });
+});
+
+
 gulp.task("webpack-helper", function(callback) {
     // run webpack
     webpack({
@@ -173,7 +214,7 @@ gulp.task("webpack-helper", function(callback) {
 });
 
 
-gulp.task("webpack", ["webpack-ax", "webpack-helper"]);
+gulp.task("webpack", ["webpack-ax", "webpack-helper", "webpack-parameter"]);
 
 gulp.task("typedoc", function() {
     return gulp
