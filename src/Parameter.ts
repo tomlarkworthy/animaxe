@@ -67,7 +67,7 @@ export class Parameter<Value> {
 
 
 export function from<T>(source: T | Parameter<T>): Parameter<T> {
-    if (source instanceof Parameter) return <Parameter<T>>source;
+    if (typeof (<any>source).init == 'function') return <Parameter<T>>source;
     else return constant(<T> source)
 }
 

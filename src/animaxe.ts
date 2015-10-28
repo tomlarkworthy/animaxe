@@ -1029,8 +1029,12 @@ export function withinPath(
     return new Animation(
         (upstream: TickStream) => {
             if (DEBUG) console.log("withinPath: attach");
-            var beginPathBeforeInner = upstream.tapOnNext((tick: Tick) => tick.ctx.beginPath());
-            return inner.attach(beginPathBeforeInner).tapOnNext((tick: Tick) => tick.ctx.closePath())
+            var beginPathBeforeInner = upstream.tapOnNext(
+                function (tick: Tick) {tick.ctx.beginPath();}
+            );
+            return inner.attach(beginPathBeforeInner).tapOnNext(
+                function (tick: Tick) {tick.ctx.closePath();}
+            )
         });
 }
 

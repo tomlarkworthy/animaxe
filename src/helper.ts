@@ -25,13 +25,14 @@ export function getExampleAnimator(width: number = 100, height: number = 100): A
 export function playExample(name: string, frames: number, animator: Ax.Animator, width ?: number, height ?: number) {
     try {
         //browser
+        var offset = new Date().getTime();
         var time;
         var render = function() {
             window.requestAnimationFrame(render);
             var now = new Date().getTime(),
                 dt = now - (time || now);
             time = now;
-            animator.root.onNext(new Ax.Tick(animator.ctx, 0, dt*0.001));
+            animator.root.onNext(new Ax.Tick(animator.ctx, (time - offset)*0.001, dt*0.001));
         };
         render();
     } catch(err) {

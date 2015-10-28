@@ -102,7 +102,7 @@ var Parameter =
 	})();
 	exports.Parameter = Parameter;
 	function from(source) {
-	    if (source instanceof Parameter)
+	    if (typeof source.init == 'function')
 	        return source;
 	    else
 	        return constant(source);

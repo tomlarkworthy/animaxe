@@ -916,8 +916,8 @@ var Ax =
 	    return new Animation(function (upstream) {
 	        if (exports.DEBUG)
 	            console.log("withinPath: attach");
-	        var beginPathBeforeInner = upstream.tapOnNext(function (tick) { return tick.ctx.beginPath(); });
-	        return inner.attach(beginPathBeforeInner).tapOnNext(function (tick) { return tick.ctx.closePath(); });
+	        var beginPathBeforeInner = upstream.tapOnNext(function (tick) { tick.ctx.beginPath(); });
+	        return inner.attach(beginPathBeforeInner).tapOnNext(function (tick) { tick.ctx.closePath(); });
 	    });
 	}
 	exports.withinPath = withinPath;
@@ -1611,7 +1611,7 @@ var Ax =
 	})();
 	exports.Parameter = Parameter;
 	function from(source) {
-	    if (source instanceof Parameter)
+	    if (typeof source.init == 'function')
 	        return source;
 	    else
 	        return constant(source);

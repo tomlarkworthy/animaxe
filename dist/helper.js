@@ -79,12 +79,13 @@ var helper =
 	function playExample(name, frames, animator, width, height) {
 	    try {
 	        //browser
+	        var offset = new Date().getTime();
 	        var time;
 	        var render = function () {
 	            window.requestAnimationFrame(render);
 	            var now = new Date().getTime(), dt = now - (time || now);
 	            time = now;
-	            animator.root.onNext(new Ax.Tick(animator.ctx, 0, dt * 0.001));
+	            animator.root.onNext(new Ax.Tick(animator.ctx, (time - offset) * 0.001, dt * 0.001));
 	        };
 	        render();
 	    }
@@ -978,8 +979,8 @@ var helper =
 	    return new Animation(function (upstream) {
 	        if (exports.DEBUG)
 	            console.log("withinPath: attach");
-	        var beginPathBeforeInner = upstream.tapOnNext(function (tick) { return tick.ctx.beginPath(); });
-	        return inner.attach(beginPathBeforeInner).tapOnNext(function (tick) { return tick.ctx.closePath(); });
+	        var beginPathBeforeInner = upstream.tapOnNext(function (tick) { tick.ctx.beginPath(); });
+	        return inner.attach(beginPathBeforeInner).tapOnNext(function (tick) { tick.ctx.closePath(); });
 	    });
 	}
 	exports.withinPath = withinPath;
@@ -1673,7 +1674,7 @@ var helper =
 	})();
 	exports.Parameter = Parameter;
 	function from(source) {
-	    if (source instanceof Parameter)
+	    if (typeof source.init == 'function')
 	        return source;
 	    else
 	        return constant(source);
