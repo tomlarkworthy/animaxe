@@ -85,12 +85,8 @@ export declare type TickStream = Rx.Observable<Tick>;
  * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
  */
 export declare class Animation {
-    _attach: (upstream: TickStream) => TickStream;
-    constructor(_attach: (upstream: TickStream) => TickStream);
-    /**
-     * Apply the animation to a new RxJS pipeline.
-     */
-    attach(upstream: TickStream): TickStream;
+    attach: (upstream: TickStream) => TickStream;
+    constructor(attach: (upstream: TickStream) => TickStream);
     /**
      * send the downstream context of 'this' animation, as the upstream context to supplied animation.
      *
@@ -98,7 +94,7 @@ export declare class Animation {
      *
      * ```Ax.move(...).pipe(myAnimation());```
      */
-    pipe(downstream: Animation): Animation;
+    pipe<T extends Animation>(downstream: T): T;
     /**
      * delivers upstream events to 'this' first, then when 'this' animation is finished
      * the upstream is switched to the the follower animation.
@@ -311,7 +307,7 @@ export declare function assertClock(assertClock: number[]): Animation;
 /**
  * Creates a new Animation by piping the animation flow of A into B
  */
-export declare function combine2(a: Animation, b: Animation): Animation;
+export declare function combine<T extends Animation>(a: Animation, b: T): T;
 /**
  * plays several animations, finishes when they are all done.
  * @param animations
@@ -352,12 +348,12 @@ export declare function rect(xy: PointArg, width_height: PointArg): Animation;
 export declare function fillRect(xy: PointArg, width_height: PointArg): Animation;
 export declare function strokeRect(xy: PointArg, width_height: PointArg): Animation;
 export declare function clearRect(xy: PointArg, width_height: PointArg): Animation;
-export declare function withinPath(inner: Animation): Animation;
-export declare function stroke(animation?: Animation): Animation;
-export declare function fill(animation?: Animation): Animation;
+export declare function withinPath(inner: Animation): PathAnimation;
+export declare function stroke(): Animation;
+export declare function fill(): Animation;
 export declare function moveTo(xy: PointArg): Animation;
 export declare function lineTo(xy: PointArg): Animation;
-export declare function clip(animation?: Animation): Animation;
+export declare function clip(): Animation;
 export declare function quadraticCurveTo(control: PointArg, end: PointArg): Animation;
 /**
  * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.

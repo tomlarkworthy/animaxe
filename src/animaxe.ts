@@ -107,14 +107,7 @@ function stackTrace() {
  * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
  */
 export class Animation {
-    constructor(public _attach: (upstream: TickStream) => TickStream) {
-    }
-
-    /**
-     * Apply the animation to a new RxJS pipeline.
-     */
-    attach(upstream: TickStream): TickStream {
-        return this._attach(upstream);
+    constructor(public attach: (upstream: TickStream) => TickStream) {
     }
 
     /**
@@ -124,8 +117,8 @@ export class Animation {
      *
      * ```Ax.move(...).pipe(myAnimation());```
      */
-    pipe(downstream: Animation): Animation {
-        return combine2(this, downstream);
+    pipe<T extends Animation>(downstream: T): T {
+        return combine(this, downstream);
     }
 
     /**
@@ -572,12 +565,13 @@ export function assertClock(assertClock: number[]): Animation {
 /**
  * Creates a new Animation by piping the animation flow of A into B
  */
-export function combine2(a: Animation, b: Animation) {
-    return new Animation(
+export function combine<T extends Animation>(a: Animation, b: T): T {
+    var b_prev_attach = b.attach;
+    b.attach =
         (upstream: TickStream) => {
-            return b.attach(a.attach(upstream));
-        }
-    );
+            return b_prev_attach(a.attach(upstream));
+        };
+    return b;
 }
 
 /**
@@ -1029,8 +1023,8 @@ export function clearRect(
 
 export function withinPath(
     inner: Animation
-): Animation {
-    return new Animation(
+): PathAnimation {
+    return new PathAnimation(
         (upstream: TickStream) => {
             if (DEBUG) console.log("withinPath: attach");
             var beginPathBeforeInner = upstream.tapOnNext(
@@ -1042,9 +1036,7 @@ export function withinPath(
         });
 }
 
-export function stroke(
-    animation?: Animation
-): Animation {
+export function stroke(): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("stroke: attach");
@@ -1055,9 +1047,7 @@ export function stroke(
         });
 }
 
-export function fill(
-    animation?: Animation
-): Animation {
+export function fill(): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("fill: attach");
@@ -1099,9 +1089,7 @@ export function lineTo(
 }
 
 
-export function clip(
-    animation?: Animation
-): Animation {
+export function clip(): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("clip: attach");
