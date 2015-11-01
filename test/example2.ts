@@ -59,22 +59,14 @@ var blue = 50;
 animator.play(Ax.fillStyle("#000000").fillRect([0,0],[100,100]));
 
 animator.play(
-        Ax.emit(
-                sparkLine(
-                    Parameter.point(
-                        bigSin,
-                        bigCos
-                    ),
-                    Parameter.displaceT(-0.1,
-                        Parameter.point(
-                            bigSin,
-                            bigCos
-                        )
-                    ),
-                    Parameter.rgba(red,green,blue,1)
-                )
+    Ax.emit(
+        sparkLine(
+            Parameter.point(bigSin,bigCos),
+            Parameter.displaceT(-0.1, Parameter.point(bigSin,bigCos)),
+            Parameter.rgba(red,green,blue,1)
         )
-    );
+    )
+);
 
 helper.playExample("example2", 20, animator, 100, 100);
 

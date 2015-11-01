@@ -5,6 +5,7 @@
 // Glow
     // different distance exponents are interesting
     // think about alpha over existing backgrounds
+    // fix effieciency
 
 // Reflection
 // L systems (fold?)
@@ -34,7 +35,7 @@
 
 // figure out why example3 cannot have move than 1000 particles without a stack overflow
 // fix test randomness with a random seed (seed random with animation seed?)
-// replace parralel with its own internal animator OR make parrallel the only option
+// replace parralel with its own internal animator OR make parallel the only option
 // change order of playExample parameters
 
 * refactor
@@ -50,7 +51,6 @@
      - createLinearGradient, createPattern(), createRadialGradient(), addColorStop(), isPointInPath(), measureText(), drawImage()
      - save() restore()
 // maybe put context methods in their own namespace if possible? (long term goal)
-
 
 // Marketing
 
@@ -71,14 +71,45 @@ Improve README.me
 // - hosting
 
 // Code pen example
-// UI controls
+UI controls!
+ - need to attach mouse events, to paths tests i.e. isPointInPath().
+ - isPoint is tested when the path is drawn, so you have to know your going to test for a point before the animation loop draws, then do the test inline with the drawing
+ - OR you just to the test on a line without doing a stroke.
+ - lets think about the ideal API, :-
+
+ We want to be able to package up a UI control. It has various animation states. An internal state. Its state can be changed with streams into it (e.g. its label)
+, also its internal state(s) are watchable with more streams. It also has hot spots for mouse clicks. So it has
+Different logical input and output streams.
+ - position (input and output)
+ - programatic click (input)
+ - mouse events
+ - relative mouse position (output)
+A number animations and transitions. (button down)
+Maybe some config (e.g. feature disable, max/min value)
+Default mouse behaviour.
+UI events like mouse should be consumed leaf upwards, with the option of propogating events or not. This is the opposite way round things are drawn.
+
+- Conclusion, UI components are their own bundle of resources, including animations.
+- We need access in the animation pipeline for the collision stuff though, but the UI can handle that itself
+
+// all sliders vertical, but you can transform using graphics?
+LinearSlider extends Animation
+- initial value, min/max value
+- background animation
+- knob animation
+- listens for mouse drag on knob
+- UI visual appearance should be Rx too! Parameter based sizes
+
+^^ the UI model doesn't really matter, we should be able to add different abstractions later
+   the important bit is the mouse interceptor for path, and a way to stream notifications out.
+
 
 // IDEAS
 
 // PacMan
 // what about a different way of making glow?
 // render luminecence into a texture and then color based on distance from lightsource
-// mouse input, tailing glow (rember to tween between rapid movements)
+// mouse input, tailing glow (remember to tween between rapid movements)
 // offscreen rendering an playback
 // sin wave, randomized
 // GUI components, responsive, bootstrap

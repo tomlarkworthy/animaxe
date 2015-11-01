@@ -32,7 +32,7 @@ export function playExample(name: string, frames: number, animator: Ax.Animator,
             var now = new Date().getTime(),
                 dt = now - (time || now);
             time = now;
-            animator.root.onNext(new Ax.Tick(animator.ctx, (time - offset)*0.001, dt*0.001));
+            animator.root.onNext(new Ax.Tick(animator.ctx, (time - offset)*0.001, dt*0.001, null));
         };
         render();
     } catch(err) {

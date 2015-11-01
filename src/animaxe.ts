@@ -1,6 +1,7 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
 import Rx = require('rx');
+import events = require('./events');
 import Parameter = require('./parameter');
 
 export var DEBUG_LOOP = false;
@@ -17,8 +18,7 @@ console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
  * animation's closure. For example:
 ```
 function moveTo(
-    xy: PointArg,
-    animation?: Animation
+    xy: PointArg
 ): Animation {
     return draw(
         () => {
@@ -28,7 +28,7 @@ function moveTo(
                 var xy = xy_next(tick.clock); // use 'next' to get value
                 tick.ctx.moveTo(xy[0], xy[1]);
             }
-        }, animation);
+        });
 }
 ```
  *
@@ -67,7 +67,12 @@ export type StringArg = string | Parameter<string>
  * directly, and pass the clock onto any time varying parameters.
  */
 export class Tick {
-    constructor (public ctx: CanvasRenderingContext2D, public clock: number, public dt: number) {}
+    constructor (
+        public ctx: CanvasRenderingContext2D,
+        public clock: number,
+        public dt: number,
+        public events: events.Events)
+    {}
 }
 
 /**
@@ -102,16 +107,14 @@ function stackTrace() {
  * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
  */
 export class Animation {
-
-    constructor(public _attach: (upstream: TickStream) => TickStream, public after?: Animation) {
+    constructor(public _attach: (upstream: TickStream) => TickStream) {
     }
 
     /**
      * Apply the animation to a new RxJS pipeline.
      */
     attach(upstream: TickStream): TickStream {
-        var processed = this._attach(upstream);
-        return this.after? this.after.attach(processed): processed;
+        return this._attach(upstream);
     }
 
     /**
@@ -337,8 +340,10 @@ export class Animation {
     }
     /**
      * Encloses the inner animation with a beginpath() and endpath() from the canvas API.
+     *
+     * This returns a path object which events can be subscribed to
      */
-    withinPath(inner: Animation): Animation {
+    withinPath(inner: Animation): PathAnimation {
         return this.pipe(withinPath(inner));
     }
     /**
@@ -488,8 +493,8 @@ export class Animation {
 export class Animator {
     tickerSubscription: Rx.Disposable = null;
     root: Rx.Subject<Tick>;
-    animationSubscriptions: Rx.IDisposable[] = [];
     t: number = 0;
+    events: events.Events = new events.Events();
 
     constructor(public ctx: CanvasRenderingContext2D) {
         this.root = new Rx.Subject<Tick>()
@@ -498,20 +503,21 @@ export class Animator {
         var self = this;
 
         this.tickerSubscription = tick.map(function(dt: number) { //map the ticker onto any -> context
-            var tick = new Tick(self.ctx, self.t, dt);
+            var tick = new Tick(self.ctx, self.t, dt, self.events);
             self.t += dt;
             return tick;
         }).subscribe(this.root);
     }
-    play (animation: Animation): void {
+    play(animation: Animation): Rx.IDisposable {
         var self = this;
         if (DEBUG) console.log("animator: play");
         var saveBeforeFrame = this.root.tapOnNext(function(tick){
             if (DEBUG) console.log("animator: ctx save");
             tick.ctx.save();
         });
-        var doAnimation = animation.attach(saveBeforeFrame);
-        var restoreAfterFrame = doAnimation.tap(
+        return animation
+            .attach(saveBeforeFrame) // todo, it be nicer if we could chain attach
+            .tap(
             function(tick){
                 if (DEBUG) console.log("animator: ctx next restore");
                 tick.ctx.restore();
@@ -519,11 +525,13 @@ export class Animator {
                 if (DEBUG) console.log("animator: ctx err restore", err);
                 self.ctx.restore();
             },function(){
+                if (DEBUG) console.log("animator: ctx complete restore");
                 self.ctx.restore();
-            });
-        this.animationSubscriptions.push(
-            restoreAfterFrame.subscribe()
-        );
+            }).subscribe();
+    }
+
+    click () {
+
     }
 }
 
@@ -534,18 +542,18 @@ export class Animator {
  * @param after
  * @returns {Animation}
  */
-export function assertDt(expectedDt: Rx.Observable<number>, after?: Animation): Animation {
+export function assertDt(expectedDt: Rx.Observable<number>): Animation {
     return new Animation(function(upstream) {
         return upstream.zip(expectedDt, function(tick: Tick, expectedDtValue: number) {
             if (tick.dt != expectedDtValue) throw new Error("unexpected dt observed: " + tick.dt + ", expected:" + expectedDtValue);
             return tick;
         });
-    }, after);
+    });
 }
 
 //todo would be nice if this took an iterable or some other type of simple pull stream
 // and used streamEquals
-export function assertClock(assertClock: number[], after?: Animation): Animation {
+export function assertClock(assertClock: number[]): Animation {
     var index = 0;
 
     return new Animation(function(upstream) {
@@ -558,7 +566,7 @@ export function assertClock(assertClock: number[], after?: Animation): Animation
             }
             index ++;
         });
-    }, after);
+    });
 }
 
 /**
@@ -609,6 +617,10 @@ export function parallel(
             }
         );
     });
+}
+
+export class PathAnimation extends Animation {
+
 }
 
 export function clone(
@@ -709,19 +721,17 @@ export function loop(
 }
 
 export function draw(
-    drawFactory: () => ((tick: Tick) => void),
-    after?: Animation
+    drawFactory: () => ((tick: Tick) => void)
 ): Animation
 {
     return new Animation(function (previous: TickStream): TickStream {
         var draw: (tick: Tick) => void = drawFactory();
         return previous.tapOnNext(draw);
-    }, after);
+    });
 }
 
 export function translate(
-    delta: PointArg,
-    animation?: Animation
+    delta: PointArg
 ): Animation {
     if (DEBUG) console.log("translate: attached");
     return draw(
@@ -734,12 +744,11 @@ export function translate(
                 return tick;
             }
         }
-    , animation);
+    );
 }
 
 export function globalCompositeOperation(
-    composite_mode: string,
-    animation?: Animation
+    composite_mode: string
 ): Animation {
     return draw(
         () => {
@@ -747,13 +756,12 @@ export function globalCompositeOperation(
                 tick.ctx.globalCompositeOperation = composite_mode;
             }
         }
-    , animation);
+    );
 }
 
 
 export function velocity(
-    velocity: PointArg,
-    animation?: Animation
+    velocity: PointArg
 ): Animation {
     if (DEBUG) console.log("velocity: attached");
     return draw(
@@ -766,40 +774,41 @@ export function velocity(
                 pos[0] += velocity[0] * tick.dt;
                 pos[1] += velocity[1] * tick.dt;
             }
-        }, animation);
+        }
+    );
 }
 
 export function tween_linear(
     from: PointArg,
     to:   PointArg,
-    time: NumberArg,
-    animation?: Animation /* copies */
+    time: NumberArg
 ): Animation
 {
-    return new Animation(function(prev: TickStream): TickStream {
-        var t = 0;
-        var from_next = Parameter.from(from).init();
-        var to_next   = Parameter.from(to).init();
-        var time_next   = Parameter.from(time).init();
-        return prev.map(function(tick: Tick) {
-            if (DEBUG) console.log("tween: inner");
-            var from = from_next(tick.clock);
-            var to   = to_next(tick.clock);
-            var time = time_next(tick.clock);
-
-            t = t + tick.dt;
-            if (t > time) t = time;
-            var x = from[0] + (to[0] - from[0]) * t / time;
-            var y = from[1] + (to[1] - from[1]) * t / time;
-            tick.ctx.transform(1, 0, 0, 1, x, y);
-            return tick;
-        }).takeWhile(function(tick) {return t < time;})
-    }, animation);
+    return new Animation(
+            function(prev: TickStream): TickStream {
+            var t = 0;
+            var from_next = Parameter.from(from).init();
+            var to_next   = Parameter.from(to).init();
+            var time_next   = Parameter.from(time).init();
+            return prev.map(function(tick: Tick) {
+                if (DEBUG) console.log("tween: inner");
+                var from = from_next(tick.clock);
+                var to   = to_next(tick.clock);
+                var time = time_next(tick.clock);
+    
+                t = t + tick.dt;
+                if (t > time) t = time;
+                var x = from[0] + (to[0] - from[0]) * t / time;
+                var y = from[1] + (to[1] - from[1]) * t / time;
+                tick.ctx.transform(1, 0, 0, 1, x, y);
+                return tick;
+            }).takeWhile(function(tick) {return t < time;})
+        }
+    );
 }
 
 export function fillStyle(
-    color: ColorArg,
-    animation?: Animation
+    color: ColorArg
 ): Animation {
     return draw(
         () => {
@@ -810,13 +819,13 @@ export function fillStyle(
                 if (DEBUG) console.log("fillStyle: fillStyle", color);
                 tick.ctx.fillStyle = color;
             }
-        }, animation);
+        }
+    );
 }
 
 
 export function strokeStyle(
-    color: ColorArg,
-    animation?: Animation
+    color: ColorArg
 ): Animation {
     return draw(
         () => {
@@ -827,12 +836,12 @@ export function strokeStyle(
                 if (DEBUG) console.log("strokeStyle: strokeStyle", color);
                 tick.ctx.strokeStyle = color;
             }
-        }, animation);
+        }
+    );
 }
 
 export function shadowColor(
-    color: ColorArg,
-    animation?: Animation
+    color: ColorArg
 ): Animation {
     return draw(
         () => {
@@ -843,11 +852,11 @@ export function shadowColor(
                 if (DEBUG) console.log("shadowColor: shadowColor", color);
                 tick.ctx.shadowColor = color;
             }
-        }, animation);
+        }
+    );
 }
 export function shadowBlur(
-    level: NumberArg,
-    animation?: Animation
+    level: NumberArg
 ): Animation {
     return draw(
         () => {
@@ -858,13 +867,13 @@ export function shadowBlur(
                 if (DEBUG) console.log("shadowBlur: shadowBlur", level);
                 tick.ctx.shadowBlur = level;
             }
-        }, animation);
+        }
+    );
 }
 
 
 export function shadowOffset(
-    xy: PointArg,
-    animation?: Animation
+    xy: PointArg
 ): Animation {
     return draw(
         () => {
@@ -876,12 +885,12 @@ export function shadowOffset(
                 tick.ctx.shadowOffsetX = xy[0];
                 tick.ctx.shadowOffsetY = xy[1];
             }
-        }, animation);
+        }
+    );
 }
 
 export function lineCap(
-    style: StringArg,
-    animation?: Animation
+    style: StringArg
 ): Animation {
     return draw(
         () => {
@@ -892,11 +901,11 @@ export function lineCap(
                 if (DEBUG) console.log("lineCap: lineCap", arg);
                 tick.ctx.lineCap = arg;
             }
-        }, animation);
+        }
+    );
 }
 export function lineJoin(
-    style: StringArg,
-    animation?: Animation
+    style: StringArg
 ): Animation {
     return draw(
         () => {
@@ -907,12 +916,12 @@ export function lineJoin(
                 if (DEBUG) console.log("lineJoin: lineCap", arg);
                 tick.ctx.lineJoin = arg;
             }
-        }, animation);
+        }
+    );
 }
 
 export function lineWidth(
-    width: NumberArg,
-    animation?: Animation
+    width: NumberArg
 ): Animation {
     return draw(
         () => {
@@ -923,12 +932,11 @@ export function lineWidth(
                 if (DEBUG) console.log("lineWidth: lineWidth", width);
                 tick.ctx.lineWidth = width;
             }
-        }, animation);
+        });
 }
 
 export function miterLimit(
-    limit: NumberArg,
-    animation?: Animation
+    limit: NumberArg
 ): Animation {
     return draw(
         () => {
@@ -939,14 +947,13 @@ export function miterLimit(
                 if (DEBUG) console.log("miterLimit: miterLimit", arg);
                 tick.ctx.miterLimit = arg;
             }
-        }, animation);
+        });
 }
 
 
 export function rect(
     xy: PointArg,
-    width_height: PointArg,
-    animation?: Animation
+    width_height: PointArg
 ): Animation {
     return draw(
         () => {
@@ -960,13 +967,12 @@ export function rect(
                 if (DEBUG) console.log("rect: rect", xy, width_height);
                 tick.ctx.rect(xy[0], xy[1], width_height[0], width_height[1]);
             }
-        }, animation);
+        });
 }
 
 export function fillRect(
     xy: PointArg,
-    width_height: PointArg,
-    animation?: Animation
+    width_height: PointArg
 ): Animation {
     return draw(
         () => {
@@ -980,13 +986,12 @@ export function fillRect(
                 if (DEBUG) console.log("fillRect: fillRect", xy, width_height);
                 tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
             }
-        }, animation);
+        });
 }
 
 export function strokeRect(
     xy: PointArg,
-    width_height: PointArg,
-    animation?: Animation
+    width_height: PointArg
 ): Animation {
     return draw(
         () => {
@@ -1000,12 +1005,11 @@ export function strokeRect(
                 if (DEBUG) console.log("strokeRect: strokeRect", xy, width_height);
                 tick.ctx.strokeRect(xy[0], xy[1], width_height[0], width_height[1]);
             }
-        }, animation);
+        });
 }
 export function clearRect(
     xy: PointArg,
-    width_height: PointArg,
-    animation?: Animation
+    width_height: PointArg
 ): Animation {
     return draw(
         () => {
@@ -1019,7 +1023,7 @@ export function clearRect(
                 if (DEBUG) console.log("clearRect: clearRect", xy, width_height);
                 tick.ctx.clearRect(xy[0], xy[1], width_height[0], width_height[1]);
             }
-        }, animation);
+        });
 }
 
 
@@ -1048,7 +1052,7 @@ export function stroke(
                 if (DEBUG) console.log("stroke: stroke");
                 tick.ctx.stroke();
             }
-        }, animation);
+        });
 }
 
 export function fill(
@@ -1061,12 +1065,11 @@ export function fill(
                 if (DEBUG) console.log("fill: stroke");
                 tick.ctx.fill();
             }
-        }, animation);
+        });
 }
 
 export function moveTo(
-    xy: PointArg,
-    animation?: Animation
+    xy: PointArg
 ): Animation {
     return draw(
         () => {
@@ -1077,12 +1080,11 @@ export function moveTo(
                 if (DEBUG) console.log("moveTo: moveTo", xy);
                 tick.ctx.moveTo(xy[0], xy[1]);
             }
-        }, animation);
+        });
 }
 
 export function lineTo(
-    xy: PointArg,
-    animation?: Animation
+    xy: PointArg
 ): Animation {
     return draw(
         () => {
@@ -1093,7 +1095,7 @@ export function lineTo(
                 if (DEBUG) console.log("lineTo: lineTo", xy);
                 tick.ctx.lineTo(xy[0], xy[1]);
             }
-        }, animation);
+        });
 }
 
 
@@ -1107,10 +1109,10 @@ export function clip(
                 if (DEBUG) console.log("clip: clip");
                 tick.ctx.clip();
             }
-        }, animation);
+        });
 }
 
-export function quadraticCurveTo(control: PointArg, end: PointArg, animation?: Animation): Animation {
+export function quadraticCurveTo(control: PointArg, end: PointArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("quadraticCurveTo: attach");
@@ -1122,12 +1124,12 @@ export function quadraticCurveTo(control: PointArg, end: PointArg, animation?: A
                 if (DEBUG) console.log("quadraticCurveTo: quadraticCurveTo", arg1, arg2);
                 tick.ctx.quadraticCurveTo(arg1[0], arg1[1], arg2[0], arg2[1]);
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
  */
-export function bezierCurveTo(control1: PointArg, control2: PointArg, end: PointArg, animation?: Animation): Animation {
+export function bezierCurveTo(control1: PointArg, control2: PointArg, end: PointArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("bezierCurveTo: attach");
@@ -1141,14 +1143,14 @@ export function bezierCurveTo(control1: PointArg, control2: PointArg, end: Point
                 if (DEBUG) console.log("bezierCurveTo: bezierCurveTo", arg1, arg2, arg3);
                 tick.ctx.bezierCurveTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3[0], arg3[1]);
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
  */
 export function arc(center: PointArg, radius: NumberArg,
     radStartAngle: NumberArg, radEndAngle: NumberArg,
-    counterclockwise?: boolean, animation?: Animation): Animation {
+    counterclockwise?: boolean): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("arc: attach");
@@ -1164,13 +1166,13 @@ export function arc(center: PointArg, radius: NumberArg,
                 if (DEBUG) console.log("arc: arc", arg1, arg2, arg3, arg4);
                 tick.ctx.arc(arg1[0], arg1[1], arg2, arg3, arg4, counterclockwise);
             }
-        }, animation);
+        });
 }
 
 /**
  * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
  */
-export function arcTo(tangent1: PointArg, tangent2: PointArg, radius: NumberArg, animation?: Animation): Animation {
+export function arcTo(tangent1: PointArg, tangent2: PointArg, radius: NumberArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("arc: attach");
@@ -1184,12 +1186,12 @@ export function arcTo(tangent1: PointArg, tangent2: PointArg, radius: NumberArg,
                 if (DEBUG) console.log("arc: arc", arg1, arg2, arg3);
                 tick.ctx.arcTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3);
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for scale in the canvas API.
  */
-export function scale(xy: PointArg, animation?: Animation): Animation {
+export function scale(xy: PointArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("scale: attach");
@@ -1199,12 +1201,12 @@ export function scale(xy: PointArg, animation?: Animation): Animation {
                 if (DEBUG) console.log("scale: scale", arg1);
                 tick.ctx.scale(arg1[0], arg1[1]);
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for rotate in the canvas API.
  */
-export function rotate(rads: NumberArg, animation?: Animation): Animation {
+export function rotate(rads: NumberArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("rotate: attach");
@@ -1214,7 +1216,7 @@ export function rotate(rads: NumberArg, animation?: Animation): Animation {
                 if (DEBUG) console.log("rotate: rotate", arg1);
                 tick.ctx.scale(arg1[0], arg1[1]);
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for translate in the canvas API.
@@ -1223,7 +1225,7 @@ export function rotate(rads: NumberArg, animation?: Animation): Animation {
  *   0 0 1 ]
  */
 export function transform(a: NumberArg, b: NumberArg, c: NumberArg,
-          d: NumberArg, e: NumberArg, f: NumberArg, animation?: Animation): Animation {
+          d: NumberArg, e: NumberArg, f: NumberArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("transform: attach");
@@ -1243,13 +1245,13 @@ export function transform(a: NumberArg, b: NumberArg, c: NumberArg,
                 if (DEBUG) console.log("transform: transform", arg1, arg2, arg3, arg4, arg5, arg6);
                 tick.ctx.transform(arg1, arg2, arg3, arg4, arg5, arg6);
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for setTransform in the canvas API.
  */
 export function setTransform(a: NumberArg, b: NumberArg, c: NumberArg,
-             d: NumberArg, e: NumberArg, f: NumberArg, animation?: Animation): Animation {
+             d: NumberArg, e: NumberArg, f: NumberArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("setTransform: attach");
@@ -1269,12 +1271,12 @@ export function setTransform(a: NumberArg, b: NumberArg, c: NumberArg,
                 if (DEBUG) console.log("setTransform: setTransform", arg1, arg2, arg3, arg4, arg5, arg6);
                 tick.ctx.setTransform(arg1, arg2, arg3, arg4, arg5, arg6);
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for font in the canvas API.
  */
-export function font(style: StringArg, animation?: Animation): Animation {
+export function font(style: StringArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("font: attach");
@@ -1284,12 +1286,12 @@ export function font(style: StringArg, animation?: Animation): Animation {
                 if (DEBUG) console.log("font: font", arg1);
                 tick.ctx.font = arg1;
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for textAlign in the canvas API.
  */
-export function textAlign(style: StringArg, animation?: Animation): Animation {
+export function textAlign(style: StringArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("textAlign: attach");
@@ -1299,12 +1301,12 @@ export function textAlign(style: StringArg, animation?: Animation): Animation {
                 if (DEBUG) console.log("textAlign: textAlign", arg1);
                 tick.ctx.textAlign = arg1;
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for textBaseline in the canvas API.
  */
-export function textBaseline(style: string, animation?: Animation): Animation {
+export function textBaseline(style: string): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("textBaseline: attach");
@@ -1314,12 +1316,12 @@ export function textBaseline(style: string, animation?: Animation): Animation {
                 if (DEBUG) console.log("textBaseline: textBaseline", arg1);
                 tick.ctx.textBaseline = arg1;
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for textBaseline in the canvas API.
  */
-export function fillText(text: StringArg, xy: PointArg, maxWidth?: NumberArg, animation?: Animation): Animation {
+export function fillText(text: StringArg, xy: PointArg, maxWidth?: NumberArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("fillText: attach");
@@ -1337,12 +1339,12 @@ export function fillText(text: StringArg, xy: PointArg, maxWidth?: NumberArg, an
                     tick.ctx.fillText(arg1, arg2[0], arg2[0]);
                 }
             }
-        }, animation);
+        });
 }
 /**
  * Dynamic chainable wrapper for textBaseline in the canvas API.
  */
-export function drawImage(img, xy: PointArg, animation?: Animation): Animation {
+export function drawImage(img, xy: PointArg): Animation {
     return draw(
         () => {
             if (DEBUG) console.log("drawImage: attach");
@@ -1352,7 +1354,7 @@ export function drawImage(img, xy: PointArg, animation?: Animation): Animation {
                 if (DEBUG) console.log("drawImage: drawImage", arg1);
                 tick.ctx.drawImage(img, arg1[0], arg1[1]);
             }
-        }, animation);
+        });
 }
 
 
@@ -1391,8 +1393,7 @@ export function drawImage(img, xy: PointArg, animation?: Animation): Animation {
 
 
 export function glow(
-    decay: NumberArg = 0.1,
-    after ?: Animation
+    decay: NumberArg = 0.1
 ): Animation
 {
     return draw(
@@ -1592,18 +1593,17 @@ export function glow(
 
                 ctx.putImageData(imgData, 0, 0);
             }
-        }, after);
+        });
 }
 
 export function take(
-    frames: number,
-    animation?: Animation
+    frames: number
 ): Animation
 {
     return new Animation(function(prev: TickStream): TickStream {
         if (DEBUG) console.log("take: attach");
         return prev.take(frames);
-    }, animation);
+    });
 }
 
 
