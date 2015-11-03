@@ -11,12 +11,11 @@ var animator = helper.getExampleAnimator(100, 100);
 var Button = (function (_super) {
     __extends(Button, _super);
     function Button() {
-        var _this = this;
         this.hotspot = Ax
             .withinPath(Ax
-            .lineTo([10, 0])
-            .lineTo([10, 10])
-            .lineTo([0, 10])
+            .lineTo([20, 0])
+            .lineTo([20, 20])
+            .lineTo([0, 20])
             .lineTo([0, 0]));
         this.mousedown = new Rx.Subject();
         this.mouseup = new Rx.Subject();
@@ -29,12 +28,11 @@ var Button = (function (_super) {
             .draw(function () {
             return function (tick) {
                 tick.events.mousedowns.forEach(function (evt) {
-                    if (button.mousedown.hasObservers() && tick.ctx.isPointInPath(evt.clientX, evt.clientY)) {
-                        console.log("mouse down", evt);
+                    if (tick.ctx.isPointInPath(evt[0], evt[1])) {
                         // we have to figure out the global position of this component, so the clientX and clientY
                         // have to go backward through the transform matrix
                         // ^ todo
-                        _this.mousedown.onNext(new events.AxMouseEvent());
+                        console.log("HIT mouse down", evt);
                     }
                 });
             };
@@ -48,7 +46,7 @@ function button() {
     return new Button();
 }
 animator.play(Ax
-    .translate([50, 50])
+    .translate([0, 0])
     .pipe(button()));
 helper.playExample("example5", 1, animator, 100, 100);
 // 

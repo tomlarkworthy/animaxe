@@ -95,14 +95,16 @@
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.animator.html#events" class="tsd-kind-icon">events</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.animator.html#root" class="tsd-kind-icon">root</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.animator.html#t" class="tsd-kind-icon">t</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.animator.html#tickersubscription" class="tsd-kind-icon">ticker<wbr>Subscription</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animator.html#click" class="tsd-kind-icon">click</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animator.html#mousedown" class="tsd-kind-icon">mousedown</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animator.html#mouseup" class="tsd-kind-icon">mouseup</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animator.html#play" class="tsd-kind-icon">play</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animator.html#registerevents" class="tsd-kind-icon">register<wbr>Events</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animator.html#tick" class="tsd-kind-icon">tick</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animator.html#ticker" class="tsd-kind-icon">ticker</a></li>
 							</ul>
 						</section>
@@ -177,32 +179,57 @@
 						</ul>
 					</aside>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="tickersubscription" class="tsd-anchor"></a>
-					<h3>ticker<wbr>Subscription</h3>
-					<div class="tsd-signature tsd-kind-icon">ticker<wbr>Subscription<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Disposable</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L487">animaxe.ts:487</a></li>
-						</ul>
-					</aside>
-				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="click" class="tsd-anchor"></a>
-					<h3>click</h3>
+					<a name="mousedown" class="tsd-anchor"></a>
+					<h3>mousedown</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">click<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">mousedown<span class="tsd-signature-symbol">(</span>x<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, y<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L526">animaxe.ts:526</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L527">animaxe.ts:527</a></li>
 								</ul>
 							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>x: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>y: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="mouseup" class="tsd-anchor"></a>
+					<h3>mouseup</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">mouseup<span class="tsd-signature-symbol">(</span>x<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, y<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L531">animaxe.ts:531</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>x: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>y: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -217,7 +244,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L504">animaxe.ts:504</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L505">animaxe.ts:505</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -231,10 +258,38 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="ticker" class="tsd-anchor"></a>
-					<h3>ticker</h3>
+					<a name="registerevents" class="tsd-anchor"></a>
+					<h3>register<wbr>Events</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">ticker<span class="tsd-signature-symbol">(</span>tick<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">register<wbr>Events<span class="tsd-signature-symbol">(</span>canvas<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L540">animaxe.ts:540</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Attaches listener for a canvas which will be propogated during ticks to animators that take input, e.g. UI</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>canvas: <span class="tsd-signature-type">any</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="tick" class="tsd-anchor"></a>
+					<h3>tick</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">tick<span class="tsd-signature-symbol">(</span>dt<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
@@ -246,7 +301,30 @@
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>tick: <span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5>dt: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="ticker" class="tsd-anchor"></a>
+					<h3>ticker</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">ticker<span class="tsd-signature-symbol">(</span>dts<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L501">animaxe.ts:501</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>dts: <span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -297,14 +375,20 @@
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_animaxe_.animator.html#t" class="tsd-kind-icon">t</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_animaxe_.animator.html#tickersubscription" class="tsd-kind-icon">ticker<wbr>Subscription</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animator.html#mousedown" class="tsd-kind-icon">mousedown</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animator.html#click" class="tsd-kind-icon">click</a>
+								<a href="_animaxe_.animator.html#mouseup" class="tsd-kind-icon">mouseup</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_animaxe_.animator.html#play" class="tsd-kind-icon">play</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animator.html#registerevents" class="tsd-kind-icon">register<wbr>Events</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.animator.html#tick" class="tsd-kind-icon">tick</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="_animaxe_.animator.html#ticker" class="tsd-kind-icon">ticker</a>

@@ -7,6 +7,7 @@ import Parameter = require('./parameter');
 export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
 export var DEBUG_EMIT = false;
+export var DEBUG_EVENTS = true;
 export var DEBUG = false;
 
 console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
@@ -484,7 +485,6 @@ export class Animation {
 }
 
 export class Animator {
-    tickerSubscription: Rx.Disposable = null;
     root: Rx.Subject<Tick>;
     t: number = 0;
     events: events.Events = new events.Events();
@@ -492,14 +492,15 @@ export class Animator {
     constructor(public ctx: CanvasRenderingContext2D) {
         this.root = new Rx.Subject<Tick>()
     }
-    ticker(tick: Rx.Observable<number>): void {
-        var self = this;
-
-        this.tickerSubscription = tick.map(function(dt: number) { //map the ticker onto any -> context
-            var tick = new Tick(self.ctx, self.t, dt, self.events);
-            self.t += dt;
-            return tick;
-        }).subscribe(this.root);
+    tick(dt: number) {
+        var tick = new Tick(this.ctx, this.t, dt, this.events);
+        this.t += dt;
+        this.root.onNext(tick);
+        this.events.clear();
+    }
+    ticker(dts: Rx.Observable<number>): void {
+        // todo this is a bit yuck
+        dts.subscribe(this.tick.bind(this), this.root.onError.bind(this.root), this.root.onCompleted.bind(this.root));
     }
     play(animation: Animation): Rx.IDisposable {
         var self = this;
@@ -523,8 +524,24 @@ export class Animator {
             }).subscribe();
     }
 
-    click () {
+    mousedown (x: number, y: number) {
+        if (DEBUG_EVENTS) console.log("mousedown", x, y);
+        this.events.mousedowns.push([x, y]);
+    }
+    mouseup (x: number, y: number) {
+        if (DEBUG_EVENTS) console.log("mouseup", x, y);
+        this.events.mouseups.push([x, y]);
+    }
 
+
+    /**
+     * Attaches listener for a canvas which will be propogated during ticks to animators that take input, e.g. UI
+     */
+    registerEvents(canvas:any): void {
+        var self = this;
+        var rect = canvas.getBoundingClientRect(); // you have to correct for padding, todo this might get stale
+        canvas.onmousedown = evt => self.mousedown(evt.clientX - rect.left, evt.clientY - rect.top);
+        canvas.onmouseup = evt => self.mouseup(evt.clientX - rect.left, evt.clientY - rect.top);
     }
 }
 

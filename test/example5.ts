@@ -21,9 +21,9 @@ class Button extends Ax.Animation {
     constructor() {
         this.hotspot = Ax
             .withinPath(Ax
-                .lineTo([ 10,  0])
-                .lineTo([ 10, 10])
-                .lineTo([  0, 10])
+                .lineTo([ 20,  0])
+                .lineTo([ 20, 20])
+                .lineTo([  0, 20])
                 .lineTo([  0,  0])
             );
 
@@ -41,13 +41,13 @@ class Button extends Ax.Animation {
                 () => {
                     return (tick: Ax.Tick) => {
                         tick.events.mousedowns.forEach(
-                            (evt: MouseEvent) => {
-                                if (button.mousedown.hasObservers() && tick.ctx.isPointInPath(evt.clientX, evt.clientY)) {
-                                    console.log("mouse down", evt);
+                            (evt: Ax.Point) => {
+                                if (/*button.mousedown.hasObservers() && */ tick.ctx.isPointInPath(evt[0], evt[1])) {
                                     // we have to figure out the global position of this component, so the clientX and clientY
                                     // have to go backward through the transform matrix
                                     // ^ todo
-                                    this.mousedown.onNext(new events.AxMouseEvent());
+                                    console.log("HIT mouse down", evt);
+                                    //this.mousedown.onNext(new events.AxMouseEvent());
                                 }
                             }
                         )
@@ -65,7 +65,7 @@ function button(): Button {
 }
 
 animator.play(Ax
-    .translate([50, 50])
+    .translate([0, 0])
     .pipe(button())
 );
 

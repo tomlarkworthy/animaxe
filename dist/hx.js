@@ -64,6 +64,10 @@ var helper =
 	        // In a browser environment, find a canvas
 	        var canvas = document.getElementById("canvas");
 	        console.log("browser", canvas);
+	        var context = canvas.getContext('2d');
+	        var animator = new Ax.Animator(context);
+	        animator.registerEvents(canvas);
+	        return animator;
 	    }
 	    catch (err) {
 	        console.log("error, so assuming we are in node environment", err);
@@ -72,9 +76,9 @@ var helper =
 	        var Canvas = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"canvas\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 	        var canvas = new Canvas(width, height);
 	        console.log("node", canvas);
+	        var context = canvas.getContext('2d');
+	        return new Ax.Animator(context);
 	    }
-	    var context = canvas.getContext('2d');
-	    return new Ax.Animator(context);
 	}
 	exports.getExampleAnimator = getExampleAnimator;
 	function playExample(name, frames, animator, width, height) {
@@ -86,11 +90,12 @@ var helper =
 	            window.requestAnimationFrame(render);
 	            var now = new Date().getTime(), dt = now - (time || now);
 	            time = now;
-	            animator.root.onNext(new Ax.Tick(animator.ctx, (time - offset) * 0.001, dt * 0.001, null));
+	            animator.tick(dt * 0.001);
 	        };
 	        render();
 	    }
 	    catch (err) {
+	        console.log("error, so assuming we are in node environment", err);
 	        //node.js
 	        animator.play(Ax.save(width, height, "images/" + name + ".gif"));
 	        animator.ticker(Rx.Observable.return(0.1).repeat(frames));
@@ -129,6 +134,7 @@ var helper =
 	exports.DEBUG_LOOP = false;
 	exports.DEBUG_THEN = false;
 	exports.DEBUG_EMIT = false;
+	exports.DEBUG_EVENTS = true;
 	exports.DEBUG = false;
 	console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 	/**
@@ -520,18 +526,19 @@ var helper =
 	var Animator = (function () {
 	    function Animator(ctx) {
 	        this.ctx = ctx;
-	        this.tickerSubscription = null;
 	        this.t = 0;
 	        this.events = new events.Events();
 	        this.root = new Rx.Subject();
 	    }
-	    Animator.prototype.ticker = function (tick) {
-	        var self = this;
-	        this.tickerSubscription = tick.map(function (dt) {
-	            var tick = new Tick(self.ctx, self.t, dt, self.events);
-	            self.t += dt;
-	            return tick;
-	        }).subscribe(this.root);
+	    Animator.prototype.tick = function (dt) {
+	        var tick = new Tick(this.ctx, this.t, dt, this.events);
+	        this.t += dt;
+	        this.root.onNext(tick);
+	        this.events.clear();
+	    };
+	    Animator.prototype.ticker = function (dts) {
+	        // todo this is a bit yuck
+	        dts.subscribe(this.tick.bind(this), this.root.onError.bind(this.root), this.root.onCompleted.bind(this.root));
 	    };
 	    Animator.prototype.play = function (animation) {
 	        var self = this;
@@ -558,7 +565,24 @@ var helper =
 	            self.ctx.restore();
 	        }).subscribe();
 	    };
-	    Animator.prototype.click = function () {
+	    Animator.prototype.mousedown = function (x, y) {
+	        if (exports.DEBUG_EVENTS)
+	            console.log("mousedown", x, y);
+	        this.events.mousedowns.push([x, y]);
+	    };
+	    Animator.prototype.mouseup = function (x, y) {
+	        if (exports.DEBUG_EVENTS)
+	            console.log("mouseup", x, y);
+	        this.events.mouseups.push([x, y]);
+	    };
+	    /**
+	     * Attaches listener for a canvas which will be propogated during ticks to animators that take input, e.g. UI
+	     */
+	    Animator.prototype.registerEvents = function (canvas) {
+	        var self = this;
+	        var rect = canvas.getBoundingClientRect(); // you have to correct for padding, todo this might get stale
+	        canvas.onmousedown = function (evt) { return self.mousedown(evt.clientX - rect.left, evt.clientY - rect.top); };
+	        canvas.onmouseup = function (evt) { return self.mouseup(evt.clientX - rect.left, evt.clientY - rect.top); };
 	    };
 	    return Animator;
 	})();

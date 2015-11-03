@@ -65,6 +65,7 @@ var Ax =
 	exports.DEBUG_LOOP = false;
 	exports.DEBUG_THEN = false;
 	exports.DEBUG_EMIT = false;
+	exports.DEBUG_EVENTS = true;
 	exports.DEBUG = false;
 	console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 	/**
@@ -456,18 +457,19 @@ var Ax =
 	var Animator = (function () {
 	    function Animator(ctx) {
 	        this.ctx = ctx;
-	        this.tickerSubscription = null;
 	        this.t = 0;
 	        this.events = new events.Events();
 	        this.root = new Rx.Subject();
 	    }
-	    Animator.prototype.ticker = function (tick) {
-	        var self = this;
-	        this.tickerSubscription = tick.map(function (dt) {
-	            var tick = new Tick(self.ctx, self.t, dt, self.events);
-	            self.t += dt;
-	            return tick;
-	        }).subscribe(this.root);
+	    Animator.prototype.tick = function (dt) {
+	        var tick = new Tick(this.ctx, this.t, dt, this.events);
+	        this.t += dt;
+	        this.root.onNext(tick);
+	        this.events.clear();
+	    };
+	    Animator.prototype.ticker = function (dts) {
+	        // todo this is a bit yuck
+	        dts.subscribe(this.tick.bind(this), this.root.onError.bind(this.root), this.root.onCompleted.bind(this.root));
 	    };
 	    Animator.prototype.play = function (animation) {
 	        var self = this;
@@ -494,7 +496,24 @@ var Ax =
 	            self.ctx.restore();
 	        }).subscribe();
 	    };
-	    Animator.prototype.click = function () {
+	    Animator.prototype.mousedown = function (x, y) {
+	        if (exports.DEBUG_EVENTS)
+	            console.log("mousedown", x, y);
+	        this.events.mousedowns.push([x, y]);
+	    };
+	    Animator.prototype.mouseup = function (x, y) {
+	        if (exports.DEBUG_EVENTS)
+	            console.log("mouseup", x, y);
+	        this.events.mouseups.push([x, y]);
+	    };
+	    /**
+	     * Attaches listener for a canvas which will be propogated during ticks to animators that take input, e.g. UI
+	     */
+	    Animator.prototype.registerEvents = function (canvas) {
+	        var self = this;
+	        var rect = canvas.getBoundingClientRect(); // you have to correct for padding, todo this might get stale
+	        canvas.onmousedown = function (evt) { return self.mousedown(evt.clientX - rect.left, evt.clientY - rect.top); };
+	        canvas.onmouseup = function (evt) { return self.mouseup(evt.clientX - rect.left, evt.clientY - rect.top); };
 	    };
 	    return Animator;
 	})();

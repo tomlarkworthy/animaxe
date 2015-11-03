@@ -1,9 +1,11 @@
+import Ax = require("./animaxe");
+
 /**
  *
  */
 export class Events {
-    mousedowns: MouseEvent[] = [];
-    mouseups: MouseEvent[] = [];
+    mousedowns: Ax.Point[] = [];
+    mouseups: Ax.Point[] = [];
 
     /**
      * clear all the events, done by animator at the end of a tick

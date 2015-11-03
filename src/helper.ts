@@ -10,6 +10,11 @@ export function getExampleAnimator(width: number = 100, height: number = 100): A
         // In a browser environment, find a canvas
         var canvas:any = document.getElementById("canvas");
         console.log("browser", canvas);
+        var context: CanvasRenderingContext2D = canvas.getContext('2d');
+        var animator =  new Ax.Animator(context);
+
+        animator.registerEvents(canvas);
+        return animator;
     } catch (err) {
         console.log("error, so assuming we are in node environment", err);
         // in a node.js environment, load a fake canvas
@@ -17,10 +22,10 @@ export function getExampleAnimator(width: number = 100, height: number = 100): A
         var Canvas = require('canvas');
         var canvas = new Canvas(width, height);
         console.log("node", canvas);
-    }
 
-    var context: CanvasRenderingContext2D = canvas.getContext('2d');
-    return new Ax.Animator(context);
+        var context: CanvasRenderingContext2D = canvas.getContext('2d');
+        return new Ax.Animator(context);
+    }
 }
 
 export function playExample(name: string, frames: number, animator: Ax.Animator, width ?: number, height ?: number) {
@@ -33,10 +38,11 @@ export function playExample(name: string, frames: number, animator: Ax.Animator,
             var now = new Date().getTime(),
                 dt = now - (time || now);
             time = now;
-            animator.root.onNext(new Ax.Tick(animator.ctx, (time - offset)*0.001, dt*0.001, null));
+            animator.tick(dt*0.001);
         };
         render();
     } catch(err) {
+        console.log("error, so assuming we are in node environment", err);
         //node.js
         animator.play(Ax.save(width, height, "images/" + name + ".gif"));
         animator.ticker(Rx.Observable.return(0.1).repeat(frames));

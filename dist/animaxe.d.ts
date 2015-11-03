@@ -6,6 +6,7 @@ import Parameter = require('./parameter');
 export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare var DEBUG_EMIT: boolean;
+export declare var DEBUG_EVENTS: boolean;
 export declare var DEBUG: boolean;
 /**
  * A parameter is used for time varying values to animation functions.
@@ -287,14 +288,19 @@ export declare class Animation {
 }
 export declare class Animator {
     ctx: CanvasRenderingContext2D;
-    tickerSubscription: Rx.Disposable;
     root: Rx.Subject<Tick>;
     t: number;
     events: events.Events;
     constructor(ctx: CanvasRenderingContext2D);
-    ticker(tick: Rx.Observable<number>): void;
+    tick(dt: number): void;
+    ticker(dts: Rx.Observable<number>): void;
     play(animation: Animation): Rx.IDisposable;
-    click(): void;
+    mousedown(x: number, y: number): void;
+    mouseup(x: number, y: number): void;
+    /**
+     * Attaches listener for a canvas which will be propogated during ticks to animators that take input, e.g. UI
+     */
+    registerEvents(canvas: any): void;
 }
 /**
  * NOTE: currently fails if the streams are different lengths
