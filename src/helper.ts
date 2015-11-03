@@ -11,6 +11,7 @@ export function getExampleAnimator(width: number = 100, height: number = 100): A
         var canvas:any = document.getElementById("canvas");
         console.log("browser", canvas);
     } catch (err) {
+        console.log("error, so assuming we are in node environment", err);
         // in a node.js environment, load a fake canvas
         console.log(err);
         var Canvas = require('canvas');

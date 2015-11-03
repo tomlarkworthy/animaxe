@@ -13,3 +13,7 @@ export class Events {
         this.mouseups = [];
     }
 }
+
+export class AxMouseEvent {
+
+}

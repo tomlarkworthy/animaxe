@@ -9,3 +9,5 @@ export declare class Events {
      */
     clear(): void;
 }
+export declare class AxMouseEvent {
+}

@@ -3,6 +3,8 @@ var ts = require('gulp-typescript');
 var merge = require('merge2');
 var mocha = require('gulp-mocha');
 var gutil = require('gulp-util');
+var template = require('gulp-template');
+var rename = require('gulp-rename');
 var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 var del = require('del');
@@ -10,12 +12,13 @@ var fs = require('fs');
 var tslint = require('gulp-tslint');
 var webpack = require('webpack');
 var typedoc = require("gulp-typedoc");
-var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"))
+var extractExampleCode = require("./scripts/extractExampleCode");
+var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"));
 
 
 var npm_info = JSON.parse(fs.readFileSync("package.json"));
 
-var num_examples = 4;
+var num_examples = 5;
 
 gulp.task('clean', function(cb) {
   del([
@@ -75,8 +78,7 @@ function exampleTask(i) {
             .pipe(mocha({ reporter: 'list' }));
     });
 
-    deploy_tasks.push('test-' + exampleName);
-
+    deploy_tasks.push('compile-' + exampleName);
     gulp.task('watch-' + exampleName, ['compile', 'compile-' + exampleName, 'test-' + exampleName], function() {
         gulp.watch('src/*.ts', ['compile']);
         gulp.watch('test/' + exampleNameTS, ['compile-' + exampleName]);
@@ -185,7 +187,7 @@ gulp.task("webpack-helper", function(callback) {
       output: {
         libraryTarget: "var",
         library: "helper",
-        filename: './dist/helper.js'
+        filename: './dist/hx.js'
       },
       resolve: {
         extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
@@ -229,6 +231,8 @@ gulp.task("typedoc", function() {
 });
 
 
+
+
 deploy_tasks.push("webpack");
 deploy_tasks.push("typedoc");
 gulp.task("deploy", deploy_tasks, function() {
@@ -239,6 +243,24 @@ gulp.task("deploy", deploy_tasks, function() {
   var docs     = gulp.src('./docs/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site"));
 
   return merge([imgs, lib_dist, docs]);
+});
+
+
+gulp.task('html-examples', deploy_tasks, function () {
+  subtasks = [];
+  for (var i = 1; i <= num_examples; i++) { // (counting from 1)
+    subtasks.push(
+      gulp.src('html/example.template.html')
+        .pipe(rename("html/example" + i + ".html"))
+        .pipe(template({name: "example" + i}))
+        .pipe(gulp.dest('.'))
+    );
+  }
+  subtasks.push(
+    gulp.src('test/example*.js')
+      .pipe(extractExampleCode()).pipe(gulp.dest('html/js/'))
+  );
+  return merge(subtasks);
 });
 
 

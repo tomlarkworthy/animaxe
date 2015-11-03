@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Animation | Animaxe</title>
+	<title>PathAnimation | Animaxe</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -60,38 +60,24 @@
 					<a href="../modules/_animaxe_.html">&quot;animaxe&quot;</a>
 				</li>
 				<li>
-					<a href="_animaxe_.animation.html">Animation</a>
+					<a href="_animaxe_.pathanimation.html">PathAnimation</a>
 				</li>
 			</ul>
-			<h1>Class Animation</h1>
+			<h1>Class PathAnimation</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
-			<section class="tsd-panel tsd-comment">
-				<div class="tsd-comment tsd-typography">
-					<div class="lead">
-						<p>An animation is pipeline that modifies the drawing context found in an animation Tick. Animations can be chained
-						together to create a more complicated Animation. They are composeable,</p>
-					</div>
-					<p>e.g. <code>animation1 = Ax.translate([50, 50]).fillStyle(&quot;red&quot;).fillRect([0,0], [20,20])</code>
-					is one animation which has been formed from three subanimations.</p>
-					<p>Animations have a lifecycle, they can be finite or infinite in length. You can start temporally compose animations
-					using <code>anim1.then(anim2)</code>, which creates a new animation that plays animation 2 when animation 1 finishes.</p>
-					<p>When an animation is sequenced into the animation pipeline. Its attach method is called which atcually builds the
-					RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.</p>
-				</div>
-			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Animation</span>
+						<a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a>
 						<ul class="tsd-hierarchy">
 							<li>
-								<a href="_animaxe_.pathanimation.html" class="tsd-signature-type">PathAnimation</a>
+								<span class="target">PathAnimation</span>
 							</li>
 						</ul>
 					</li>
@@ -101,82 +87,83 @@
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-inherited">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_animaxe_.animation.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-inherited">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.animation.html#attach" class="tsd-kind-icon">attach</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#attach" class="tsd-kind-icon">attach</a></li>
 							</ul>
 						</section>
-						<section class="tsd-index-section ">
+						<section class="tsd-index-section tsd-is-inherited">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#arc" class="tsd-kind-icon">arc</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#arcto" class="tsd-kind-icon">arc<wbr>To</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#beziercurveto" class="tsd-kind-icon">bezier<wbr>Curve<wbr>To</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#clearrect" class="tsd-kind-icon">clear<wbr>Rect</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#clip" class="tsd-kind-icon">clip</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#clone" class="tsd-kind-icon">clone</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#draw" class="tsd-kind-icon">draw</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#drawimage" class="tsd-kind-icon">draw<wbr>Image</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#emit" class="tsd-kind-icon">emit</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#fill" class="tsd-kind-icon">fill</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#fillrect" class="tsd-kind-icon">fill<wbr>Rect</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#fillstyle" class="tsd-kind-icon">fill<wbr>Style</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#filltext" class="tsd-kind-icon">fill<wbr>Text</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#font" class="tsd-kind-icon">font</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#globalcompositeoperation" class="tsd-kind-icon">global<wbr>Composite<wbr>Operation</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#glow" class="tsd-kind-icon">glow</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#linecap" class="tsd-kind-icon">line<wbr>Cap</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#linejoin" class="tsd-kind-icon">line<wbr>Join</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#lineto" class="tsd-kind-icon">line<wbr>To</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#linewidth" class="tsd-kind-icon">line<wbr>Width</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#loop" class="tsd-kind-icon">loop</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#miterlimit" class="tsd-kind-icon">miter<wbr>Limit</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#moveto" class="tsd-kind-icon">move<wbr>To</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#parallel" class="tsd-kind-icon">parallel</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter"><a href="_animaxe_.animation.html#pipe" class="tsd-kind-icon">pipe</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#quadraticcurveto" class="tsd-kind-icon">quadratic<wbr>Curve<wbr>To</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#rect" class="tsd-kind-icon">rect</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#rotate" class="tsd-kind-icon">rotate</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#scale" class="tsd-kind-icon">scale</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#settransform" class="tsd-kind-icon">set<wbr>Transform</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#shadowblur" class="tsd-kind-icon">shadow<wbr>Blur</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#shadowcolor" class="tsd-kind-icon">shadow<wbr>Color</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#shadowoffset" class="tsd-kind-icon">shadow<wbr>Offset</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#stroke" class="tsd-kind-icon">stroke</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#strokerect" class="tsd-kind-icon">stroke<wbr>Rect</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#strokestyle" class="tsd-kind-icon">stroke<wbr>Style</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#take" class="tsd-kind-icon">take</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#textalign" class="tsd-kind-icon">text<wbr>Align</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#textbaseline" class="tsd-kind-icon">text<wbr>Baseline</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#then" class="tsd-kind-icon">then</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#transform" class="tsd-kind-icon">transform</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#translate" class="tsd-kind-icon">translate</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#tween_linear" class="tsd-kind-icon">tween_<wbr>linear</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#velocity" class="tsd-kind-icon">velocity</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.animation.html#withinpath" class="tsd-kind-icon">within<wbr>Path</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#arc" class="tsd-kind-icon">arc</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#arcto" class="tsd-kind-icon">arc<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#beziercurveto" class="tsd-kind-icon">bezier<wbr>Curve<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#clearrect" class="tsd-kind-icon">clear<wbr>Rect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#clip" class="tsd-kind-icon">clip</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#clone" class="tsd-kind-icon">clone</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#draw" class="tsd-kind-icon">draw</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#drawimage" class="tsd-kind-icon">draw<wbr>Image</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#emit" class="tsd-kind-icon">emit</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#fill" class="tsd-kind-icon">fill</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#fillrect" class="tsd-kind-icon">fill<wbr>Rect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#fillstyle" class="tsd-kind-icon">fill<wbr>Style</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#filltext" class="tsd-kind-icon">fill<wbr>Text</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#font" class="tsd-kind-icon">font</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#globalcompositeoperation" class="tsd-kind-icon">global<wbr>Composite<wbr>Operation</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#glow" class="tsd-kind-icon">glow</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#linecap" class="tsd-kind-icon">line<wbr>Cap</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#linejoin" class="tsd-kind-icon">line<wbr>Join</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#lineto" class="tsd-kind-icon">line<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#linewidth" class="tsd-kind-icon">line<wbr>Width</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#loop" class="tsd-kind-icon">loop</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#miterlimit" class="tsd-kind-icon">miter<wbr>Limit</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#moveto" class="tsd-kind-icon">move<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#parallel" class="tsd-kind-icon">parallel</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited"><a href="_animaxe_.pathanimation.html#pipe" class="tsd-kind-icon">pipe</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#quadraticcurveto" class="tsd-kind-icon">quadratic<wbr>Curve<wbr>To</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#rect" class="tsd-kind-icon">rect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#rotate" class="tsd-kind-icon">rotate</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#scale" class="tsd-kind-icon">scale</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#settransform" class="tsd-kind-icon">set<wbr>Transform</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#shadowblur" class="tsd-kind-icon">shadow<wbr>Blur</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#shadowcolor" class="tsd-kind-icon">shadow<wbr>Color</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#shadowoffset" class="tsd-kind-icon">shadow<wbr>Offset</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#stroke" class="tsd-kind-icon">stroke</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#strokerect" class="tsd-kind-icon">stroke<wbr>Rect</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#strokestyle" class="tsd-kind-icon">stroke<wbr>Style</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#take" class="tsd-kind-icon">take</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#textalign" class="tsd-kind-icon">text<wbr>Align</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#textbaseline" class="tsd-kind-icon">text<wbr>Baseline</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#then" class="tsd-kind-icon">then</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#transform" class="tsd-kind-icon">transform</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#translate" class="tsd-kind-icon">translate</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#tween_linear" class="tsd-kind-icon">tween_<wbr>linear</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#velocity" class="tsd-kind-icon">velocity</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="_animaxe_.pathanimation.html#withinpath" class="tsd-kind-icon">within<wbr>Path</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
 				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Animation<span class="tsd-signature-symbol">(</span>attach<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Path<wbr>Animation<span class="tsd-signature-symbol">(</span>attach<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.pathanimation.html" class="tsd-signature-type">PathAnimation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#constructor">constructor</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L109">animaxe.ts:109</a></li>
 								</ul>
@@ -205,18 +192,19 @@
 									</ul>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.pathanimation.html" class="tsd-signature-type">PathAnimation</a></h4>
 						</li>
 					</ul>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
 				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
 					<a name="attach" class="tsd-anchor"></a>
 					<h3>attach</h3>
 					<div class="tsd-signature tsd-kind-icon">attach<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
+						<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#attach">attach</a></p>
 						<ul>
 							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L110">animaxe.ts:110</a></li>
 						</ul>
@@ -244,17 +232,18 @@
 					</div>
 				</section>
 			</section>
-			<section class="tsd-panel-group tsd-member-group ">
+			<section class="tsd-panel-group tsd-member-group tsd-is-inherited">
 				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="arc" class="tsd-anchor"></a>
 					<h3>arc</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">arc<span class="tsd-signature-symbol">(</span>center<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, radius<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, radStartAngle<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, radEndAngle<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, counterclockwise<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#arc">arc</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L387">animaxe.ts:387</a></li>
 								</ul>
@@ -286,15 +275,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="arcto" class="tsd-anchor"></a>
 					<h3>arc<wbr>To</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">arc<wbr>To<span class="tsd-signature-symbol">(</span>tangent1<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, tangent2<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, radius<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#arcto">arcTo</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L396">animaxe.ts:396</a></li>
 								</ul>
@@ -320,15 +310,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="beziercurveto" class="tsd-anchor"></a>
 					<h3>bezier<wbr>Curve<wbr>To</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">bezier<wbr>Curve<wbr>To<span class="tsd-signature-symbol">(</span>control1<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, control2<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, end<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#beziercurveto">bezierCurveTo</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L381">animaxe.ts:381</a></li>
 								</ul>
@@ -354,15 +345,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="clearrect" class="tsd-anchor"></a>
 					<h3>clear<wbr>Rect</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">clear<wbr>Rect<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, width_height<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#clearrect">clearRect</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L331">animaxe.ts:331</a></li>
 								</ul>
@@ -385,15 +377,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="clip" class="tsd-anchor"></a>
 					<h3>clip</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">clip<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#clip">clip</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L369">animaxe.ts:369</a></li>
 								</ul>
@@ -407,15 +400,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="clone" class="tsd-anchor"></a>
 					<h3>clone</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">clone<span class="tsd-signature-symbol">(</span>n<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, inner<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#clone">clone</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L229">animaxe.ts:229</a></li>
 								</ul>
@@ -438,15 +432,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="draw" class="tsd-anchor"></a>
 					<h3>draw</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">draw<span class="tsd-signature-symbol">(</span>drawFactory<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#draw">draw</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L251">animaxe.ts:251</a></li>
 								</ul>
@@ -497,15 +492,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="drawimage" class="tsd-anchor"></a>
 					<h3>draw<wbr>Image</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">draw<wbr>Image<span class="tsd-signature-symbol">(</span>img<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#drawimage">drawImage</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L461">animaxe.ts:461</a></li>
 								</ul>
@@ -528,15 +524,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="emit" class="tsd-anchor"></a>
 					<h3>emit</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">emit<span class="tsd-signature-symbol">(</span>inner<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#emit">emit</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L212">animaxe.ts:212</a></li>
 								</ul>
@@ -558,15 +555,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="fill" class="tsd-anchor"></a>
 					<h3>fill</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">fill<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#fill">fill</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L345">animaxe.ts:345</a></li>
 								</ul>
@@ -580,15 +578,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="fillrect" class="tsd-anchor"></a>
 					<h3>fill<wbr>Rect</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">fill<wbr>Rect<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, width_height<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#fillrect">fillRect</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L319">animaxe.ts:319</a></li>
 								</ul>
@@ -611,15 +610,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="fillstyle" class="tsd-anchor"></a>
 					<h3>fill<wbr>Style</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">fill<wbr>Style<span class="tsd-signature-symbol">(</span>color<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#fillstyle">fillStyle</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L265">animaxe.ts:265</a></li>
 								</ul>
@@ -639,15 +639,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="filltext" class="tsd-anchor"></a>
 					<h3>fill<wbr>Text</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">fill<wbr>Text<span class="tsd-signature-symbol">(</span>text<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#stringarg" class="tsd-signature-type">StringArg</a>, xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, maxWidth<span class="tsd-signature-symbol">?: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#filltext">fillText</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L455">animaxe.ts:455</a></li>
 								</ul>
@@ -673,15 +674,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="font" class="tsd-anchor"></a>
 					<h3>font</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">font<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#font">font</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L437">animaxe.ts:437</a></li>
 								</ul>
@@ -701,15 +703,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="globalcompositeoperation" class="tsd-anchor"></a>
 					<h3>global<wbr>Composite<wbr>Operation</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">global<wbr>Composite<wbr>Operation<span class="tsd-signature-symbol">(</span>operation<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#globalcompositeoperation">globalCompositeOperation</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L467">animaxe.ts:467</a></li>
 								</ul>
@@ -731,15 +734,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="glow" class="tsd-anchor"></a>
 					<h3>glow</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">glow<span class="tsd-signature-symbol">(</span>decay<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#glow">glow</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L480">animaxe.ts:480</a></li>
 								</ul>
@@ -754,15 +758,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="linecap" class="tsd-anchor"></a>
 					<h3>line<wbr>Cap</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">line<wbr>Cap<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#linecap">lineCap</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L289">animaxe.ts:289</a></li>
 								</ul>
@@ -782,15 +787,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="linejoin" class="tsd-anchor"></a>
 					<h3>line<wbr>Join</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">line<wbr>Join<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#linejoin">lineJoin</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L295">animaxe.ts:295</a></li>
 								</ul>
@@ -810,15 +816,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="lineto" class="tsd-anchor"></a>
 					<h3>line<wbr>To</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">line<wbr>To<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#lineto">lineTo</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L363">animaxe.ts:363</a></li>
 								</ul>
@@ -838,15 +845,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="linewidth" class="tsd-anchor"></a>
 					<h3>line<wbr>Width</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">line<wbr>Width<span class="tsd-signature-symbol">(</span>width<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#linewidth">lineWidth</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L301">animaxe.ts:301</a></li>
 								</ul>
@@ -866,15 +874,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="loop" class="tsd-anchor"></a>
 					<h3>loop</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">loop<span class="tsd-signature-symbol">(</span>inner<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#loop">loop</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L203">animaxe.ts:203</a></li>
 								</ul>
@@ -896,15 +905,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="miterlimit" class="tsd-anchor"></a>
 					<h3>miter<wbr>Limit</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">miter<wbr>Limit<span class="tsd-signature-symbol">(</span>limit<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#miterlimit">miterLimit</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L307">animaxe.ts:307</a></li>
 								</ul>
@@ -924,15 +934,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="moveto" class="tsd-anchor"></a>
 					<h3>move<wbr>To</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">move<wbr>To<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#moveto">moveTo</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L357">animaxe.ts:357</a></li>
 								</ul>
@@ -952,15 +963,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="parallel" class="tsd-anchor"></a>
 					<h3>parallel</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">parallel<span class="tsd-signature-symbol">(</span>inner_animations<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Observable</span><span class="tsd-signature-symbol">&lt;</span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#parallel">parallel</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L222">animaxe.ts:222</a></li>
 								</ul>
@@ -982,15 +994,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited">
 					<a name="pipe" class="tsd-anchor"></a>
 					<h3>pipe</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">pipe&lt;T&gt;<span class="tsd-signature-symbol">(</span>downstream<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">T</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#pipe">pipe</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L120">animaxe.ts:120</a></li>
 								</ul>
@@ -1018,15 +1031,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="quadraticcurveto" class="tsd-anchor"></a>
 					<h3>quadratic<wbr>Curve<wbr>To</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">quadratic<wbr>Curve<wbr>To<span class="tsd-signature-symbol">(</span>control<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, end<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#quadraticcurveto">quadraticCurveTo</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L375">animaxe.ts:375</a></li>
 								</ul>
@@ -1049,15 +1063,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="rect" class="tsd-anchor"></a>
 					<h3>rect</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">rect<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, width_height<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#rect">rect</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L313">animaxe.ts:313</a></li>
 								</ul>
@@ -1080,15 +1095,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="rotate" class="tsd-anchor"></a>
 					<h3>rotate</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">rotate<span class="tsd-signature-symbol">(</span>rads<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#rotate">rotate</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L408">animaxe.ts:408</a></li>
 								</ul>
@@ -1108,15 +1124,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="scale" class="tsd-anchor"></a>
 					<h3>scale</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">scale<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#scale">scale</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L402">animaxe.ts:402</a></li>
 								</ul>
@@ -1136,15 +1153,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="settransform" class="tsd-anchor"></a>
 					<h3>set<wbr>Transform</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">set<wbr>Transform<span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, b<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, c<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, d<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, e<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, f<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#settransform">setTransform</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L430">animaxe.ts:430</a></li>
 								</ul>
@@ -1179,15 +1197,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="shadowblur" class="tsd-anchor"></a>
 					<h3>shadow<wbr>Blur</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">shadow<wbr>Blur<span class="tsd-signature-symbol">(</span>level<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#shadowblur">shadowBlur</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L277">animaxe.ts:277</a></li>
 								</ul>
@@ -1207,15 +1226,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="shadowcolor" class="tsd-anchor"></a>
 					<h3>shadow<wbr>Color</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">shadow<wbr>Color<span class="tsd-signature-symbol">(</span>color<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#shadowcolor">shadowColor</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L271">animaxe.ts:271</a></li>
 								</ul>
@@ -1235,15 +1255,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="shadowoffset" class="tsd-anchor"></a>
 					<h3>shadow<wbr>Offset</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">shadow<wbr>Offset<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#shadowoffset">shadowOffset</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L283">animaxe.ts:283</a></li>
 								</ul>
@@ -1263,15 +1284,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="stroke" class="tsd-anchor"></a>
 					<h3>stroke</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">stroke<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#stroke">stroke</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L351">animaxe.ts:351</a></li>
 								</ul>
@@ -1285,15 +1307,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="strokerect" class="tsd-anchor"></a>
 					<h3>stroke<wbr>Rect</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">stroke<wbr>Rect<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, width_height<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#strokerect">strokeRect</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L325">animaxe.ts:325</a></li>
 								</ul>
@@ -1316,15 +1339,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="strokestyle" class="tsd-anchor"></a>
 					<h3>stroke<wbr>Style</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">stroke<wbr>Style<span class="tsd-signature-symbol">(</span>color<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#colorarg" class="tsd-signature-type">ColorArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#strokestyle">strokeStyle</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L259">animaxe.ts:259</a></li>
 								</ul>
@@ -1344,15 +1368,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="take" class="tsd-anchor"></a>
 					<h3>take</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">take<span class="tsd-signature-symbol">(</span>frames<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#take">take</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L243">animaxe.ts:243</a></li>
 								</ul>
@@ -1372,15 +1397,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="textalign" class="tsd-anchor"></a>
 					<h3>text<wbr>Align</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">text<wbr>Align<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#textalign">textAlign</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L443">animaxe.ts:443</a></li>
 								</ul>
@@ -1400,15 +1426,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="textbaseline" class="tsd-anchor"></a>
 					<h3>text<wbr>Baseline</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">text<wbr>Baseline<span class="tsd-signature-symbol">(</span>style<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#textbaseline">textBaseline</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L449">animaxe.ts:449</a></li>
 								</ul>
@@ -1428,15 +1455,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="then" class="tsd-anchor"></a>
 					<h3>then</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">then<span class="tsd-signature-symbol">(</span>follower<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#then">then</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L131">animaxe.ts:131</a></li>
 								</ul>
@@ -1459,15 +1487,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="transform" class="tsd-anchor"></a>
 					<h3>transform</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">transform<span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, b<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, c<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, d<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, e<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a>, f<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#transform">transform</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L423">animaxe.ts:423</a></li>
 								</ul>
@@ -1505,15 +1534,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="translate" class="tsd-anchor"></a>
 					<h3>translate</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">translate<span class="tsd-signature-symbol">(</span>xy<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#translate">translate</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L414">animaxe.ts:414</a></li>
 								</ul>
@@ -1533,15 +1563,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="tween_linear" class="tsd-anchor"></a>
 					<h3>tween_<wbr>linear</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">tween_<wbr>linear<span class="tsd-signature-symbol">(</span>from<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, to<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a>, time<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#numberarg" class="tsd-signature-type">NumberArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#tween_linear">tween_linear</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L233">animaxe.ts:233</a></li>
 								</ul>
@@ -1562,15 +1593,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="velocity" class="tsd-anchor"></a>
 					<h3>velocity</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">velocity<span class="tsd-signature-symbol">(</span>vector<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#pointarg" class="tsd-signature-type">PointArg</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#velocity">velocity</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L476">animaxe.ts:476</a></li>
 								</ul>
@@ -1590,15 +1622,16 @@
 						</li>
 					</ul>
 				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 					<a name="withinpath" class="tsd-anchor"></a>
 					<h3>within<wbr>Path</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
 						<li class="tsd-signature tsd-kind-icon">within<wbr>Path<span class="tsd-signature-symbol">(</span>inner<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.pathanimation.html" class="tsd-signature-type">PathAnimation</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Inherited from <a href="_animaxe_.animation.html">Animation</a>.<a href="_animaxe_.animation.html#withinpath">withinPath</a></p>
 								<ul>
 									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L339">animaxe.ts:339</a></li>
 								</ul>
@@ -1646,148 +1679,148 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_animaxe_.animation.html" class="tsd-kind-icon">Animation</a>
+						<a href="_animaxe_.pathanimation.html" class="tsd-kind-icon">Path<wbr>Animation</a>
 						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#constructor" class="tsd-kind-icon">constructor</a>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#attach" class="tsd-kind-icon">attach</a>
+							<li class=" tsd-kind-property tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#attach" class="tsd-kind-icon">attach</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#arc" class="tsd-kind-icon">arc</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#arc" class="tsd-kind-icon">arc</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#arcto" class="tsd-kind-icon">arc<wbr>To</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#arcto" class="tsd-kind-icon">arc<wbr>To</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#beziercurveto" class="tsd-kind-icon">bezier<wbr>Curve<wbr>To</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#beziercurveto" class="tsd-kind-icon">bezier<wbr>Curve<wbr>To</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#clearrect" class="tsd-kind-icon">clear<wbr>Rect</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#clearrect" class="tsd-kind-icon">clear<wbr>Rect</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#clip" class="tsd-kind-icon">clip</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#clip" class="tsd-kind-icon">clip</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#clone" class="tsd-kind-icon">clone</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#clone" class="tsd-kind-icon">clone</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#draw" class="tsd-kind-icon">draw</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#draw" class="tsd-kind-icon">draw</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#drawimage" class="tsd-kind-icon">draw<wbr>Image</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#drawimage" class="tsd-kind-icon">draw<wbr>Image</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#emit" class="tsd-kind-icon">emit</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#emit" class="tsd-kind-icon">emit</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#fill" class="tsd-kind-icon">fill</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#fill" class="tsd-kind-icon">fill</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#fillrect" class="tsd-kind-icon">fill<wbr>Rect</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#fillrect" class="tsd-kind-icon">fill<wbr>Rect</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#fillstyle" class="tsd-kind-icon">fill<wbr>Style</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#fillstyle" class="tsd-kind-icon">fill<wbr>Style</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#filltext" class="tsd-kind-icon">fill<wbr>Text</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#filltext" class="tsd-kind-icon">fill<wbr>Text</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#font" class="tsd-kind-icon">font</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#font" class="tsd-kind-icon">font</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#globalcompositeoperation" class="tsd-kind-icon">global<wbr>Composite<wbr>Operation</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#globalcompositeoperation" class="tsd-kind-icon">global<wbr>Composite<wbr>Operation</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#glow" class="tsd-kind-icon">glow</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#glow" class="tsd-kind-icon">glow</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#linecap" class="tsd-kind-icon">line<wbr>Cap</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#linecap" class="tsd-kind-icon">line<wbr>Cap</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#linejoin" class="tsd-kind-icon">line<wbr>Join</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#linejoin" class="tsd-kind-icon">line<wbr>Join</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#lineto" class="tsd-kind-icon">line<wbr>To</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#lineto" class="tsd-kind-icon">line<wbr>To</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#linewidth" class="tsd-kind-icon">line<wbr>Width</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#linewidth" class="tsd-kind-icon">line<wbr>Width</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#loop" class="tsd-kind-icon">loop</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#loop" class="tsd-kind-icon">loop</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#miterlimit" class="tsd-kind-icon">miter<wbr>Limit</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#miterlimit" class="tsd-kind-icon">miter<wbr>Limit</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#moveto" class="tsd-kind-icon">move<wbr>To</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#moveto" class="tsd-kind-icon">move<wbr>To</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#parallel" class="tsd-kind-icon">parallel</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#parallel" class="tsd-kind-icon">parallel</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter">
-								<a href="_animaxe_.animation.html#pipe" class="tsd-kind-icon">pipe</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#pipe" class="tsd-kind-icon">pipe</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#quadraticcurveto" class="tsd-kind-icon">quadratic<wbr>Curve<wbr>To</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#quadraticcurveto" class="tsd-kind-icon">quadratic<wbr>Curve<wbr>To</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#rect" class="tsd-kind-icon">rect</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#rect" class="tsd-kind-icon">rect</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#rotate" class="tsd-kind-icon">rotate</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#rotate" class="tsd-kind-icon">rotate</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#scale" class="tsd-kind-icon">scale</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#scale" class="tsd-kind-icon">scale</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#settransform" class="tsd-kind-icon">set<wbr>Transform</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#settransform" class="tsd-kind-icon">set<wbr>Transform</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#shadowblur" class="tsd-kind-icon">shadow<wbr>Blur</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#shadowblur" class="tsd-kind-icon">shadow<wbr>Blur</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#shadowcolor" class="tsd-kind-icon">shadow<wbr>Color</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#shadowcolor" class="tsd-kind-icon">shadow<wbr>Color</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#shadowoffset" class="tsd-kind-icon">shadow<wbr>Offset</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#shadowoffset" class="tsd-kind-icon">shadow<wbr>Offset</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#stroke" class="tsd-kind-icon">stroke</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#stroke" class="tsd-kind-icon">stroke</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#strokerect" class="tsd-kind-icon">stroke<wbr>Rect</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#strokerect" class="tsd-kind-icon">stroke<wbr>Rect</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#strokestyle" class="tsd-kind-icon">stroke<wbr>Style</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#strokestyle" class="tsd-kind-icon">stroke<wbr>Style</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#take" class="tsd-kind-icon">take</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#take" class="tsd-kind-icon">take</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#textalign" class="tsd-kind-icon">text<wbr>Align</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#textalign" class="tsd-kind-icon">text<wbr>Align</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#textbaseline" class="tsd-kind-icon">text<wbr>Baseline</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#textbaseline" class="tsd-kind-icon">text<wbr>Baseline</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#then" class="tsd-kind-icon">then</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#then" class="tsd-kind-icon">then</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#transform" class="tsd-kind-icon">transform</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#transform" class="tsd-kind-icon">transform</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#translate" class="tsd-kind-icon">translate</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#translate" class="tsd-kind-icon">translate</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#tween_linear" class="tsd-kind-icon">tween_<wbr>linear</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#tween_linear" class="tsd-kind-icon">tween_<wbr>linear</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#velocity" class="tsd-kind-icon">velocity</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#velocity" class="tsd-kind-icon">velocity</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_animaxe_.animation.html#withinpath" class="tsd-kind-icon">within<wbr>Path</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="_animaxe_.pathanimation.html#withinpath" class="tsd-kind-icon">within<wbr>Path</a>
 							</li>
 						</ul>
 					</li>

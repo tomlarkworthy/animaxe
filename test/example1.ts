@@ -1,13 +1,16 @@
 /// <reference path="../types/should.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
 /// <reference path="../types/node.d.ts" />
-
+// @header
 require("should");
 
+import Rx = require("rx");
 import Ax = require("../dist/animaxe");
+import events = require("../dist/events");
 import Parameter = require("../dist/parameter");
 import helper = require("../dist/helper");
 
+// @start
 var animator: Ax.Animator = helper.getExampleAnimator();
 
 
@@ -67,6 +70,7 @@ animator.play(Ax
 // the helper function pipes injects the context, either from a web canvas or a fake node.js one.
 helper.playExample("example1", 20, animator, 100, 100);
 
+// @end
 describe('example1', function () {
     it ('should match the reference', function(done) {
         helper.sameExample("example1", "ref1", function(same) {

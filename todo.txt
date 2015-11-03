@@ -29,6 +29,10 @@
 // - JSFiddle doesn't read typescript
 // - FORGET MAKING A TYPESCRIPT EDITOR, the raw JS is basically the same, and the definition file describes the API somewhat.
 // - fix all examples with codepen
+// TODO packaging
+- each helper library includes the main animaxe library, we need to make those smaller using external modules
+- I don;t like the webpack names have to be different
+- Test npm intergration
 
 
 // Engineering
@@ -51,11 +55,17 @@
      - createLinearGradient, createPattern(), createRadialGradient(), addColorStop(), isPointInPath(), measureText(), drawImage()
      - save() restore()
 // maybe put context methods in their own namespace if possible? (long term goal)
+// consider hiding time from Animation? It should only be used in params
+// simplifying closure situation? Maybe handle params internally through DI?
 
 // Marketing
 
 // API documentation
 Improve README.me
+- What is Animaxe?
+  - a better canvas API
+  - a reactive animation library, with FRP influences
+  - an experiment in library design
 - method chaining
 - lifecycle
 - making your own Animation

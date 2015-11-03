@@ -13,7 +13,8 @@
     "canvas": "^1.2.7",
     "husl": "^6.0.1",
     "rx": "^3.1.1",
-    "should": "^7.1.0"
+    "should": "^7.1.0",
+    "through2": "^2.0.0"
   },
   "devDependencies": {
     "async": "0.7.0",
@@ -24,7 +25,9 @@
     "gifencoder": "^1.0.6",
     "gulp": "^3.9.0",
     "gulp-mocha": "^2.1.3",
+    "gulp-rename": "^1.2.2",
     "gulp-sourcemaps": "^1.5.2",
+    "gulp-template": "^3.0.0",
     "gulp-tslint": "^3.3.0",
     "gulp-typedoc": "^1.2.1",
     "gulp-typescript": "^2.8.1",

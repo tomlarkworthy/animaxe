@@ -1,13 +1,16 @@
 /// <reference path="../types/should.d.ts" />
 /// <reference path="../types/mocha.d.ts" />
 /// <reference path="../types/node.d.ts" />
-
+// @header
 require("should");
 
+import Rx = require("rx");
 import Ax = require("../dist/animaxe");
+import events = require("../dist/events");
 import Parameter = require("../dist/parameter");
 import helper = require("../dist/helper");
 
+// @start
 var animator: Ax.Animator = helper.getExampleAnimator();
 
 //a line between two points of a specified thickness and color (which are temporally varying parameters)
@@ -70,6 +73,7 @@ animator.play(
 
 helper.playExample("example2", 20, animator, 100, 100);
 
+// @end
 describe('example2', function () {
     it ('should match the reference', function(done) {
         helper.sameExample("example2", "ref2", function(same) {
