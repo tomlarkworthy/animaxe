@@ -15,8 +15,7 @@ var animator: Ax.Animator = helper.getExampleAnimator(100, 100);
 
 class Button extends Ax.Animation {
     hotspot: Ax.PathAnimation;
-    mousedown: Rx.Subject<events.AxMouseEvent>;
-    mouseup:   Rx.Subject<events.AxMouseEvent>;
+    events: events.ComponentMouseEvents;
 
     constructor() {
         this.hotspot = Ax
@@ -27,8 +26,7 @@ class Button extends Ax.Animation {
                 .lineTo([  0,  0])
             );
 
-        this.mousedown = new Rx.Subject<events.AxMouseEvent>();
-        this.mouseup   = new Rx.Subject<events.AxMouseEvent>();
+        this.events = new events.ComponentMouseEvents(this);
 
         var button = this;
 
@@ -37,31 +35,19 @@ class Button extends Ax.Animation {
         super(Ax
             .fillStyle(Parameter.rgba(255, 0, 0, 0.5))
             .pipe(this.hotspot)
-            .draw(
-                () => {
-                    return (tick: Ax.Tick) => {
-                        tick.events.mousedowns.forEach(
-                            (evt: Ax.Point) => {
-                                if (/*button.mousedown.hasObservers() && */ tick.ctx.isPointInPath(evt[0], evt[1])) {
-                                    // we have to figure out the global position of this component, so the clientX and clientY
-                                    // have to go backward through the transform matrix
-                                    // ^ todo
-                                    console.log("HIT mouse down", evt);
-                                    //this.mousedown.onNext(new events.AxMouseEvent());
-                                }
-                            }
-                        )
-
-                    }
-                }
-            )
+            .pipe(events.ComponentMouseEventHandler(button.events))
             .fill()
             .attach)
     }
 }
-
 function button(): Button {
-    return new Button();
+    var button =  new Button();
+    button.events.mousedown.subscribe(evt => console.log("Button: mousedown", evt));
+    button.events.mouseup.subscribe(evt => console.log("Button: mouseup", evt));
+    button.events.mousemove.subscribe(evt => console.log("Button: mousemove", evt));
+    button.events.mouseenter.subscribe(evt => console.log("Button: mouseenter", evt));
+    button.events.mouseleave.subscribe(evt => console.log("Button: mouseleave", evt));
+    return button;
 }
 
 animator.play(Ax

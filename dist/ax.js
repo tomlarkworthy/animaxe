@@ -65,7 +65,7 @@ var Ax =
 	exports.DEBUG_LOOP = false;
 	exports.DEBUG_THEN = false;
 	exports.DEBUG_EMIT = false;
-	exports.DEBUG_EVENTS = true;
+	exports.DEBUG_EVENTS = false;
 	exports.DEBUG = false;
 	console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 	/**
@@ -498,13 +498,18 @@ var Ax =
 	    };
 	    Animator.prototype.mousedown = function (x, y) {
 	        if (exports.DEBUG_EVENTS)
-	            console.log("mousedown", x, y);
+	            console.log("Animator: mousedown", x, y);
 	        this.events.mousedowns.push([x, y]);
 	    };
 	    Animator.prototype.mouseup = function (x, y) {
 	        if (exports.DEBUG_EVENTS)
-	            console.log("mouseup", x, y);
+	            console.log("Animator: mouseup", x, y);
 	        this.events.mouseups.push([x, y]);
+	    };
+	    Animator.prototype.onmousemove = function (x, y) {
+	        if (exports.DEBUG_EVENTS)
+	            console.log("Animator: mousemoved", x, y);
+	        this.events.mousemoves.push([x, y]);
 	    };
 	    /**
 	     * Attaches listener for a canvas which will be propogated during ticks to animators that take input, e.g. UI
@@ -514,6 +519,7 @@ var Ax =
 	        var rect = canvas.getBoundingClientRect(); // you have to correct for padding, todo this might get stale
 	        canvas.onmousedown = function (evt) { return self.mousedown(evt.clientX - rect.left, evt.clientY - rect.top); };
 	        canvas.onmouseup = function (evt) { return self.mouseup(evt.clientX - rect.left, evt.clientY - rect.top); };
+	        canvas.onmousemove = function (evt) { return self.onmousemove(evt.clientX - rect.left, evt.clientY - rect.top); };
 	    };
 	    return Animator;
 	})();
@@ -1594,28 +1600,98 @@ var Ax =
 
 /***/ },
 /* 3 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
+	var Ax = __webpack_require__(1);
 	/**
-	 *
+	 * Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
+	 * originating from the canvas DOM. These have to be intepreted by UI components to see if they hit
 	 */
 	var Events = (function () {
 	    function Events() {
 	        this.mousedowns = [];
 	        this.mouseups = [];
+	        this.mousemoves = [];
+	        this.mouseenters = [];
+	        this.mouseleaves = [];
 	    }
+	    //onmouseover: Ax.Point[] = []; to implement these we need to think about heirarchy in components
+	    //onmouseout: Ax.Point[] = [];
 	    /**
 	     * clear all the events, done by animator at the end of a tick
 	     */
 	    Events.prototype.clear = function () {
 	        this.mousedowns = [];
 	        this.mouseups = [];
+	        this.mousemoves = [];
+	        this.mouseenters = [];
+	        this.mouseleaves = [];
 	    };
 	    return Events;
 	})();
 	exports.Events = Events;
+	var ComponentMouseEvents = (function () {
+	    function ComponentMouseEvents(source) {
+	        this.source = source;
+	        this.mousedown = new Rx.Subject();
+	        this.mouseup = new Rx.Subject();
+	        this.mousemove = new Rx.Subject();
+	        this.mouseenter = new Rx.Subject();
+	        this.mouseleave = new Rx.Subject();
+	    }
+	    return ComponentMouseEvents;
+	})();
+	exports.ComponentMouseEvents = ComponentMouseEvents;
+	/**
+	 * returns an animation that can be pipelined after a path, which used canvas isPointInPath to detect if a mouse event has
+	 * occured over the source animation
+	 */
+	function ComponentMouseEventHandler(events) {
+	    return Ax.draw(function () {
+	        var mouseIsOver = false;
+	        return function (tick) {
+	            function processSystemMouseEvents(sourceEvents, componentEventStream) {
+	                sourceEvents.forEach(function (evt) {
+	                    if (componentEventStream.hasObservers() && tick.ctx.isPointInPath(evt[0], evt[1])) {
+	                        // we have to figure out the global position of this component, so the x and y
+	                        // have to go backward through the transform matrix
+	                        // ^ todo
+	                        console.log("HIT", evt, componentEventStream);
+	                        var localEvent = new AxMouseEvent(events.source, /*todo*/ [0, 0], evt);
+	                        componentEventStream.onNext(localEvent);
+	                    }
+	                });
+	            }
+	            function processSystemMouseMoveEvents(sourceMoveEvents, mousemoveStream, mouseenterStream, mouseleaveStream) {
+	                sourceMoveEvents.forEach(function (evt) {
+	                    if (mousemoveStream.hasObservers() || mouseenterStream.hasObservers() || mouseleaveStream.hasObservers()) {
+	                        var pointInPath = tick.ctx.isPointInPath(evt[0], evt[1]);
+	                        var localEvent = new AxMouseEvent(events.source, /*todo*/ [0, 0], evt);
+	                        if (mouseenterStream.hasObservers() && pointInPath && !mouseIsOver) {
+	                            mouseenterStream.onNext(localEvent);
+	                        }
+	                        if (mousemoveStream.hasObservers() && pointInPath) {
+	                            mousemoveStream.onNext(localEvent);
+	                        }
+	                        if (mouseleaveStream.hasObservers() && !pointInPath && mouseIsOver) {
+	                            mouseleaveStream.onNext(localEvent);
+	                        }
+	                        mouseIsOver = pointInPath;
+	                    }
+	                });
+	            }
+	            processSystemMouseEvents(tick.events.mousedowns, events.mousedown);
+	            processSystemMouseEvents(tick.events.mouseups, events.mouseup);
+	            processSystemMouseMoveEvents(tick.events.mousemoves, events.mousemove, events.mouseenter, events.mouseleave);
+	        };
+	    });
+	}
+	exports.ComponentMouseEventHandler = ComponentMouseEventHandler;
 	var AxMouseEvent = (function () {
-	    function AxMouseEvent() {
+	    function AxMouseEvent(source, localPos, globalPos) {
+	        this.source = source;
+	        this.localPos = localPos;
+	        this.globalPos = globalPos;
 	    }
 	    return AxMouseEvent;
 	})();

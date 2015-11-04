@@ -297,6 +297,7 @@ export declare class Animator {
     play(animation: Animation): Rx.IDisposable;
     mousedown(x: number, y: number): void;
     mouseup(x: number, y: number): void;
+    onmousemove(x: number, y: number): void;
     /**
      * Attaches listener for a canvas which will be propogated during ticks to animators that take input, e.g. UI
      */

@@ -17,33 +17,27 @@ var Button = (function (_super) {
             .lineTo([20, 20])
             .lineTo([0, 20])
             .lineTo([0, 0]));
-        this.mousedown = new Rx.Subject();
-        this.mouseup = new Rx.Subject();
+        this.events = new events.ComponentMouseEvents(this);
         var button = this;
         // build the animations either side of the hot spot,
         // and use the total animation's attach function as the animation primative for this class
         _super.call(this, Ax
             .fillStyle(Parameter.rgba(255, 0, 0, 0.5))
             .pipe(this.hotspot)
-            .draw(function () {
-            return function (tick) {
-                tick.events.mousedowns.forEach(function (evt) {
-                    if (tick.ctx.isPointInPath(evt[0], evt[1])) {
-                        // we have to figure out the global position of this component, so the clientX and clientY
-                        // have to go backward through the transform matrix
-                        // ^ todo
-                        console.log("HIT mouse down", evt);
-                    }
-                });
-            };
-        })
+            .pipe(events.ComponentMouseEventHandler(button.events))
             .fill()
             .attach);
     }
     return Button;
 })(Ax.Animation);
 function button() {
-    return new Button();
+    var button = new Button();
+    button.events.mousedown.subscribe(function (evt) { return console.log("Button: mousedown", evt); });
+    button.events.mouseup.subscribe(function (evt) { return console.log("Button: mouseup", evt); });
+    button.events.mousemove.subscribe(function (evt) { return console.log("Button: mousemove", evt); });
+    button.events.mouseenter.subscribe(function (evt) { return console.log("Button: mouseenter", evt); });
+    button.events.mouseleave.subscribe(function (evt) { return console.log("Button: mouseleave", evt); });
+    return button;
 }
 animator.play(Ax
     .translate([0, 0])

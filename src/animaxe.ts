@@ -7,7 +7,7 @@ import Parameter = require('./parameter');
 export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
 export var DEBUG_EMIT = false;
-export var DEBUG_EVENTS = true;
+export var DEBUG_EVENTS = false;
 export var DEBUG = false;
 
 console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
@@ -525,12 +525,16 @@ export class Animator {
     }
 
     mousedown (x: number, y: number) {
-        if (DEBUG_EVENTS) console.log("mousedown", x, y);
+        if (DEBUG_EVENTS) console.log("Animator: mousedown", x, y);
         this.events.mousedowns.push([x, y]);
     }
     mouseup (x: number, y: number) {
-        if (DEBUG_EVENTS) console.log("mouseup", x, y);
+        if (DEBUG_EVENTS) console.log("Animator: mouseup", x, y);
         this.events.mouseups.push([x, y]);
+    }
+    onmousemove (x: number, y: number) {
+        if (DEBUG_EVENTS) console.log("Animator: mousemoved", x, y);
+        this.events.mousemoves.push([x, y]);
     }
 
 
@@ -540,8 +544,9 @@ export class Animator {
     registerEvents(canvas:any): void {
         var self = this;
         var rect = canvas.getBoundingClientRect(); // you have to correct for padding, todo this might get stale
-        canvas.onmousedown = evt => self.mousedown(evt.clientX - rect.left, evt.clientY - rect.top);
-        canvas.onmouseup = evt => self.mouseup(evt.clientX - rect.left, evt.clientY - rect.top);
+        canvas.onmousedown   = evt => self.mousedown  (evt.clientX - rect.left, evt.clientY - rect.top);
+        canvas.onmouseup     = evt => self.mouseup    (evt.clientX - rect.left, evt.clientY - rect.top);
+        canvas.onmousemove   = evt => self.onmousemove(evt.clientX - rect.left, evt.clientY - rect.top);
     }
 }
 

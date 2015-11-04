@@ -5,7 +5,7 @@
 // Glow
     // different distance exponents are interesting
     // think about alpha over existing backgrounds
-    // fix effieciency
+    // fix effiency bounds
 
 // Reflection
 // L systems (fold?)
@@ -31,8 +31,9 @@
 // - fix all examples with codepen
 // TODO packaging
 - each helper library includes the main animaxe library, we need to make those smaller using external modules
-- I don;t like the webpack names have to be different
-- Test npm intergration
+- I don't like the webpack names have to be different
+- Test npm integration
+// ES6 modules? Can we make the packaging equivalent? Maybe jsut a browser & and node.js directory structure?
 
 
 // Engineering
@@ -57,6 +58,7 @@
 // maybe put context methods in their own namespace if possible? (long term goal)
 // consider hiding time from Animation? It should only be used in params
 // simplifying closure situation? Maybe handle params internally through DI?
+// the tick in animator is ugly
 
 // Marketing
 

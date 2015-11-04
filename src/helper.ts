@@ -31,7 +31,6 @@ export function getExampleAnimator(width: number = 100, height: number = 100): A
 export function playExample(name: string, frames: number, animator: Ax.Animator, width ?: number, height ?: number) {
     try {
         //browser
-        var offset = new Date().getTime();
         var time;
         var render = function() {
             window.requestAnimationFrame(render);
