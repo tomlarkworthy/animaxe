@@ -135,6 +135,7 @@ var helper =
 	exports.DEBUG_LOOP = false;
 	exports.DEBUG_THEN = false;
 	exports.DEBUG_EMIT = false;
+	exports.DEBUG_PARALLEL = false;
 	exports.DEBUG_EVENTS = false;
 	exports.DEBUG = false;
 	console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
@@ -649,13 +650,15 @@ var helper =
 	 */
 	function parallel(animations) {
 	    return new Animation(function (prev) {
-	        if (exports.DEBUG_EMIT)
+	        if (exports.DEBUG_PARALLEL)
 	            console.log("parallel: initializing");
 	        var activeAnimations = 0;
 	        var attachPoint = new Rx.Subject();
-	        function decrementActive() {
-	            if (exports.DEBUG_EMIT)
+	        function decrementActive(err) {
+	            if (exports.DEBUG_PARALLEL)
 	                console.log("parallel: decrement active");
+	            if (err)
+	                console.log("parallel error:", err);
 	            activeAnimations--;
 	        }
 	        animations.forEach(function (animation) {
@@ -663,10 +666,10 @@ var helper =
 	            animation.attach(attachPoint.tapOnNext(function (tick) { return tick.ctx.save(); })).subscribe(function (tick) { return tick.ctx.restore(); }, decrementActive, decrementActive);
 	        });
 	        return prev.takeWhile(function () { return activeAnimations > 0; }).tapOnNext(function (tick) {
-	            if (exports.DEBUG_EMIT)
+	            if (exports.DEBUG_PARALLEL)
 	                console.log("parallel: emitting, animations", tick);
 	            attachPoint.onNext(tick);
-	            if (exports.DEBUG_EMIT)
+	            if (exports.DEBUG_PARALLEL)
 	                console.log("parallel: emitting finished");
 	        });
 	    });
@@ -788,16 +791,20 @@ var helper =
 	exports.translate = translate;
 	function globalCompositeOperation(composite_mode) {
 	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("globalCompositeOperation: attached");
 	        return function (tick) {
+	            if (exports.DEBUG)
+	                console.log("globalCompositeOperation: globalCompositeOperation");
 	            tick.ctx.globalCompositeOperation = composite_mode;
 	        };
 	    });
 	}
 	exports.globalCompositeOperation = globalCompositeOperation;
 	function velocity(velocity) {
-	    if (exports.DEBUG)
-	        console.log("velocity: attached");
 	    return draw(function () {
+	        if (exports.DEBUG)
+	            console.log("velocity: attached");
 	        var pos = [0.0, 0.0];
 	        var velocity_next = Parameter.from(velocity).init();
 	        return function (tick) {
@@ -7787,7 +7794,7 @@ var helper =
 	      m3scratch[4] = d;
 	      m3scratch[5] = f;
 
-	      mat3.multiply(mat, math, m3scratch);
+	      mat3.multiply(mat, mat, m3scratch);
 	      return transform.call(ctx, a, b, c, d, e, f);
 	    };
 	  })(ctx.transform);

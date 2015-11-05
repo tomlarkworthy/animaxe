@@ -6,6 +6,7 @@ import Parameter = require('./parameter');
 export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare var DEBUG_EMIT: boolean;
+export declare var DEBUG_PARALLEL: boolean;
 export declare var DEBUG_EVENTS: boolean;
 export declare var DEBUG: boolean;
 /**

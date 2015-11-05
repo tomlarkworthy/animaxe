@@ -12,7 +12,7 @@ export function getExampleAnimator(width: number = 100, height: number = 100): A
         console.log("browser", canvas);
         var context: CanvasRenderingContext2D = canvas.getContext('2d');
 
-        require('ctx-get-transform')(context); //monkey patch context to get transform tracking
+        require('ctx-get-transform-bugfix')(context); //monkey patch context to get transform tracking
 
         var animator =  new Ax.Animator(context);
 
@@ -27,7 +27,7 @@ export function getExampleAnimator(width: number = 100, height: number = 100): A
         console.log("node", canvas);
 
         var context: CanvasRenderingContext2D = canvas.getContext('2d');
-        require('ctx-get-transform')(context); //monkey patch context to get transform tracking
+        require('ctx-get-transform-bugfix')(context); //monkey patch context to get transform tracking
         return new Ax.Animator(context);
     }
 }

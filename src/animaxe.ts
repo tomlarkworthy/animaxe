@@ -7,6 +7,7 @@ import Parameter = require('./parameter');
 export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
 export var DEBUG_EMIT = false;
+export var DEBUG_PARALLEL = false;
 export var DEBUG_EVENTS = false;
 export var DEBUG = false;
 
@@ -608,13 +609,14 @@ export function parallel(
 ): Animation
 {
     return new Animation(function (prev: TickStream): TickStream {
-        if (DEBUG_EMIT) console.log("parallel: initializing");
+        if (DEBUG_PARALLEL) console.log("parallel: initializing");
 
         var activeAnimations = 0;
         var attachPoint = new Rx.Subject<Tick>();
 
-        function decrementActive() {
-            if (DEBUG_EMIT) console.log("parallel: decrement active");
+        function decrementActive(err ?: any) {
+            if (DEBUG_PARALLEL) console.log("parallel: decrement active");
+            if (err) console.log("parallel error:", err);
             activeAnimations --;
         }
 
@@ -627,9 +629,9 @@ export function parallel(
         });
 
         return prev.takeWhile(() => activeAnimations > 0).tapOnNext(function(tick: Tick) {
-                if (DEBUG_EMIT) console.log("parallel: emitting, animations", tick);
+                if (DEBUG_PARALLEL) console.log("parallel: emitting, animations", tick);
                 attachPoint.onNext(tick);
-                if (DEBUG_EMIT) console.log("parallel: emitting finished");
+                if (DEBUG_PARALLEL) console.log("parallel: emitting finished");
             }
         );
     });
@@ -768,7 +770,9 @@ export function globalCompositeOperation(
 ): Animation {
     return draw(
         () => {
+            if (DEBUG) console.log("globalCompositeOperation: attached");
             return function(tick) {
+                if (DEBUG) console.log("globalCompositeOperation: globalCompositeOperation");
                 tick.ctx.globalCompositeOperation = composite_mode;
             }
         }
@@ -779,9 +783,9 @@ export function globalCompositeOperation(
 export function velocity(
     velocity: PointArg
 ): Animation {
-    if (DEBUG) console.log("velocity: attached");
     return draw(
         () => {
+            if (DEBUG) console.log("velocity: attached");
             var pos: Point = [0.0,0.0];
             var velocity_next = Parameter.from(velocity).init();
             return function(tick) {
