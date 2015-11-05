@@ -1,6 +1,6 @@
 {
   "name": "animaxe",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A vector drawing library across time. A functional reactive approach to animation.",
   "author": "Tom Larkworthy",
   "license": "MIT",

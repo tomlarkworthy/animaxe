@@ -32,7 +32,7 @@ Ax.fillStyle("red")
   .fillRect([0,0], [10,10]);
 ```
 
-Its worth noting almost every parameter in Animaxe can be a literal, like in the above, OR, it can be dynamic. The Parameter module is the entrance to 
+It's worth noting almost every parameter in Animaxe can be a literal, like in the above, OR, it can be dynamic. The Parameter module is the entrance to 
 time varying functions, which can also be chained together with the normal functional primatives.
 
 
@@ -110,6 +110,11 @@ import helper = require("animaxe/dist/helper");
 ```
 
 The definitions are also in dist.
+
+
+API
+-----
+Its being changed a lot but it's [here](https://animaxe.firebaseapp.com/)
 
 
 TODOS

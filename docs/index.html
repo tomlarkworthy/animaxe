@@ -66,84 +66,153 @@
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
 				<h1 id="animaxe-composable-animation-library">Animaxe, Composable Animation Library</h1>
-				<p>Drawing APIs suck, they are full of hidden state and have no opinion on the arrow of time.</p>
-				<p>Animaxe is an experiment to generalise drawing primatives across time, using a functional reactive paradigm (FRP).</p>
+				<p>The aim of Animaxe is to be a few things:</p>
+				<ul>
+					<li>Make it easy to create animations that are composable. </li>
+					<li>Be a nicer API for the Canvas drawing API</li>
+					<li>Be reactive, every parameter to every animation primative should be alterable at any time</li>
+					<li>Be functional, a lot of inspiration is drawn from Functional Reactive Programming, although the intention is not to be too pure</li>
+					<li>Be efficient</li>
+					<li>Be typed using Typescript</li>
+				</ul>
 				<p>Now you can compose animations <em>functionally</em>. Ideal for procedural and <em>interactive</em> animations.</p>
 				<p>Its still very early on this project, the basic building blocks are not complete, and the repository layout is not useful for libraries to link to. However, the following is a proof-of-concept for the API feel. Maybe you want to contribute?</p>
-				<h2 id="tutorial-1-render-to-animated-gif-in-nodejs">Tutorial 1 - render to animated gif in nodejs</h2>
-				<p>First wrap a CanvasRendering2D in a Animator, the schedular for animations. Later the animator will trigger rendering routines when connected to a number source (the time delta ticker). On a delta time tick, the animator passes the drawing context down the reactive animation pipeline.</p>
-				<pre><code><span class="hljs-keyword">var</span> Canvas = <span class="hljs-built_in">require</span>(<span class="hljs-string">'canvas'</span>);
-<span class="hljs-keyword">var</span> canvas = <span class="hljs-keyword">new</span> Canvas(<span class="hljs-number">100</span>, <span class="hljs-number">100</span>);
-<span class="hljs-keyword">var</span> context: CanvasRenderingContext2D = canvas.getContext(<span class="hljs-string">'2d'</span>);
-<span class="hljs-keyword">var</span> animator: Animator = <span class="hljs-keyword">new</span> Animator(context);
-</code></pre><p>Next we setup the animations. There are two major classes of thing in library:</p>
+				<h2 id="being-a-better-canvas-api">Being a better Canvas API</h2>
+				<p>Instead of the procedural style of drawing that the Canvas API uses, we chain. So instead of:</p>
+				<pre><code>ctx.fillStyle = <span class="hljs-string">"red"</span>;
+ctx.translate(<span class="hljs-number">30</span>, <span class="hljs-number">45</span>);
+ctx.fillRect(<span class="hljs-number">0</span>,<span class="hljs-number">0</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>)
+</code></pre><p>In Animaxe we use the Ax module as the entrace to an animation chain. We use the same identifiers as the Canvas API, so it becomes</p>
+				<pre><code>Ax.fillStyle(<span class="hljs-string">"red"</span>)
+  .translate([<span class="hljs-number">30</span>, <span class="hljs-number">45</span>])
+  .fillRect([<span class="hljs-number">0</span>,<span class="hljs-number">0</span>], [<span class="hljs-number">10</span>,<span class="hljs-number">10</span>]);
+</code></pre><p>It&#39;s worth noting almost every parameter in Animaxe can be a literal, like in the above, OR, it can be dynamic. The Parameter module is the entrance to 
+				time varying functions, which can also be chained together with the normal functional primatives.</p>
+				<p>For example, a fading in an out example:</p>
+				<pre><code>Ax.fillStyle(Parameter.rgba(<span class="hljs-number">255</span>, <span class="hljs-number">255</span>, <span class="hljs-number">255</span>, Parameter.<span class="hljs-built_in">sin</span>(Parameter.t())))
+  .translate(Parameter.point(<span class="hljs-number">30</span>, Parameter.<span class="hljs-built_in">sin</span>(<span class="hljs-number">30</span>).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">50</span>)))
+  .fillRect([<span class="hljs-number">0</span>,<span class="hljs-number">0</span>], [<span class="hljs-number">10</span>,<span class="hljs-number">10</span>]);
+</code></pre><h2 id="examples">Examples</h2>
+				<p>Example 1 - Basic animation compositions
+				(<a href="./test/example1.ts">source</a>)</p>
+				<p><img src="./images/example1.gif?raw=true" alt="Example1"></p>
+				<p>Example 2 - Skewing time and dynamic colors
+				(<a href="./test/example2.ts">source</a>)</p>
+				<p><img src="./images/example2.gif?raw=true" alt="Example2"></p>
+				<p>Example 3 - Particles
+					(<a href="./test/example3.ts">source</a>)
+				(<a href="http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101">edit on Codepen</a>)</p>
+				<p><img src="./images/example3.gif?raw=true" alt="Example3"></p>
+				<p>Example 4 - Glow filter
+				(<a href="./test/example4.ts">source</a>)</p>
+				<p><img src="./images/example4.gif?raw=true" alt="Example4"></p>
+				<p>Example 5 - UI control
+				(<a href="./test/example5.ts">source</a>)</p>
+				<p><img src="./images/example5.gif?raw=true" alt="Example5"></p>
+				<p>We have some examples in the test directory written in Typescript.
+				You can use the babel preprocessor within Codepen quite well:</p>
+				<h2 id="using-on-web">Using on web</h2>
+				<p>Animaxe is written with commonjs modules, so for web distribution its webpacked.
+				So an alternative set of libraries should be used in script tags</p>
+				<pre><code><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"rx/dist/rx.all.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"animaxe/dist/ax.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span> <span class="hljs-comment">&lt;!-- exposes "var Ax" --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"animaxe/dist/px.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span> <span class="hljs-comment">&lt;!-- exposes "var Parameter" --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"animaxe/dist/hx.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span> <span class="hljs-comment">&lt;!-- exposes "var helper" --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"animaxe/dist/ex.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span> <span class="hljs-comment">&lt;!-- exposes "var events" --&gt;</span>
+</code></pre><h2 id="using-with-typescript-in-node-js">Using with Typescript in node.js</h2>
+				<p>Animations are rendered using canvas. Its a bitch to install. You should require() within a Typescript environment</p>
+				<pre><code><span class="hljs-keyword">import</span> <span class="hljs-literal">Rx</span> = <span class="hljs-keyword">require</span>(<span class="hljs-string">"rx"</span>);
+<span class="hljs-keyword">import</span> Ax = <span class="hljs-keyword">require</span>(<span class="hljs-string">"animaxe/dist/animaxe"</span>);
+<span class="hljs-keyword">import</span> events = <span class="hljs-keyword">require</span>(<span class="hljs-string">"animaxe/dist/events"</span>);
+<span class="hljs-keyword">import</span> Parameter = <span class="hljs-keyword">require</span>(<span class="hljs-string">"animaxe/dist/parameter"</span>);
+<span class="hljs-keyword">import</span> helper = <span class="hljs-keyword">require</span>(<span class="hljs-string">"animaxe/dist/helper"</span>);
+</code></pre><p>The definitions are also in dist.</p>
+				<h2 id="api">API</h2>
+				<p>Its being changed a lot but its <a href="https://animaxe.firebaseapp.com/">here</a></p>
+				<h1 id="todos">TODOS</h1>
+				<h2 id="packaging">Packaging</h2>
 				<ul>
-					<li>animations, drawing context push pipelines with a temporal lifecycle.</li>
-					<li>pull streams, used for parameters and arithmatic for animations</li>
+					<li>I don&#39;t like the webpack names have to be different</li>
+					<li>Test npm integration</li>
+					<li>ES6 modules? Can we make the packaging equivalent? Maybe jsut a browser &amp; and node.js directory structure?</li>
 				</ul>
-				<p>Both these models support functional concepts. First we setup some push math routines.</p>
-				<pre><code><span class="hljs-comment">// create some time varying functions, syncronised to the the animator's clock</span>
-var bigSin = <span class="hljs-built_in">sin</span>(<span class="hljs-number">1</span>, animator.clock()).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">40</span> + <span class="hljs-number">50</span>);
-var bigCos = <span class="hljs-built_in">cos</span>(<span class="hljs-number">1</span>, animator.clock()).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">40</span> + <span class="hljs-number">50</span>);
-var red    = <span class="hljs-built_in">sin</span>(<span class="hljs-number">2</span>, animator.clock()).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">125</span> + <span class="hljs-number">125</span>);
-var green  = <span class="hljs-built_in">sin</span>(<span class="hljs-number">2</span>, animator.clock()).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">55</span> + <span class="hljs-number">200</span>);
-</code></pre><p>Now we use those functions to build animations. Most animations take parameters, you can use either literals, or push streams <code>type NumberStream = Iterable&lt;number&gt;)</code>. We start with a 2 frame basic animation of a spark.</p>
-				<pre><code><span class="hljs-comment">// two frame animation of a spark</span>
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">spark</span><span class="hljs-params">(css_color: string | ColorStream)</span><span class="hljs-type">: Animation</span> </span>{
-    <span class="hljs-keyword">var</span> css: ColorStream = toStreamColor(css_color);
-    <span class="hljs-comment">// we build an animation by composing existing animation functions</span>
-    <span class="hljs-comment">// draw(fn, anim) takes a function taking a DrawTick and returns an infinite</span>
-    <span class="hljs-comment">// animation which applies the drawing function every frame</span>
-    <span class="hljs-comment">// take(n, anim) does no drawing itself, but passes only n frame of animation</span>
-    <span class="hljs-comment">// to its only child</span>
-    <span class="hljs-comment">// anim.then(anim) sequences a second animation to play after the first</span>
-    <span class="hljs-comment">// completes</span>
-    <span class="hljs-keyword">return</span> take(<span class="hljs-number">1</span>, draw(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(tick: DrawTick)</span> </span>{
-            console.log(<span class="hljs-string">"spark: frame1"</span>, css.next());
-            tick.ctx.fillStyle = css.next(); <span class="hljs-comment">//pull value out of param stream</span>
-            tick.ctx.fillRect(-<span class="hljs-number">2</span>,-<span class="hljs-number">2</span>,<span class="hljs-number">5</span>,<span class="hljs-number">5</span>); <span class="hljs-comment">//big rectangle</span>
-    })).then(
-        take(<span class="hljs-number">1</span>, draw(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(tick: DrawTick)</span> </span>{
-            console.log(<span class="hljs-string">"spark: frame2"</span>, css.next());
-            tick.ctx.fillStyle = css.next(); <span class="hljs-comment">//pull value out of param stream</span>
-            tick.ctx.fillRect(-<span class="hljs-number">1</span>,-<span class="hljs-number">1</span>,<span class="hljs-number">3</span>,<span class="hljs-number">3</span>); <span class="hljs-comment">//small rectange</span>
-        }))
-    );
-}
-</code></pre><p>With a basic 2 frame animation building block we can now apply that animation in a variety of dynamic ways. <code>loop</code> is very handy for resequencing a child animation after it finishes.</p>
-				<p>When an animation pipeline is built up, you pass the animation tree to the animator to play it.</p>
-				<pre><code><span class="hljs-comment">// draw black background forever</span>
-animator<span class="hljs-class">.play</span>(<span class="hljs-function">changeColor</span>("<span class="hljs-id">#000000</span>", <span class="hljs-function">rect</span>(<span class="hljs-attr_selector">[0,0]</span>,<span class="hljs-attr_selector">[100,100]</span>)));
-<span class="hljs-comment">// animate a spark following a circular path, in dynamic colors</span>
-animator<span class="hljs-class">.play</span>(<span class="hljs-function">loop</span>(<span class="hljs-function">move</span>(<span class="hljs-function">point</span>(bigSin, bigCos), <span class="hljs-function">spark</span>(<span class="hljs-function">color</span>(red,green,0,0<span class="hljs-class">.5</span>)))));
-<span class="hljs-comment">// constant velocity from center (50,50) at (50, 0) pixels per second</span>
-animator<span class="hljs-class">.play</span>(<span class="hljs-function">move</span>(<span class="hljs-attr_selector">[50,50]</span>, <span class="hljs-function">velocity</span>(<span class="hljs-attr_selector">[50,0]</span>, <span class="hljs-function">loop</span>(<span class="hljs-function">spark</span>("<span class="hljs-id">#FFFFFF</span>")))));
-<span class="hljs-comment">// tween center to point on circle</span>
-animator<span class="hljs-class">.play</span>(<span class="hljs-function">tween_linear</span>(<span class="hljs-attr_selector">[50,50]</span>, <span class="hljs-function">point</span>(bigSin, bigCos), 1, <span class="hljs-function">loop</span>(<span class="hljs-function">spark</span>("red"))));
-</code></pre><p>Animations are anything that has a temporal lifecycle. There is one to save the screen into an animated gif.</p>
-				<pre><code>animator.play(save(<span class="hljs-number">100</span>, <span class="hljs-number">100</span>, <span class="hljs-string">"example1.gif"</span>));
-</code></pre><p>Finally an RxJS stream is used to drive the animators time ticker. The numbers represent the time (in seconds) between frames.</p>
-				<pre><code><span class="hljs-comment">// sumulating 2 seconds of time</span>
-animator.ticker(Rx.Observable.return(<span class="hljs-number">0.1</span>).repeat(<span class="hljs-number">20</span>));
-</code></pre><p>Voila, the result:</p>
-				<p>  <img src="../master/images/example1.gif?raw=true" alt="alt text" title="images/example1.gif"></p>
-				<p>If we are in a browser environment the delta time stream is useful for rendering as fast as possible! Temporal push streams like sin, or temporal animations like velocity use the time delta to produce framerate independant renderings.</p>
-				<pre><code><span class="hljs-comment">//browser</span>
-<span class="hljs-keyword">var</span> time;
-<span class="hljs-keyword">var</span> render = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
-    <span class="hljs-built_in">window</span>.requestAnimationFrame(render);
-    <span class="hljs-keyword">var</span> now = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>().getTime(),
-    dt = now - (time || now);
-    time = now;
-    animator.root.onNext(<span class="hljs-keyword">new</span> DrawTick(animator.ctx, dt/<span class="hljs-number">1000</span>));
-};
-render();
-</code></pre><h1 id="further-work">Further work</h1>
-				<p>So the idea is animations are driven by anything. User input, physics <em>etc.</em> The main focus ATM is</p>
+				<h2 id="glow">Glow</h2>
 				<ul>
-					<li>Better graphics, glow routines, polygon moves</li>
-					<li>Better learning resources, self-contained examples with gifs, and interactive examples on jsfiddle</li>
-					<li>Better build system, it&#39;s already continious (gulp watch), but iron out the wrinkles and modularise the tests</li>
+					<li>different distance exponents are interesting</li>
+					<li>think about alpha over existing backgrounds<ul>
+							<li>improve effeciency by calculating the glow envelope when applying it</li>
+						</ul>
+					</li>
+				</ul>
+				<h2 id="features">Features</h2>
+				<ul>
+					<li>Reflection</li>
+					<li>systems (fold?)</li>
+					<li>simulate a lazer show, XY parametric functions (Lissajous curves), intergrate with ODE solve</li>
+				</ul>
+				<h2 id="engineering">Engineering</h2>
+				<ul>
+					<li>figure out why example3 cannot have move than 1000 particles without a stack overflow</li>
+					<li>remove randomness (example 3) with a random seed (seed random with animation seed?) for repeatabe tests</li>
+					<li>replace parralel with its own internal animator OR make parallel the only option</li>
+				</ul>
+				<h2 id="refactors">Refactors</h2>
+				<ul>
+					<li>change order of playExample parameters</li>
+				</ul>
+				<ul>
+					<li>(done) Parameter to go in own module, params chained to make value read left to right</li>
+					<li>(done) Parameter.rnd().first()        // maybe we should just make it pure by seeding the rnd by epock or tree position?</li>
+					<li>(done) Parameter.rnd().map(x =&gt; x*x)</li>
+					<li>(done) Ax.Parameter() for construction</li>
+					<li>(done) Make methods chain as an alternative to wrapping, e.g. Ax.move(...).velocity(...)</li>
+					<li>(done) add .pipe(animation) so users can chain themselves</li>
+					<li>(partial) align names of methods with canvas context name, e.g. fillStyle(Color)<ul>
+							<li>finish that API!</li>
+							<li>withinClip, withinTx, (done) withinPath</li>
+							<li>createLinearGradient, createPattern(), createRadialGradient(), addColorStop(), isPointInPath(), measureText(), drawImage()</li>
+							<li>save() restore()</li>
+						</ul>
+					</li>
+					<li>maybe put context methods in their own namespace if possible? (long term goal)</li>
+					<li>consider hiding time from Animation? It should only be used in params</li>
+					<li>simplifying closure situation? Maybe handle params internally through DI?</li>
+					<li>the tick in animator is ugly</li>
+				</ul>
+				<h2 id="api-documentation">API documentation</h2>
+				<ul>
+					<li>method chaining</li>
+					<li>lifecycle</li>
+					<li>making your own Animation</li>
+					<li>making your own Parameters</li>
+					<li>overriding the prototype</li>
+					<li>using .pipe()</li>
+					<li>example of switching from the canvas API to a linear chain</li>
+					<li>how a new chain resets the context</li>
+					<li>using <a href="https://github.com/anthonydugois/svg-path-builder">https://github.com/anthonydugois/svg-path-builder</a></li>
+				</ul>
+				<h2 id="website">website</h2>
+				<ul>
+					<li>npm</li>
+				</ul>
+				<h2 id="code-pen-example">Code pen example</h2>
+				<ul>
+					<li>sync with codepen automatically</li>
+				</ul>
+				<h2 id="ui-controls">UI controls</h2>
+				<ul>
+					<li>slider</li>
+					<li>button</li>
+					<li>knob</li>
+					<li>(done) Default mouse behaviour.</li>
+					<li>(done) relative positions and transformation aware</li>
+				</ul>
+				<h2 id="random-ideas">Random IDEAS</h2>
+				<ul>
+					<li>PacMan</li>
+					<li>mouse input, tailing glow (remember to tween between rapid movements)</li>
+					<li>prerendering an animation for fast playback</li>
+					<li>SVG path parser for withinPath</li>
 				</ul>
 			</div>
 		</div>
