@@ -18,19 +18,25 @@ Examples
 -----------------------------------
 
 Example 1 - Basic animation compositions
+
 ![Example1](./images/example1.gif?raw=true)
 
-Example 2 - Skewing time
+Example 2 - Skewing time and dynamic colors
+
 ![Example2](./images/example2.gif?raw=true)
 
 Example 3 - Particles
+
 ![Example3](./images/example3.gif?raw=true)
+
 [Example 3 on Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101)
 
 Example 4 - Glow filter
+
 ![Example4](./images/example4.gif?raw=true)
 
 Example 5 - UI control
+
 ![Example5](./images/example5.gif?raw=true)
 
 
