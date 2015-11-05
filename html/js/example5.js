@@ -13,8 +13,8 @@ var Button = (function (_super) {
     function Button() {
         this.hotspot = Ax
             .withinPath(Ax
-            .lineTo([20, 0])
-            .lineTo([20, 20])
+            .lineTo([40, 0])
+            .lineTo([40, 20])
             .lineTo([0, 20])
             .lineTo([0, 0]));
         this.events = new events.ComponentMouseEvents(this);
@@ -40,7 +40,8 @@ function button() {
     return button;
 }
 animator.play(Ax
-    .translate([0, 0])
+    .translate([50, 50])
+    .rotate(Math.PI / 4)
     .pipe(button()));
 helper.playExample("example5", 1, animator, 100, 100);
 // 

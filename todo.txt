@@ -84,11 +84,6 @@ Improve README.me
 
 // Code pen example
 UI controls!
- - need to attach mouse events, to paths tests i.e. isPointInPath().
- - isPoint is tested when the path is drawn, so you have to know your going to test for a point before the animation loop draws, then do the test inline with the drawing
- - OR you just to the test on a line without doing a stroke.
- - lets think about the ideal API, :-
-
  We want to be able to package up a UI control. It has various animation states. An internal state. Its state can be changed with streams into it (e.g. its label)
 , also its internal state(s) are watchable with more streams. It also has hot spots for mouse clicks. So it has
 Different logical input and output streams.
@@ -96,13 +91,9 @@ Different logical input and output streams.
  - programatic click (input)
  - mouse events
  - relative mouse position (output)
-A number animations and transitions. (button down)
-Maybe some config (e.g. feature disable, max/min value)
-Default mouse behaviour.
-UI events like mouse should be consumed leaf upwards, with the option of propogating events or not. This is the opposite way round things are drawn.
 
-- Conclusion, UI components are their own bundle of resources, including animations.
-- We need access in the animation pipeline for the collision stuff though, but the UI can handle that itself
+(done) Default mouse behaviour.
+- todo relative positions and transformation aware
 
 // all sliders vertical, but you can transform using graphics?
 LinearSlider extends Animation

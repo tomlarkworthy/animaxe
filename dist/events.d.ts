@@ -1,5 +1,13 @@
+/// <reference path="../types/canvas.d.ts" />
 import Ax = require("./animaxe");
 export declare type SystemMouseEvents = Ax.Point[];
+/**
+ * [ a c e
+ *   b d f
+ *   0 0 1 ]
+ */
+export declare function frame2Canvas(canvas: Ax.Point, a: number, b: number, c: number, d: number, e: number, f: number): Ax.Point;
+export declare function canvas2Frame(screen: Ax.Point, a: number, b: number, c: number, d: number, e: number, f: number): Ax.Point;
 /**
  * Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
  * originating from the canvas DOM. These have to be intepreted by UI components to see if they hit

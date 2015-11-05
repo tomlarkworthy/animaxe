@@ -65,6 +65,7 @@ var helper =
 	        var canvas = document.getElementById("canvas");
 	        console.log("browser", canvas);
 	        var context = canvas.getContext('2d');
+	        __webpack_require__(34)(context); //monkey patch context to get transform tracking
 	        var animator = new Ax.Animator(context);
 	        animator.registerEvents(canvas);
 	        return animator;
@@ -77,6 +78,7 @@ var helper =
 	        var canvas = new Canvas(width, height);
 	        console.log("node", canvas);
 	        var context = canvas.getContext('2d');
+	        __webpack_require__(34)(context); //monkey patch context to get transform tracking
 	        return new Ax.Animator(context);
 	    }
 	}
@@ -107,7 +109,7 @@ var helper =
 	    }
 	    catch (err) {
 	        //node.js
-	        var cmp = __webpack_require__(34);
+	        var cmp = __webpack_require__(54);
 	        var file1 = "images/" + name + ".gif";
 	        var file2 = "images/" + ref + ".gif";
 	        return cmp.compare(file1, file2, cb);
@@ -449,8 +451,8 @@ var helper =
 	    /**
 	     * Dynamic chainable wrapper for rotate in the canvas API.
 	     */
-	    Animation.prototype.rotate = function (rads) {
-	        return this.pipe(rotate(rads));
+	    Animation.prototype.rotate = function (clockwiseRadians) {
+	        return this.pipe(rotate(clockwiseRadians));
 	    };
 	    /**
 	     * Dynamic chainable wrapper for translate in the canvas API.
@@ -1204,7 +1206,7 @@ var helper =
 	            var arg1 = arg1_next(tick.clock);
 	            if (exports.DEBUG)
 	                console.log("rotate: rotate", arg1);
-	            tick.ctx.scale(arg1[0], arg1[1]);
+	            tick.ctx.rotate(arg1);
 	        };
 	    });
 	}
@@ -1670,7 +1672,25 @@ var helper =
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/// <reference path="../types/canvas.d.ts" />
 	var Ax = __webpack_require__(2);
+	/**
+	 * [ a c e
+	 *   b d f
+	 *   0 0 1 ]
+	 */
+	function frame2Canvas(canvas, a, b, c, d, e, f) {
+	    var x = a * canvas[0] + c * canvas[1] + e;
+	    var y = b * canvas[0] + d * canvas[1] + f;
+	    return [x, y];
+	}
+	exports.frame2Canvas = frame2Canvas;
+	function canvas2Frame(screen, a, b, c, d, e, f) {
+	    // see http://stackoverflow.com/questions/10892267/html5-canvas-transformation-algorithm-finding-object-coordinates-after-applyin
+	    var M = (a * d - b * c);
+	    return frame2Canvas(screen, d / M, -b / M, -c / M, a / M, (c * f - d * e) / M, (b * e - a * f) / M);
+	}
+	exports.canvas2Frame = canvas2Frame;
 	/**
 	 * Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
 	 * originating from the canvas DOM. These have to be intepreted by UI components to see if they hit
@@ -1734,7 +1754,10 @@ var helper =
 	                sourceMoveEvents.forEach(function (evt) {
 	                    if (mousemoveStream.hasObservers() || mouseenterStream.hasObservers() || mouseleaveStream.hasObservers()) {
 	                        var pointInPath = tick.ctx.isPointInPath(evt[0], evt[1]);
-	                        var localEvent = new AxMouseEvent(events.source, /*todo*/ [0, 0], evt);
+	                        var tx = tick.ctx.getTransform();
+	                        //todo get canvas is a 3x3 matrix NOT the homogeneous elements of interest
+	                        console.log("tx", tx);
+	                        var localEvent = new AxMouseEvent(events.source, canvas2Frame(evt, tx[0], tx[1], tx[3], tx[4], tx[6], tx[7]), evt);
 	                        if (mouseenterStream.hasObservers() && pointInPath && !mouseIsOver) {
 	                            mouseenterStream.onNext(localEvent);
 	                        }
@@ -7692,6 +7715,741 @@ var helper =
 /* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var mat3 = __webpack_require__(35);
+
+	module.exports = monkeyPatchCtxToAddGetTransform;
+
+	function monkeyPatchCtxToAddGetTransform(ctx) {
+
+	  var mat = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+	  var stack = [];
+	  var v2scratch = [0, 0, 0];
+	  var m3scratch = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+
+	  ctx.getTransform = function tGetTransform() {
+	    return mat;
+	  };
+
+	  (function(save) {
+	    ctx.save = function tSave(){
+	      stack.push(mat3.clone(mat));
+	      return save.call(ctx);
+	    };
+	  })(ctx.save);
+
+	  (function(restore) {
+	    ctx.restore = function tRestore(){
+	      mat = stack.pop();
+	      return restore.call(ctx);
+	    };
+	  })(ctx.restore);
+
+	  (function(scale) {
+	    ctx.scale = function tScale(sx, sy){
+	      v2scratch[0] = sx;
+	      v2scratch[1] = sy;
+	      mat3.scale(mat, mat, v2scratch);
+	      return scale.call(ctx, sx, sy);
+	    };
+	  })(ctx.scale);
+
+	  (function(rotate) {
+	    ctx.rotate = function tRotate(radians){
+	      mat3.rotate(mat, mat, radians);
+	      return rotate.call(ctx, radians);
+	    };
+	  })(ctx.rotate);
+
+	  (function(translate) {
+	    ctx.translate = function tTranslate(dx, dy){
+	      v2scratch[0] = dx;
+	      v2scratch[1] = dy;
+
+	      mat3.translate(mat, mat, v2scratch);
+	      return translate.call(ctx, dx, dy);
+	    };
+	  })(ctx.translate);
+
+	  (function(transform) {
+	    ctx.transform = function tTransform(a, b, c, d, e, f){
+	      m3scratch[0] = a;
+	      m3scratch[1] = c;
+	      m3scratch[2] = e;
+	      m3scratch[3] = b;
+	      m3scratch[4] = d;
+	      m3scratch[5] = f;
+
+	      mat3.multiply(mat, math, m3scratch);
+	      return transform.call(ctx, a, b, c, d, e, f);
+	    };
+	  })(ctx.transform);
+
+	  (function(setTransform) {
+	    ctx.setTransform = function tSetTransform(a, b, c, d, e, f){
+	      mat[0] = a;
+	      mat[1] = c;
+	      mat[2] = e;
+	      mat[3] = b;
+	      mat[4] = d;
+	      mat[5] = f;
+	      return setTransform.call(ctx, a, b, c, d, e, f);
+	    };
+	  })(ctx.setTransform);
+
+	  return ctx;
+	}
+
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = {
+	  adjoint: __webpack_require__(36)
+	  , clone: __webpack_require__(37)
+	  , copy: __webpack_require__(38)
+	  , create: __webpack_require__(39)
+	  , determinant: __webpack_require__(40)
+	  , frob: __webpack_require__(41)
+	  , fromMat2: __webpack_require__(42)
+	  , fromMat4: __webpack_require__(43)
+	  , fromQuat: __webpack_require__(44)
+	  , identity: __webpack_require__(45)
+	  , invert: __webpack_require__(46)
+	  , multiply: __webpack_require__(47)
+	  , normalFromMat4: __webpack_require__(48)
+	  , rotate: __webpack_require__(49)
+	  , scale: __webpack_require__(50)
+	  , str: __webpack_require__(51)
+	  , translate: __webpack_require__(52)
+	  , transpose: __webpack_require__(53)
+	}
+
+
+/***/ },
+/* 36 */
+/***/ function(module, exports) {
+
+	module.exports = adjoint
+
+	/**
+	 * Calculates the adjugate of a mat3
+	 *
+	 * @alias mat3.adjoint
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	function adjoint(out, a) {
+	  var a00 = a[0], a01 = a[1], a02 = a[2]
+	  var a10 = a[3], a11 = a[4], a12 = a[5]
+	  var a20 = a[6], a21 = a[7], a22 = a[8]
+
+	  out[0] = (a11 * a22 - a12 * a21)
+	  out[1] = (a02 * a21 - a01 * a22)
+	  out[2] = (a01 * a12 - a02 * a11)
+	  out[3] = (a12 * a20 - a10 * a22)
+	  out[4] = (a00 * a22 - a02 * a20)
+	  out[5] = (a02 * a10 - a00 * a12)
+	  out[6] = (a10 * a21 - a11 * a20)
+	  out[7] = (a01 * a20 - a00 * a21)
+	  out[8] = (a00 * a11 - a01 * a10)
+
+	  return out
+	}
+
+
+/***/ },
+/* 37 */
+/***/ function(module, exports) {
+
+	module.exports = clone
+
+	/**
+	 * Creates a new mat3 initialized with values from an existing matrix
+	 *
+	 * @alias mat3.clone
+	 * @param {mat3} a matrix to clone
+	 * @returns {mat3} a new 3x3 matrix
+	 */
+	function clone(a) {
+	  var out = new Float32Array(9)
+	  out[0] = a[0]
+	  out[1] = a[1]
+	  out[2] = a[2]
+	  out[3] = a[3]
+	  out[4] = a[4]
+	  out[5] = a[5]
+	  out[6] = a[6]
+	  out[7] = a[7]
+	  out[8] = a[8]
+	  return out
+	}
+
+
+/***/ },
+/* 38 */
+/***/ function(module, exports) {
+
+	module.exports = copy
+
+	/**
+	 * Copy the values from one mat3 to another
+	 *
+	 * @alias mat3.copy
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	function copy(out, a) {
+	  out[0] = a[0]
+	  out[1] = a[1]
+	  out[2] = a[2]
+	  out[3] = a[3]
+	  out[4] = a[4]
+	  out[5] = a[5]
+	  out[6] = a[6]
+	  out[7] = a[7]
+	  out[8] = a[8]
+	  return out
+	}
+
+
+/***/ },
+/* 39 */
+/***/ function(module, exports) {
+
+	module.exports = create
+
+	/**
+	 * Creates a new identity mat3
+	 *
+	 * @alias mat3.create
+	 * @returns {mat3} a new 3x3 matrix
+	 */
+	function create() {
+	  var out = new Float32Array(9)
+	  out[0] = 1
+	  out[1] = 0
+	  out[2] = 0
+	  out[3] = 0
+	  out[4] = 1
+	  out[5] = 0
+	  out[6] = 0
+	  out[7] = 0
+	  out[8] = 1
+	  return out
+	}
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports) {
+
+	module.exports = determinant
+
+	/**
+	 * Calculates the determinant of a mat3
+	 *
+	 * @alias mat3.determinant
+	 * @param {mat3} a the source matrix
+	 * @returns {Number} determinant of a
+	 */
+	function determinant(a) {
+	  var a00 = a[0], a01 = a[1], a02 = a[2]
+	  var a10 = a[3], a11 = a[4], a12 = a[5]
+	  var a20 = a[6], a21 = a[7], a22 = a[8]
+
+	  return a00 * (a22 * a11 - a12 * a21)
+	       + a01 * (a12 * a20 - a22 * a10)
+	       + a02 * (a21 * a10 - a11 * a20)
+	}
+
+
+/***/ },
+/* 41 */
+/***/ function(module, exports) {
+
+	module.exports = frob
+
+	/**
+	 * Returns Frobenius norm of a mat3
+	 *
+	 * @alias mat3.frob
+	 * @param {mat3} a the matrix to calculate Frobenius norm of
+	 * @returns {Number} Frobenius norm
+	 */
+	function frob(a) {
+	  return Math.sqrt(
+	      a[0]*a[0]
+	    + a[1]*a[1]
+	    + a[2]*a[2]
+	    + a[3]*a[3]
+	    + a[4]*a[4]
+	    + a[5]*a[5]
+	    + a[6]*a[6]
+	    + a[7]*a[7]
+	    + a[8]*a[8]
+	  )
+	}
+
+
+/***/ },
+/* 42 */
+/***/ function(module, exports) {
+
+	module.exports = fromMat2d
+
+	/**
+	 * Copies the values from a mat2d into a mat3
+	 *
+	 * @alias mat3.fromMat2d
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat2d} a the matrix to copy
+	 * @returns {mat3} out
+	 **/
+	function fromMat2d(out, a) {
+	  out[0] = a[0]
+	  out[1] = a[1]
+	  out[2] = 0
+
+	  out[3] = a[2]
+	  out[4] = a[3]
+	  out[5] = 0
+
+	  out[6] = a[4]
+	  out[7] = a[5]
+	  out[8] = 1
+
+	  return out
+	}
+
+
+/***/ },
+/* 43 */
+/***/ function(module, exports) {
+
+	module.exports = fromMat4
+
+	/**
+	 * Copies the upper-left 3x3 values into the given mat3.
+	 *
+	 * @alias mat3.fromMat4
+	 * @param {mat3} out the receiving 3x3 matrix
+	 * @param {mat4} a   the source 4x4 matrix
+	 * @returns {mat3} out
+	 */
+	function fromMat4(out, a) {
+	  out[0] = a[0]
+	  out[1] = a[1]
+	  out[2] = a[2]
+	  out[3] = a[4]
+	  out[4] = a[5]
+	  out[5] = a[6]
+	  out[6] = a[8]
+	  out[7] = a[9]
+	  out[8] = a[10]
+	  return out
+	}
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports) {
+
+	module.exports = fromQuat
+
+	/**
+	* Calculates a 3x3 matrix from the given quaternion
+	*
+	* @alias mat3.fromQuat
+	* @param {mat3} out mat3 receiving operation result
+	* @param {quat} q Quaternion to create matrix from
+	*
+	* @returns {mat3} out
+	*/
+	function fromQuat(out, q) {
+	  var x = q[0]
+	  var y = q[1]
+	  var z = q[2]
+	  var w = q[3]
+
+	  var x2 = x + x
+	  var y2 = y + y
+	  var z2 = z + z
+
+	  var xx = x * x2
+	  var yx = y * x2
+	  var yy = y * y2
+	  var zx = z * x2
+	  var zy = z * y2
+	  var zz = z * z2
+	  var wx = w * x2
+	  var wy = w * y2
+	  var wz = w * z2
+
+	  out[0] = 1 - yy - zz
+	  out[3] = yx - wz
+	  out[6] = zx + wy
+
+	  out[1] = yx + wz
+	  out[4] = 1 - xx - zz
+	  out[7] = zy - wx
+
+	  out[2] = zx - wy
+	  out[5] = zy + wx
+	  out[8] = 1 - xx - yy
+
+	  return out
+	}
+
+
+/***/ },
+/* 45 */
+/***/ function(module, exports) {
+
+	module.exports = identity
+
+	/**
+	 * Set a mat3 to the identity matrix
+	 *
+	 * @alias mat3.identity
+	 * @param {mat3} out the receiving matrix
+	 * @returns {mat3} out
+	 */
+	function identity(out) {
+	  out[0] = 1
+	  out[1] = 0
+	  out[2] = 0
+	  out[3] = 0
+	  out[4] = 1
+	  out[5] = 0
+	  out[6] = 0
+	  out[7] = 0
+	  out[8] = 1
+	  return out
+	}
+
+
+/***/ },
+/* 46 */
+/***/ function(module, exports) {
+
+	module.exports = invert
+
+	/**
+	 * Inverts a mat3
+	 *
+	 * @alias mat3.invert
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	function invert(out, a) {
+	  var a00 = a[0], a01 = a[1], a02 = a[2]
+	  var a10 = a[3], a11 = a[4], a12 = a[5]
+	  var a20 = a[6], a21 = a[7], a22 = a[8]
+
+	  var b01 = a22 * a11 - a12 * a21
+	  var b11 = -a22 * a10 + a12 * a20
+	  var b21 = a21 * a10 - a11 * a20
+
+	  // Calculate the determinant
+	  var det = a00 * b01 + a01 * b11 + a02 * b21
+
+	  if (!det) return null
+	  det = 1.0 / det
+
+	  out[0] = b01 * det
+	  out[1] = (-a22 * a01 + a02 * a21) * det
+	  out[2] = (a12 * a01 - a02 * a11) * det
+	  out[3] = b11 * det
+	  out[4] = (a22 * a00 - a02 * a20) * det
+	  out[5] = (-a12 * a00 + a02 * a10) * det
+	  out[6] = b21 * det
+	  out[7] = (-a21 * a00 + a01 * a20) * det
+	  out[8] = (a11 * a00 - a01 * a10) * det
+
+	  return out
+	}
+
+
+/***/ },
+/* 47 */
+/***/ function(module, exports) {
+
+	module.exports = multiply
+
+	/**
+	 * Multiplies two mat3's
+	 *
+	 * @alias mat3.multiply
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the first operand
+	 * @param {mat3} b the second operand
+	 * @returns {mat3} out
+	 */
+	function multiply(out, a, b) {
+	  var a00 = a[0], a01 = a[1], a02 = a[2]
+	  var a10 = a[3], a11 = a[4], a12 = a[5]
+	  var a20 = a[6], a21 = a[7], a22 = a[8]
+
+	  var b00 = b[0], b01 = b[1], b02 = b[2]
+	  var b10 = b[3], b11 = b[4], b12 = b[5]
+	  var b20 = b[6], b21 = b[7], b22 = b[8]
+
+	  out[0] = b00 * a00 + b01 * a10 + b02 * a20
+	  out[1] = b00 * a01 + b01 * a11 + b02 * a21
+	  out[2] = b00 * a02 + b01 * a12 + b02 * a22
+
+	  out[3] = b10 * a00 + b11 * a10 + b12 * a20
+	  out[4] = b10 * a01 + b11 * a11 + b12 * a21
+	  out[5] = b10 * a02 + b11 * a12 + b12 * a22
+
+	  out[6] = b20 * a00 + b21 * a10 + b22 * a20
+	  out[7] = b20 * a01 + b21 * a11 + b22 * a21
+	  out[8] = b20 * a02 + b21 * a12 + b22 * a22
+
+	  return out
+	}
+
+
+/***/ },
+/* 48 */
+/***/ function(module, exports) {
+
+	module.exports = normalFromMat4
+
+	/**
+	* Calculates a 3x3 normal matrix (transpose inverse) from the 4x4 matrix
+	*
+	* @alias mat3.normalFromMat4
+	* @param {mat3} out mat3 receiving operation result
+	* @param {mat4} a Mat4 to derive the normal matrix from
+	*
+	* @returns {mat3} out
+	*/
+	function normalFromMat4(out, a) {
+	  var a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3]
+	  var a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7]
+	  var a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11]
+	  var a30 = a[12], a31 = a[13], a32 = a[14], a33 = a[15]
+
+	  var b00 = a00 * a11 - a01 * a10
+	  var b01 = a00 * a12 - a02 * a10
+	  var b02 = a00 * a13 - a03 * a10
+	  var b03 = a01 * a12 - a02 * a11
+	  var b04 = a01 * a13 - a03 * a11
+	  var b05 = a02 * a13 - a03 * a12
+	  var b06 = a20 * a31 - a21 * a30
+	  var b07 = a20 * a32 - a22 * a30
+	  var b08 = a20 * a33 - a23 * a30
+	  var b09 = a21 * a32 - a22 * a31
+	  var b10 = a21 * a33 - a23 * a31
+	  var b11 = a22 * a33 - a23 * a32
+
+	  // Calculate the determinant
+	  var det = b00 * b11
+	          - b01 * b10
+	          + b02 * b09
+	          + b03 * b08
+	          - b04 * b07
+	          + b05 * b06
+
+	  if (!det) return null
+	  det = 1.0 / det
+
+	  out[0] = (a11 * b11 - a12 * b10 + a13 * b09) * det
+	  out[1] = (a12 * b08 - a10 * b11 - a13 * b07) * det
+	  out[2] = (a10 * b10 - a11 * b08 + a13 * b06) * det
+
+	  out[3] = (a02 * b10 - a01 * b11 - a03 * b09) * det
+	  out[4] = (a00 * b11 - a02 * b08 + a03 * b07) * det
+	  out[5] = (a01 * b08 - a00 * b10 - a03 * b06) * det
+
+	  out[6] = (a31 * b05 - a32 * b04 + a33 * b03) * det
+	  out[7] = (a32 * b02 - a30 * b05 - a33 * b01) * det
+	  out[8] = (a30 * b04 - a31 * b02 + a33 * b00) * det
+
+	  return out
+	}
+
+
+/***/ },
+/* 49 */
+/***/ function(module, exports) {
+
+	module.exports = rotate
+
+	/**
+	 * Rotates a mat3 by the given angle
+	 *
+	 * @alias mat3.rotate
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the matrix to rotate
+	 * @param {Number} rad the angle to rotate the matrix by
+	 * @returns {mat3} out
+	 */
+	function rotate(out, a, rad) {
+	  var a00 = a[0], a01 = a[1], a02 = a[2]
+	  var a10 = a[3], a11 = a[4], a12 = a[5]
+	  var a20 = a[6], a21 = a[7], a22 = a[8]
+
+	  var s = Math.sin(rad)
+	  var c = Math.cos(rad)
+
+	  out[0] = c * a00 + s * a10
+	  out[1] = c * a01 + s * a11
+	  out[2] = c * a02 + s * a12
+
+	  out[3] = c * a10 - s * a00
+	  out[4] = c * a11 - s * a01
+	  out[5] = c * a12 - s * a02
+
+	  out[6] = a20
+	  out[7] = a21
+	  out[8] = a22
+
+	  return out
+	}
+
+
+/***/ },
+/* 50 */
+/***/ function(module, exports) {
+
+	module.exports = scale
+
+	/**
+	 * Scales the mat3 by the dimensions in the given vec2
+	 *
+	 * @alias mat3.scale
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the matrix to rotate
+	 * @param {vec2} v the vec2 to scale the matrix by
+	 * @returns {mat3} out
+	 **/
+	function scale(out, a, v) {
+	  var x = v[0]
+	  var y = v[1]
+
+	  out[0] = x * a[0]
+	  out[1] = x * a[1]
+	  out[2] = x * a[2]
+
+	  out[3] = y * a[3]
+	  out[4] = y * a[4]
+	  out[5] = y * a[5]
+
+	  out[6] = a[6]
+	  out[7] = a[7]
+	  out[8] = a[8]
+
+	  return out
+	}
+
+
+/***/ },
+/* 51 */
+/***/ function(module, exports) {
+
+	module.exports = str
+
+	/**
+	 * Returns a string representation of a mat3
+	 *
+	 * @alias mat3.str
+	 * @param {mat3} mat matrix to represent as a string
+	 * @returns {String} string representation of the matrix
+	 */
+	function str(a) {
+	  return 'mat3(' + a[0] + ', ' + a[1] + ', ' + a[2] + ', ' +
+	                   a[3] + ', ' + a[4] + ', ' + a[5] + ', ' +
+	                   a[6] + ', ' + a[7] + ', ' + a[8] + ')'
+	}
+
+
+/***/ },
+/* 52 */
+/***/ function(module, exports) {
+
+	module.exports = translate
+
+	/**
+	 * Translate a mat3 by the given vector
+	 *
+	 * @alias mat3.translate
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the matrix to translate
+	 * @param {vec2} v vector to translate by
+	 * @returns {mat3} out
+	 */
+	function translate(out, a, v) {
+	  var a00 = a[0], a01 = a[1], a02 = a[2]
+	  var a10 = a[3], a11 = a[4], a12 = a[5]
+	  var a20 = a[6], a21 = a[7], a22 = a[8]
+	  var x = v[0], y = v[1]
+
+	  out[0] = a00
+	  out[1] = a01
+	  out[2] = a02
+
+	  out[3] = a10
+	  out[4] = a11
+	  out[5] = a12
+
+	  out[6] = x * a00 + y * a10 + a20
+	  out[7] = x * a01 + y * a11 + a21
+	  out[8] = x * a02 + y * a12 + a22
+
+	  return out
+	}
+
+
+/***/ },
+/* 53 */
+/***/ function(module, exports) {
+
+	module.exports = transpose
+
+	/**
+	 * Transpose the values of a mat3
+	 *
+	 * @alias mat3.transpose
+	 * @param {mat3} out the receiving matrix
+	 * @param {mat3} a the source matrix
+	 * @returns {mat3} out
+	 */
+	function transpose(out, a) {
+	  // If we are transposing ourselves we can skip a few steps but have to cache some values
+	  if (out === a) {
+	    var a01 = a[1], a02 = a[2], a12 = a[5]
+	    out[1] = a[3]
+	    out[2] = a[6]
+	    out[3] = a01
+	    out[5] = a[7]
+	    out[6] = a02
+	    out[7] = a12
+	  } else {
+	    out[0] = a[0]
+	    out[1] = a[3]
+	    out[2] = a[6]
+	    out[3] = a[1]
+	    out[4] = a[4]
+	    out[5] = a[7]
+	    out[6] = a[2]
+	    out[7] = a[5]
+	    out[8] = a[8]
+	  }
+
+	  return out
+	}
+
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/**
 	 * Compare two files base on their computed hash rather than just size or timestamp
 	 * usage: compare(file1, file2, [algo], callback);
@@ -7705,7 +8463,7 @@ var helper =
 	 *       err - Error if there was a problem with the compare
 	 */
 	exports.compare = function() {
-	    var Args = __webpack_require__(35).Constructor;
+	    var Args = __webpack_require__(55).Constructor;
 
 	    /**
 	     * Common argument checking for crop and resize
@@ -7746,7 +8504,7 @@ var helper =
 	 * Create a new hash of given file name
 	 */
 	function computeHash(filename, algo, callback) {
-	    var crypto = __webpack_require__(36);
+	    var crypto = __webpack_require__(56);
 	    var fs = __webpack_require__(33);
 
 	    var chksum = crypto.createHash(algo);
@@ -7769,7 +8527,7 @@ var helper =
 
 
 /***/ },
-/* 35 */
+/* 55 */
 /***/ function(module, exports) {
 
 	//
@@ -7845,10 +8603,10 @@ var helper =
 
 
 /***/ },
-/* 36 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var rng = __webpack_require__(37)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var rng = __webpack_require__(57)
 
 	function error () {
 	  var m = [].slice.call(arguments).join(' ')
@@ -7859,9 +8617,9 @@ var helper =
 	    ].join('\n'))
 	}
 
-	exports.createHash = __webpack_require__(39)
+	exports.createHash = __webpack_require__(59)
 
-	exports.createHmac = __webpack_require__(51)
+	exports.createHmac = __webpack_require__(71)
 
 	exports.randomBytes = function(size, callback) {
 	  if (callback && callback.call) {
@@ -7882,7 +8640,7 @@ var helper =
 	  return ['sha1', 'sha256', 'sha512', 'md5', 'rmd160']
 	}
 
-	var p = __webpack_require__(52)(exports)
+	var p = __webpack_require__(72)(exports)
 	exports.pbkdf2 = p.pbkdf2
 	exports.pbkdf2Sync = p.pbkdf2Sync
 
@@ -7905,13 +8663,13 @@ var helper =
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8).Buffer))
 
 /***/ },
-/* 37 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, Buffer) {(function() {
 	  var g = ('undefined' === typeof window ? global : window) || {}
 	  _crypto = (
-	    g.crypto || g.msCrypto || __webpack_require__(38)
+	    g.crypto || g.msCrypto || __webpack_require__(58)
 	  )
 	  module.exports = function(size) {
 	    // Modern Browsers
@@ -7938,19 +8696,19 @@ var helper =
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(8).Buffer))
 
 /***/ },
-/* 38 */
+/* 58 */
 /***/ function(module, exports) {
 
 	/* (ignored) */
 
 /***/ },
-/* 39 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(40)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(60)
 
-	var md5 = toConstructor(__webpack_require__(48))
-	var rmd160 = toConstructor(__webpack_require__(50))
+	var md5 = toConstructor(__webpack_require__(68))
+	var rmd160 = toConstructor(__webpack_require__(70))
 
 	function toConstructor (fn) {
 	  return function () {
@@ -7981,7 +8739,7 @@ var helper =
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8).Buffer))
 
 /***/ },
-/* 40 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var exports = module.exports = function (alg) {
@@ -7991,15 +8749,15 @@ var helper =
 	}
 
 	var Buffer = __webpack_require__(8).Buffer
-	var Hash   = __webpack_require__(41)(Buffer)
+	var Hash   = __webpack_require__(61)(Buffer)
 
-	exports.sha1 = __webpack_require__(42)(Buffer, Hash)
-	exports.sha256 = __webpack_require__(46)(Buffer, Hash)
-	exports.sha512 = __webpack_require__(47)(Buffer, Hash)
+	exports.sha1 = __webpack_require__(62)(Buffer, Hash)
+	exports.sha256 = __webpack_require__(66)(Buffer, Hash)
+	exports.sha512 = __webpack_require__(67)(Buffer, Hash)
 
 
 /***/ },
-/* 41 */
+/* 61 */
 /***/ function(module, exports) {
 
 	module.exports = function (Buffer) {
@@ -8082,7 +8840,7 @@ var helper =
 
 
 /***/ },
-/* 42 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -8094,7 +8852,7 @@ var helper =
 	 * See http://pajhome.org.uk/crypt/md5 for details.
 	 */
 
-	var inherits = __webpack_require__(43).inherits
+	var inherits = __webpack_require__(63).inherits
 
 	module.exports = function (Buffer, Hash) {
 
@@ -8226,7 +8984,7 @@ var helper =
 
 
 /***/ },
-/* 43 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -8754,7 +9512,7 @@ var helper =
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(44);
+	exports.isBuffer = __webpack_require__(64);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -8798,7 +9556,7 @@ var helper =
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(45);
+	exports.inherits = __webpack_require__(65);
 
 	exports._extend = function(origin, add) {
 	  // Don't do anything if add isn't an object
@@ -8819,7 +9577,7 @@ var helper =
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(17)))
 
 /***/ },
-/* 44 */
+/* 64 */
 /***/ function(module, exports) {
 
 	module.exports = function isBuffer(arg) {
@@ -8830,7 +9588,7 @@ var helper =
 	}
 
 /***/ },
-/* 45 */
+/* 65 */
 /***/ function(module, exports) {
 
 	if (typeof Object.create === 'function') {
@@ -8859,7 +9617,7 @@ var helper =
 
 
 /***/ },
-/* 46 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
@@ -8871,7 +9629,7 @@ var helper =
 	 *
 	 */
 
-	var inherits = __webpack_require__(43).inherits
+	var inherits = __webpack_require__(63).inherits
 
 	module.exports = function (Buffer, Hash) {
 
@@ -9012,10 +9770,10 @@ var helper =
 
 
 /***/ },
-/* 47 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var inherits = __webpack_require__(43).inherits
+	var inherits = __webpack_require__(63).inherits
 
 	module.exports = function (Buffer, Hash) {
 	  var K = [
@@ -9262,7 +10020,7 @@ var helper =
 
 
 /***/ },
-/* 48 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/*
@@ -9274,7 +10032,7 @@ var helper =
 	 * See http://pajhome.org.uk/crypt/md5 for more info.
 	 */
 
-	var helpers = __webpack_require__(49);
+	var helpers = __webpack_require__(69);
 
 	/*
 	 * Calculate the MD5 of an array of little-endian words, and a bit length
@@ -9423,7 +10181,7 @@ var helper =
 
 
 /***/ },
-/* 49 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {var intSize = 4;
@@ -9464,7 +10222,7 @@ var helper =
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8).Buffer))
 
 /***/ },
-/* 50 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {
@@ -9676,10 +10434,10 @@ var helper =
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8).Buffer))
 
 /***/ },
-/* 51 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(39)
+	/* WEBPACK VAR INJECTION */(function(Buffer) {var createHash = __webpack_require__(59)
 
 	var zeroBuffer = new Buffer(128)
 	zeroBuffer.fill(0)
@@ -9726,10 +10484,10 @@ var helper =
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8).Buffer))
 
 /***/ },
-/* 52 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var pbkdf2Export = __webpack_require__(53)
+	var pbkdf2Export = __webpack_require__(73)
 
 	module.exports = function (crypto, exports) {
 	  exports = exports || {}
@@ -9744,7 +10502,7 @@ var helper =
 
 
 /***/ },
-/* 53 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(Buffer) {module.exports = function(crypto) {

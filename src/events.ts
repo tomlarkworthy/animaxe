@@ -1,7 +1,25 @@
+/// <reference path="../types/canvas.d.ts" />
 import Ax = require("./animaxe");
 
 
 export type SystemMouseEvents = Ax.Point[];
+
+/**
+ * [ a c e
+ *   b d f
+ *   0 0 1 ]
+ */
+export function frame2Canvas (canvas: Ax.Point,a:number, b:number,c:number,d:number,e:number,f:number): Ax.Point {
+    var x = a*canvas[0] + c*canvas[1] + e;
+    var y = b*canvas[0] + d*canvas[1] + f;
+    return [x,y];
+}
+
+export function canvas2Frame (screen: Ax.Point,a:number, b:number,c:number,d:number,e:number,f:number): Ax.Point {
+    // see http://stackoverflow.com/questions/10892267/html5-canvas-transformation-algorithm-finding-object-coordinates-after-applyin
+    var M = (a*d - b*c);
+    return frame2Canvas(screen, d/M, -b/M, -c/M, a/M, (c*f - d*e)/M, (b*e - a*f)/M)
+}
 /**
  * Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
  * originating from the canvas DOM. These have to be intepreted by UI components to see if they hit
@@ -74,8 +92,11 @@ export function ComponentMouseEventHandler(events: ComponentMouseEvents): Ax.Ani
                         (evt: Ax.Point) => {
                             if (mousemoveStream.hasObservers() || mouseenterStream.hasObservers() || mouseleaveStream.hasObservers()) {
                                 var pointInPath = tick.ctx.isPointInPath(evt[0], evt[1]);
-                                var localEvent = new AxMouseEvent(events.source, /*todo*/[0, 0], evt);
-                                
+                                var tx = tick.ctx.getTransform();
+                                //todo get canvas is a 3x3 matrix NOT the homogeneous elements of interest
+                                console.log("tx", tx);
+                                var localEvent = new AxMouseEvent(events.source, canvas2Frame(evt, tx[0], tx[1], tx[3], tx[4],tx[6], tx[7]), evt);
+
                                 if (mouseenterStream.hasObservers() && pointInPath && !mouseIsOver) {
                                     mouseenterStream.onNext(localEvent);
                                 }

@@ -52,7 +52,25 @@ var events =
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/// <reference path="../types/canvas.d.ts" />
 	var Ax = __webpack_require__(2);
+	/**
+	 * [ a c e
+	 *   b d f
+	 *   0 0 1 ]
+	 */
+	function frame2Canvas(canvas, a, b, c, d, e, f) {
+	    var x = a * canvas[0] + c * canvas[1] + e;
+	    var y = b * canvas[0] + d * canvas[1] + f;
+	    return [x, y];
+	}
+	exports.frame2Canvas = frame2Canvas;
+	function canvas2Frame(screen, a, b, c, d, e, f) {
+	    // see http://stackoverflow.com/questions/10892267/html5-canvas-transformation-algorithm-finding-object-coordinates-after-applyin
+	    var M = (a * d - b * c);
+	    return frame2Canvas(screen, d / M, -b / M, -c / M, a / M, (c * f - d * e) / M, (b * e - a * f) / M);
+	}
+	exports.canvas2Frame = canvas2Frame;
 	/**
 	 * Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
 	 * originating from the canvas DOM. These have to be intepreted by UI components to see if they hit
@@ -116,7 +134,10 @@ var events =
 	                sourceMoveEvents.forEach(function (evt) {
 	                    if (mousemoveStream.hasObservers() || mouseenterStream.hasObservers() || mouseleaveStream.hasObservers()) {
 	                        var pointInPath = tick.ctx.isPointInPath(evt[0], evt[1]);
-	                        var localEvent = new AxMouseEvent(events.source, /*todo*/ [0, 0], evt);
+	                        var tx = tick.ctx.getTransform();
+	                        //todo get canvas is a 3x3 matrix NOT the homogeneous elements of interest
+	                        console.log("tx", tx);
+	                        var localEvent = new AxMouseEvent(events.source, canvas2Frame(evt, tx[0], tx[1], tx[3], tx[4], tx[6], tx[7]), evt);
 	                        if (mouseenterStream.hasObservers() && pointInPath && !mouseIsOver) {
 	                            mouseenterStream.onNext(localEvent);
 	                        }
@@ -481,8 +502,8 @@ var events =
 	    /**
 	     * Dynamic chainable wrapper for rotate in the canvas API.
 	     */
-	    Animation.prototype.rotate = function (rads) {
-	        return this.pipe(rotate(rads));
+	    Animation.prototype.rotate = function (clockwiseRadians) {
+	        return this.pipe(rotate(clockwiseRadians));
 	    };
 	    /**
 	     * Dynamic chainable wrapper for translate in the canvas API.
@@ -1236,7 +1257,7 @@ var events =
 	            var arg1 = arg1_next(tick.clock);
 	            if (exports.DEBUG)
 	                console.log("rotate: rotate", arg1);
-	            tick.ctx.scale(arg1[0], arg1[1]);
+	            tick.ctx.rotate(arg1);
 	        };
 	    });
 	}

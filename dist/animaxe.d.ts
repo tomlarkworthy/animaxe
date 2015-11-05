@@ -240,7 +240,7 @@ export declare class Animation {
     /**
      * Dynamic chainable wrapper for rotate in the canvas API.
      */
-    rotate(rads: NumberArg): Animation;
+    rotate(clockwiseRadians: NumberArg): Animation;
     /**
      * Dynamic chainable wrapper for translate in the canvas API.
      */

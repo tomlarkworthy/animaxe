@@ -11,6 +11,7 @@
   "scripts": {},
   "dependencies": {
     "canvas": "^1.2.7",
+    "ctx-get-transform": "^1.0.2",
     "husl": "^6.0.1",
     "rx": "^3.1.1",
     "should": "^7.1.0",

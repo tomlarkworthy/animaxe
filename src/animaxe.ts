@@ -406,8 +406,8 @@ export class Animation {
     /**
      * Dynamic chainable wrapper for rotate in the canvas API.
      */
-    rotate(rads: NumberArg): Animation {
-        return this.pipe(rotate(rads));
+    rotate(clockwiseRadians: NumberArg): Animation {
+        return this.pipe(rotate(clockwiseRadians));
     }
     /**
      * Dynamic chainable wrapper for translate in the canvas API.
@@ -1224,7 +1224,7 @@ export function rotate(rads: NumberArg): Animation {
             return function (tick: Tick) {
                 var arg1 = arg1_next(tick.clock);
                 if (DEBUG) console.log("rotate: rotate", arg1);
-                tick.ctx.scale(arg1[0], arg1[1]);
+                tick.ctx.rotate(arg1);
             }
         });
 }

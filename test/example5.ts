@@ -20,8 +20,8 @@ class Button extends Ax.Animation {
     constructor() {
         this.hotspot = Ax
             .withinPath(Ax
-                .lineTo([ 20,  0])
-                .lineTo([ 20, 20])
+                .lineTo([ 40,  0])
+                .lineTo([ 40, 20])
                 .lineTo([  0, 20])
                 .lineTo([  0,  0])
             );
@@ -51,7 +51,8 @@ function button(): Button {
 }
 
 animator.play(Ax
-    .translate([0, 0])
+    .translate([50, 50])
+    .rotate(Math.PI / 4)
     .pipe(button())
 );
 
