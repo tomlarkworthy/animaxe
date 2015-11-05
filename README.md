@@ -18,20 +18,20 @@ Examples
 -----------------------------------
 
 Example 1 - Basic animation compositions
-![Example1](./blob/master/images/example1.gif?raw=true)
+![Example1](./images/example1.gif?raw=true)
 
 Example 2 - Skewing time
-![Example2](./blob/master/images/example2.gif?raw=true)
+![Example2](./images/example2.gif?raw=true)
 
 Example 3 - Particles
-![Example3](./blob/master/images/example3.gif?raw=true)
+![Example3](./images/example3.gif?raw=true)
 [Example 3 on Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101)
 
 Example 4 - Glow filter
-![Example4](./blob/master/images/example4.gif?raw=true)
+![Example4](./images/example4.gif?raw=true)
 
 Example 5 - UI control
-![Example5](./blob/master/images/example5.gif?raw=true)
+![Example5](./images/example5.gif?raw=true)
 
 
 We have some examples in the test directory written in Typescript.
