@@ -14,6 +14,36 @@ Now you can compose animations *functionally*. Ideal for procedural and *interac
 
 Its still very early on this project, the basic building blocks are not complete, and the repository layout is not useful for libraries to link to. However, the following is a proof-of-concept for the API feel. Maybe you want to contribute?
 
+Being a better Canvas API
+-------------------------
+
+Instead of the procedural style of drawing that the Canvas API uses, we chain. So instead of:
+
+```
+ctx.fillStyle = "red";
+ctx.translate(30, 45);
+ctx.fillRect(0,0, 10, 10)
+```
+
+In Animaxe we use the Ax module as the entrace to an animation chain. We use the same identifiers as the Canvas API, so it becomes
+```
+Ax.fillStyle("red")
+  .translate([30, 45])
+  .fillRect([0,0], [10,10]);
+```
+
+Its worth noting almost every parameter in Animaxe can be a literal, like in the above, OR, it can be dynamic. The Parameter module is the entrance to 
+time varying functions, which can also be chained together with the normal functional primatives.
+
+
+For example, a fading in an out example:
+ 
+```
+Ax.fillStyle(Parameter.rgba(255, 255, 255, Parameter.sin(Parameter.t())))
+  .translate(Parameter.point(30, Parameter.sin(30).map(x => x * 50)))
+  .fillRect([0,0], [10,10]); 
+``` 
+
 Examples
 -----------------------------------
 
@@ -24,6 +54,7 @@ Example 1 - Basic animation compositions
 
 Example 2 - Skewing time and dynamic colors
 ([source](./test/example2.ts))
+
 ![Example2](./images/example2.gif?raw=true)
 
 Example 3 - Particles 
