@@ -26,8 +26,8 @@ Example 2 - Skewing time and dynamic colors
 ![Example2](./images/example2.gif?raw=true)
 
 Example 3 - Particles 
-([src](./test/example3.ts)
-([Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101))
+([source](./test/example3.ts))
+([edit on Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101))
 
 
 ![Example3](./images/example3.gif?raw=true)
