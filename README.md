@@ -18,11 +18,12 @@ Examples
 -----------------------------------
 
 Example 1 - Basic animation compositions
+([source](./test/example1.ts))
 
 ![Example1](./images/example1.gif?raw=true)
 
 Example 2 - Skewing time and dynamic colors
-
+([source](./test/example2.ts))
 ![Example2](./images/example2.gif?raw=true)
 
 Example 3 - Particles 
@@ -35,10 +36,12 @@ Example 3 - Particles
 
 
 Example 4 - Glow filter
+([source](./test/example4.ts))
 
 ![Example4](./images/example4.gif?raw=true)
 
 Example 5 - UI control
+([source](./test/example5.ts))
 
 ![Example5](./images/example5.gif?raw=true)
 
