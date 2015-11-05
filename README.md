@@ -17,10 +17,27 @@ Its still very early on this project, the basic building blocks are not complete
 Examples
 -----------------------------------
 
+Example 1 - Basic animation compositions
+![Example1](./blob/master/images/example1.gif?raw=true)
+
+Example 2 - Skewing time
+![Example2](./blob/master/images/example2.gif?raw=true)
+
+Example 3 - Particles
+![Example3](./blob/master/images/example3.gif?raw=true)
+[Example 3 on Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101)
+
+Example 4 - Glow filter
+![Example4](./blob/master/images/example4.gif?raw=true)
+
+Example 5 - UI control
+![Example5](./blob/master/images/example5.gif?raw=true)
+
+
 We have some examples in the test directory written in Typescript.
 You can use the babel preprocessor within Codepen quite well:
 
-[Codepen Example 3](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101)
+
 
 Using on web
 -------------
@@ -36,8 +53,8 @@ So an alternative set of libraries should be used in script tags
 <script src="animaxe/dist/ex.js"></script> <!-- exposes "var events" -->
 ```
 
-Using with node.js
--------------------
+Using with Typescript in node.js
+-----------------------------------
 
 Animations are rendered using canvas. Its a bitch to install. You should require() within a Typescript environment
 
