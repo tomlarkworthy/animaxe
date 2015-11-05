@@ -89,8 +89,9 @@
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_events_.html#componentmouseeventhandler" class="tsd-kind-icon">Component<wbr>Mouse<wbr>Event<wbr>Handler</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_events_.html#canvas2frame" class="tsd-kind-icon">canvas2<wbr>Frame</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_events_.html#frame2canvas" class="tsd-kind-icon">frame2<wbr>Canvas</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_events_.html#animation2canvas" class="tsd-kind-icon">animation2<wbr>Canvas</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_events_.html#canvas2animation" class="tsd-kind-icon">canvas2<wbr>Animation</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported"><a href="_events_.html#canvas2animationusingcontext" class="tsd-kind-icon">canvas2<wbr>Animation<wbr>Using<wbr>Context</a></li>
 							</ul>
 						</section>
 					</div>
@@ -121,7 +122,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L62">events.ts:62</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L75">events.ts:75</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -141,22 +142,31 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
-					<a name="canvas2frame" class="tsd-anchor"></a>
-					<h3>canvas2<wbr>Frame</h3>
+					<a name="animation2canvas" class="tsd-anchor"></a>
+					<h3>animation2<wbr>Canvas</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
-						<li class="tsd-signature tsd-kind-icon">canvas2<wbr>Frame<span class="tsd-signature-symbol">(</span>screen<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span>, a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, b<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, c<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, d<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, e<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span></li>
+						<li class="tsd-signature tsd-kind-icon">animation2<wbr>Canvas<span class="tsd-signature-symbol">(</span>canvas<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span>, a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, b<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, c<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, d<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, e<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L18">events.ts:18</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L14">events.ts:14</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Convert animation coordinates (e.g. a coordinate of moveTo) to global canvas coordinates, cooeffecients are:
+										[ a c e
+										b d f
+										0 0 1 ]
+									This is basically just a matrix multiplication of the context.transform</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>screen: <span class="tsd-signature-type">Ax.Point</span></h5>
+									<h5>canvas: <span class="tsd-signature-type">Ax.Point</span></h5>
 								</li>
 								<li>
 									<h5>a: <span class="tsd-signature-type">number</span></h5>
@@ -182,29 +192,31 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
-					<a name="frame2canvas" class="tsd-anchor"></a>
-					<h3>frame2<wbr>Canvas</h3>
+					<a name="canvas2animation" class="tsd-anchor"></a>
+					<h3>canvas2<wbr>Animation</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
-						<li class="tsd-signature tsd-kind-icon">frame2<wbr>Canvas<span class="tsd-signature-symbol">(</span>canvas<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span>, a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, b<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, c<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, d<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, e<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span></li>
+						<li class="tsd-signature tsd-kind-icon">canvas2<wbr>Animation<span class="tsd-signature-symbol">(</span>canvasCoord<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span>, a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, b<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, c<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, d<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, e<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L12">events.ts:12</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L26">events.ts:26</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>[ a c e
+									<p>Convert canvas coordinates (e.g. mouse position on canvas) to local animation coordinates, cooeffecients are:
+										[ a c e
 										b d f
-									0 0 1 ]</p>
+										0 0 1 ]
+									This is basically just an inverse matrix multiplication of the context.transform</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>canvas: <span class="tsd-signature-type">Ax.Point</span></h5>
+									<h5>canvasCoord: <span class="tsd-signature-type">Ax.Point</span></h5>
 								</li>
 								<li>
 									<h5>a: <span class="tsd-signature-type">number</span></h5>
@@ -223,6 +235,32 @@
 								</li>
 								<li>
 									<h5>f: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Ax.Point</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
+					<a name="canvas2animationusingcontext" class="tsd-anchor"></a>
+					<h3>canvas2<wbr>Animation<wbr>Using<wbr>Context</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
+						<li class="tsd-signature tsd-kind-icon">canvas2<wbr>Animation<wbr>Using<wbr>Context<span class="tsd-signature-symbol">(</span>canvasCoord<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span>, ctx<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">CanvasRenderingContext2D</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L32">events.ts:32</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>canvasCoord: <span class="tsd-signature-type">Ax.Point</span></h5>
+								</li>
+								<li>
+									<h5>ctx: <span class="tsd-signature-type">CanvasRenderingContext2D</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Ax.Point</span></h4>
@@ -269,10 +307,13 @@
 						<a href="_events_.html#componentmouseeventhandler" class="tsd-kind-icon">Component<wbr>Mouse<wbr>Event<wbr>Handler</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="_events_.html#canvas2frame" class="tsd-kind-icon">canvas2<wbr>Frame</a>
+						<a href="_events_.html#animation2canvas" class="tsd-kind-icon">animation2<wbr>Canvas</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="_events_.html#frame2canvas" class="tsd-kind-icon">frame2<wbr>Canvas</a>
+						<a href="_events_.html#canvas2animation" class="tsd-kind-icon">canvas2<wbr>Animation</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="_events_.html#canvas2animationusingcontext" class="tsd-kind-icon">canvas2<wbr>Animation<wbr>Using<wbr>Context</a>
 					</li>
 				</ul>
 			</nav>

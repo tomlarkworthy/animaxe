@@ -91,8 +91,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.axmouseevent.html#globalpos" class="tsd-kind-icon">global<wbr>Pos</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.axmouseevent.html#localpos" class="tsd-kind-icon">local<wbr>Pos</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.axmouseevent.html#animationcoord" class="tsd-kind-icon">animation<wbr>Coord</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.axmouseevent.html#canvascoord" class="tsd-kind-icon">canvas<wbr>Coord</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.axmouseevent.html#source" class="tsd-kind-icon">source</a></li>
 							</ul>
 						</section>
@@ -105,13 +105,13 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>AxMouse<wbr>Event<span class="tsd-signature-symbol">(</span>source<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, localPos<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span>, globalPos<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_events_.axmouseevent.html" class="tsd-signature-type">AxMouseEvent</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>AxMouse<wbr>Event<span class="tsd-signature-symbol">(</span>source<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, animationCoord<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span>, canvasCoord<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Ax.Point</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_events_.axmouseevent.html" class="tsd-signature-type">AxMouseEvent</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L125">events.ts:125</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L133">events.ts:133</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -120,10 +120,10 @@
 									<h5>source: <span class="tsd-signature-type">any</span></h5>
 								</li>
 								<li>
-									<h5>localPos: <span class="tsd-signature-type">Ax.Point</span></h5>
+									<h5>animationCoord: <span class="tsd-signature-type">Ax.Point</span></h5>
 								</li>
 								<li>
-									<h5>globalPos: <span class="tsd-signature-type">Ax.Point</span></h5>
+									<h5>canvasCoord: <span class="tsd-signature-type">Ax.Point</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_events_.axmouseevent.html" class="tsd-signature-type">AxMouseEvent</a></h4>
@@ -134,22 +134,22 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="globalpos" class="tsd-anchor"></a>
-					<h3>global<wbr>Pos</h3>
-					<div class="tsd-signature tsd-kind-icon">global<wbr>Pos<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Ax.Point</span></div>
+					<a name="animationcoord" class="tsd-anchor"></a>
+					<h3>animation<wbr>Coord</h3>
+					<div class="tsd-signature tsd-kind-icon">animation<wbr>Coord<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Ax.Point</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L126">events.ts:126</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L134">events.ts:134</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="localpos" class="tsd-anchor"></a>
-					<h3>local<wbr>Pos</h3>
-					<div class="tsd-signature tsd-kind-icon">local<wbr>Pos<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Ax.Point</span></div>
+					<a name="canvascoord" class="tsd-anchor"></a>
+					<h3>canvas<wbr>Coord</h3>
+					<div class="tsd-signature tsd-kind-icon">canvas<wbr>Coord<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Ax.Point</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L126">events.ts:126</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L134">events.ts:134</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -159,7 +159,7 @@
 					<div class="tsd-signature tsd-kind-icon">source<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L126">events.ts:126</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L134">events.ts:134</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -196,10 +196,10 @@
 								<a href="_events_.axmouseevent.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_events_.axmouseevent.html#globalpos" class="tsd-kind-icon">global<wbr>Pos</a>
+								<a href="_events_.axmouseevent.html#animationcoord" class="tsd-kind-icon">animation<wbr>Coord</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_events_.axmouseevent.html#localpos" class="tsd-kind-icon">local<wbr>Pos</a>
+								<a href="_events_.axmouseevent.html#canvascoord" class="tsd-kind-icon">canvas<wbr>Coord</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
 								<a href="_events_.axmouseevent.html#source" class="tsd-kind-icon">source</a>
@@ -221,10 +221,13 @@
 						<a href="../modules/_events_.html#componentmouseeventhandler" class="tsd-kind-icon">Component<wbr>Mouse<wbr>Event<wbr>Handler</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="../modules/_events_.html#canvas2frame" class="tsd-kind-icon">canvas2<wbr>Frame</a>
+						<a href="../modules/_events_.html#animation2canvas" class="tsd-kind-icon">animation2<wbr>Canvas</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="../modules/_events_.html#frame2canvas" class="tsd-kind-icon">frame2<wbr>Canvas</a>
+						<a href="../modules/_events_.html#canvas2animation" class="tsd-kind-icon">canvas2<wbr>Animation</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
+						<a href="../modules/_events_.html#canvas2animationusingcontext" class="tsd-kind-icon">canvas2<wbr>Animation<wbr>Using<wbr>Context</a>
 					</li>
 				</ul>
 			</nav>

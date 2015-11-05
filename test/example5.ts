@@ -17,7 +17,7 @@ class Button extends Ax.Animation {
     hotspot: Ax.PathAnimation;
     events: events.ComponentMouseEvents;
 
-    constructor() {
+    constructor(postprocessor?: (Button) => void) {
         this.hotspot = Ax
             .withinPath(Ax
                 .lineTo([ 40,  0])
@@ -37,23 +37,31 @@ class Button extends Ax.Animation {
             .pipe(this.hotspot)
             .pipe(events.ComponentMouseEventHandler(button.events))
             .fill()
-            .attach)
+            .attach);
+
+        if (postprocessor) postprocessor(button);
     }
 }
-function button(): Button {
-    var button =  new Button();
-    button.events.mousedown.subscribe(evt => console.log("Button: mousedown", evt));
-    button.events.mouseup.subscribe(evt => console.log("Button: mouseup", evt));
-    button.events.mousemove.subscribe(evt => console.log("Button: mousemove", evt));
-    button.events.mouseenter.subscribe(evt => console.log("Button: mouseenter", evt));
-    button.events.mouseleave.subscribe(evt => console.log("Button: mouseleave", evt));
-    return button;
-}
+
 
 animator.play(Ax
     .translate([50, 50])
-    .rotate(Math.PI / 4)
-    .pipe(button())
+    .rotate(Math.PI / 8)
+    .pipe(new Button(
+            button => {
+                button.events.mousedown.subscribe(
+                    (evt: events.AxMouseEvent) => console.log("Button: mousedown",  evt.animationCoord));
+                button.events.mouseup.subscribe(
+                    (evt: events.AxMouseEvent) => console.log("Button: mouseup",    evt.animationCoord));
+                button.events.mousemove.subscribe(
+                    (evt: events.AxMouseEvent) => console.log("Button: mousemove",  evt.animationCoord));
+                button.events.mouseenter.subscribe(
+                    (evt: events.AxMouseEvent) => console.log("Button: mouseenter", evt.animationCoord));
+                button.events.mouseleave.subscribe(
+                    (evt: events.AxMouseEvent) => console.log("Button: mouseleave", evt.animationCoord));
+            }
+        )
+    )
 );
 
 helper.playExample("example5", 1, animator, 100, 100);

@@ -2,12 +2,21 @@
 import Ax = require("./animaxe");
 export declare type SystemMouseEvents = Ax.Point[];
 /**
+ * Convert animation coordinates (e.g. a coordinate of moveTo) to global canvas coordinates, cooeffecients are:
  * [ a c e
  *   b d f
  *   0 0 1 ]
+ * This is basically just a matrix multiplication of the context.transform
  */
-export declare function frame2Canvas(canvas: Ax.Point, a: number, b: number, c: number, d: number, e: number, f: number): Ax.Point;
-export declare function canvas2Frame(screen: Ax.Point, a: number, b: number, c: number, d: number, e: number, f: number): Ax.Point;
+export declare function animation2Canvas(canvas: Ax.Point, a: number, b: number, c: number, d: number, e: number, f: number): Ax.Point;
+/**
+ * Convert canvas coordinates (e.g. mouse position on canvas) to local animation coordinates, cooeffecients are:
+ * [ a c e
+ *   b d f
+ *   0 0 1 ]
+ *  This is basically just an inverse matrix multiplication of the context.transform
+ */
+export declare function canvas2Animation(canvasCoord: Ax.Point, a: number, b: number, c: number, d: number, e: number, f: number): Ax.Point;
 /**
  * Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
  * originating from the canvas DOM. These have to be intepreted by UI components to see if they hit
@@ -39,7 +48,7 @@ export declare class ComponentMouseEvents {
 export declare function ComponentMouseEventHandler(events: ComponentMouseEvents): Ax.Animation;
 export declare class AxMouseEvent {
     source: any;
-    localPos: Ax.Point;
-    globalPos: Ax.Point;
-    constructor(source: any, localPos: Ax.Point, globalPos: Ax.Point);
+    animationCoord: Ax.Point;
+    canvasCoord: Ax.Point;
+    constructor(source: any, animationCoord: Ax.Point, canvasCoord: Ax.Point);
 }

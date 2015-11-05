@@ -10,7 +10,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var animator = helper.getExampleAnimator(100, 100);
 var Button = (function (_super) {
     __extends(Button, _super);
-    function Button() {
+    function Button(postprocessor) {
         this.hotspot = Ax
             .withinPath(Ax
             .lineTo([40, 0])
@@ -27,21 +27,20 @@ var Button = (function (_super) {
             .pipe(events.ComponentMouseEventHandler(button.events))
             .fill()
             .attach);
+        if (postprocessor)
+            postprocessor(button);
     }
     return Button;
 })(Ax.Animation);
-function button() {
-    var button = new Button();
-    button.events.mousedown.subscribe(function (evt) { return console.log("Button: mousedown", evt); });
-    button.events.mouseup.subscribe(function (evt) { return console.log("Button: mouseup", evt); });
-    button.events.mousemove.subscribe(function (evt) { return console.log("Button: mousemove", evt); });
-    button.events.mouseenter.subscribe(function (evt) { return console.log("Button: mouseenter", evt); });
-    button.events.mouseleave.subscribe(function (evt) { return console.log("Button: mouseleave", evt); });
-    return button;
-}
 animator.play(Ax
     .translate([50, 50])
-    .rotate(Math.PI / 4)
-    .pipe(button()));
+    .rotate(Math.PI / 8)
+    .pipe(new Button(function (button) {
+    button.events.mousedown.subscribe(function (evt) { return console.log("Button: mousedown", evt.animationCoord); });
+    button.events.mouseup.subscribe(function (evt) { return console.log("Button: mouseup", evt.animationCoord); });
+    button.events.mousemove.subscribe(function (evt) { return console.log("Button: mousemove", evt.animationCoord); });
+    button.events.mouseenter.subscribe(function (evt) { return console.log("Button: mouseenter", evt.animationCoord); });
+    button.events.mouseleave.subscribe(function (evt) { return console.log("Button: mouseleave", evt.animationCoord); });
+})));
 helper.playExample("example5", 1, animator, 100, 100);
 // 

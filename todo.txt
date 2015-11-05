@@ -117,5 +117,5 @@ LinearSlider extends Animation
 // sin wave, randomized
 // GUI components, responsive, bootstrap
 // get data out by tapping into flow (intercept(Subject passback))
-// SVG import
+// SVG path parser for withinPath
 

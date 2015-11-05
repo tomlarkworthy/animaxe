@@ -5,20 +5,33 @@ import Ax = require("./animaxe");
 export type SystemMouseEvents = Ax.Point[];
 
 /**
+ * Convert animation coordinates (e.g. a coordinate of moveTo) to global canvas coordinates, cooeffecients are:
  * [ a c e
  *   b d f
  *   0 0 1 ]
+ * This is basically just a matrix multiplication of the context.transform
  */
-export function frame2Canvas (canvas: Ax.Point,a:number, b:number,c:number,d:number,e:number,f:number): Ax.Point {
+export function animation2Canvas (canvas: Ax.Point,a:number, b:number,c:number,d:number,e:number,f:number): Ax.Point {
     var x = a*canvas[0] + c*canvas[1] + e;
     var y = b*canvas[0] + d*canvas[1] + f;
     return [x,y];
 }
-
-export function canvas2Frame (screen: Ax.Point,a:number, b:number,c:number,d:number,e:number,f:number): Ax.Point {
+/**
+ * Convert canvas coordinates (e.g. mouse position on canvas) to local animation coordinates, cooeffecients are:
+ * [ a c e
+ *   b d f
+ *   0 0 1 ]
+ *  This is basically just an inverse matrix multiplication of the context.transform
+ */
+export function canvas2Animation (canvasCoord: Ax.Point,a:number, b:number,c:number,d:number,e:number,f:number): Ax.Point {
     // see http://stackoverflow.com/questions/10892267/html5-canvas-transformation-algorithm-finding-object-coordinates-after-applyin
     var M = (a*d - b*c);
-    return frame2Canvas(screen, d/M, -b/M, -c/M, a/M, (c*f - d*e)/M, (b*e - a*f)/M)
+    return animation2Canvas(canvasCoord, d/M, -b/M, -c/M, a/M, (c*f - d*e)/M, (b*e - a*f)/M)
+}
+
+function canvas2AnimationUsingContext (canvasCoord: Ax.Point, ctx: CanvasRenderingContext2D): Ax.Point {
+    var tx = ctx.getTransform();
+    return canvas2Animation(canvasCoord, tx[0], tx[1], tx[3], tx[4], tx[6], tx[7])
 }
 /**
  * Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
@@ -73,9 +86,7 @@ export function ComponentMouseEventHandler(events: ComponentMouseEvents): Ax.Ani
                             if (componentEventStream.hasObservers() && tick.ctx.isPointInPath(evt[0], evt[1])) {
                                 // we have to figure out the global position of this component, so the x and y
                                 // have to go backward through the transform matrix
-                                // ^ todo
-                                console.log("HIT", evt, componentEventStream);
-                                var localEvent = new AxMouseEvent(events.source, /*todo*/[0,0], evt);
+                                var localEvent = new AxMouseEvent(events.source, canvas2AnimationUsingContext(evt, tick.ctx), evt);
                                 componentEventStream.onNext(localEvent);
                             }
                         }
@@ -92,10 +103,7 @@ export function ComponentMouseEventHandler(events: ComponentMouseEvents): Ax.Ani
                         (evt: Ax.Point) => {
                             if (mousemoveStream.hasObservers() || mouseenterStream.hasObservers() || mouseleaveStream.hasObservers()) {
                                 var pointInPath = tick.ctx.isPointInPath(evt[0], evt[1]);
-                                var tx = tick.ctx.getTransform();
-                                //todo get canvas is a 3x3 matrix NOT the homogeneous elements of interest
-                                console.log("tx", tx);
-                                var localEvent = new AxMouseEvent(events.source, canvas2Frame(evt, tx[0], tx[1], tx[3], tx[4],tx[6], tx[7]), evt);
+                                var localEvent = new AxMouseEvent(events.source, canvas2AnimationUsingContext(evt, tick.ctx), evt);
 
                                 if (mouseenterStream.hasObservers() && pointInPath && !mouseIsOver) {
                                     mouseenterStream.onNext(localEvent);
@@ -123,5 +131,5 @@ export function ComponentMouseEventHandler(events: ComponentMouseEvents): Ax.Ani
 }
 
 export class AxMouseEvent {
-    constructor(public source: any, public localPos: Ax.Point, public globalPos: Ax.Point) {}
+    constructor(public source: any, public animationCoord: Ax.Point, public canvasCoord: Ax.Point) {}
 }

@@ -1605,22 +1605,35 @@ var Ax =
 	/// <reference path="../types/canvas.d.ts" />
 	var Ax = __webpack_require__(1);
 	/**
+	 * Convert animation coordinates (e.g. a coordinate of moveTo) to global canvas coordinates, cooeffecients are:
 	 * [ a c e
 	 *   b d f
 	 *   0 0 1 ]
+	 * This is basically just a matrix multiplication of the context.transform
 	 */
-	function frame2Canvas(canvas, a, b, c, d, e, f) {
+	function animation2Canvas(canvas, a, b, c, d, e, f) {
 	    var x = a * canvas[0] + c * canvas[1] + e;
 	    var y = b * canvas[0] + d * canvas[1] + f;
 	    return [x, y];
 	}
-	exports.frame2Canvas = frame2Canvas;
-	function canvas2Frame(screen, a, b, c, d, e, f) {
+	exports.animation2Canvas = animation2Canvas;
+	/**
+	 * Convert canvas coordinates (e.g. mouse position on canvas) to local animation coordinates, cooeffecients are:
+	 * [ a c e
+	 *   b d f
+	 *   0 0 1 ]
+	 *  This is basically just an inverse matrix multiplication of the context.transform
+	 */
+	function canvas2Animation(canvasCoord, a, b, c, d, e, f) {
 	    // see http://stackoverflow.com/questions/10892267/html5-canvas-transformation-algorithm-finding-object-coordinates-after-applyin
 	    var M = (a * d - b * c);
-	    return frame2Canvas(screen, d / M, -b / M, -c / M, a / M, (c * f - d * e) / M, (b * e - a * f) / M);
+	    return animation2Canvas(canvasCoord, d / M, -b / M, -c / M, a / M, (c * f - d * e) / M, (b * e - a * f) / M);
 	}
-	exports.canvas2Frame = canvas2Frame;
+	exports.canvas2Animation = canvas2Animation;
+	function canvas2AnimationUsingContext(canvasCoord, ctx) {
+	    var tx = ctx.getTransform();
+	    return canvas2Animation(canvasCoord, tx[0], tx[1], tx[3], tx[4], tx[6], tx[7]);
+	}
 	/**
 	 * Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
 	 * originating from the canvas DOM. These have to be intepreted by UI components to see if they hit
@@ -1673,9 +1686,7 @@ var Ax =
 	                    if (componentEventStream.hasObservers() && tick.ctx.isPointInPath(evt[0], evt[1])) {
 	                        // we have to figure out the global position of this component, so the x and y
 	                        // have to go backward through the transform matrix
-	                        // ^ todo
-	                        console.log("HIT", evt, componentEventStream);
-	                        var localEvent = new AxMouseEvent(events.source, /*todo*/ [0, 0], evt);
+	                        var localEvent = new AxMouseEvent(events.source, canvas2AnimationUsingContext(evt, tick.ctx), evt);
 	                        componentEventStream.onNext(localEvent);
 	                    }
 	                });
@@ -1684,10 +1695,7 @@ var Ax =
 	                sourceMoveEvents.forEach(function (evt) {
 	                    if (mousemoveStream.hasObservers() || mouseenterStream.hasObservers() || mouseleaveStream.hasObservers()) {
 	                        var pointInPath = tick.ctx.isPointInPath(evt[0], evt[1]);
-	                        var tx = tick.ctx.getTransform();
-	                        //todo get canvas is a 3x3 matrix NOT the homogeneous elements of interest
-	                        console.log("tx", tx);
-	                        var localEvent = new AxMouseEvent(events.source, canvas2Frame(evt, tx[0], tx[1], tx[3], tx[4], tx[6], tx[7]), evt);
+	                        var localEvent = new AxMouseEvent(events.source, canvas2AnimationUsingContext(evt, tick.ctx), evt);
 	                        if (mouseenterStream.hasObservers() && pointInPath && !mouseIsOver) {
 	                            mouseenterStream.onNext(localEvent);
 	                        }
@@ -1709,10 +1717,10 @@ var Ax =
 	}
 	exports.ComponentMouseEventHandler = ComponentMouseEventHandler;
 	var AxMouseEvent = (function () {
-	    function AxMouseEvent(source, localPos, globalPos) {
+	    function AxMouseEvent(source, animationCoord, canvasCoord) {
 	        this.source = source;
-	        this.localPos = localPos;
-	        this.globalPos = globalPos;
+	        this.animationCoord = animationCoord;
+	        this.canvasCoord = canvasCoord;
 	    }
 	    return AxMouseEvent;
 	})();
