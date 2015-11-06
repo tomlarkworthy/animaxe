@@ -33,14 +33,16 @@ export declare class Events {
      */
     clear(): void;
 }
-export declare class ComponentMouseEvents {
-    source: any;
+export declare class ComponentMouseState {
     mousedown: Rx.Subject<AxMouseEvent>;
     mouseup: Rx.Subject<AxMouseEvent>;
     mousemove: Rx.Subject<AxMouseEvent>;
     mouseenter: Rx.Subject<AxMouseEvent>;
     mouseleave: Rx.Subject<AxMouseEvent>;
-    constructor(source: any);
+    /**
+     * This needs to be set after construction
+     */
+    source: any;
     isMouseOver(): Ax.Parameter<boolean>;
     isMouseDown(): Ax.Parameter<boolean>;
 }
@@ -48,7 +50,7 @@ export declare class ComponentMouseEvents {
  * returns an animation that can be pipelined after a path, which used canvas isPointInPath to detect if a mouse event has
  * occured over the source animation
  */
-export declare function ComponentMouseEventHandler(events: ComponentMouseEvents): Ax.Animation;
+export declare function ComponentMouseEventHandler(events: ComponentMouseState): Ax.Animation;
 export declare class AxMouseEvent {
     source: any;
     animationCoord: Ax.Point;

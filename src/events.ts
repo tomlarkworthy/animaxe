@@ -59,14 +59,17 @@ export class Events {
     }
 }
 
-export class ComponentMouseEvents {
+export class ComponentMouseState {
     mousedown    = new Rx.Subject<AxMouseEvent>();
     mouseup      = new Rx.Subject<AxMouseEvent>();
     mousemove    = new Rx.Subject<AxMouseEvent>();
     mouseenter   = new Rx.Subject<AxMouseEvent>();
     mouseleave   = new Rx.Subject<AxMouseEvent>();
 
-    constructor(public source: any) {}
+    /**
+     * This needs to be set after construction
+     */
+    source: any;
 
     isMouseOver(): Ax.Parameter<boolean> {
         var toggle: Rx.Observable<boolean> =
@@ -90,7 +93,7 @@ export class ComponentMouseEvents {
  * returns an animation that can be pipelined after a path, which used canvas isPointInPath to detect if a mouse event has
  * occured over the source animation
  */
-export function ComponentMouseEventHandler(events: ComponentMouseEvents): Ax.Animation {
+export function ComponentMouseEventHandler(events: ComponentMouseState): Ax.Animation {
     return Ax.draw(
         () => {
             var mouseIsOver = false;

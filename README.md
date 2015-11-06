@@ -63,7 +63,7 @@ Example 2 - Skewing time and dynamic colors
 
 Example 3 - Particles 
 ([source](./test/example3.ts))
-([edit on Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101))
+([edit on Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=001))
 
 
 ![Example3](./images/example3.gif?raw=true)
@@ -75,8 +75,10 @@ Example 4 - Glow filter
 
 ![Example4](./images/example4.gif?raw=true)
 
-Example 5 - UI control
+Example 5 - UI Button
 ([source](./test/example5.ts))
+([edit on Codepen](http://codepen.io/tomlarkworthy/pen/yYxwga?editors=001))
+
 
 ![Example5](./images/example5.gif?raw=true)
 

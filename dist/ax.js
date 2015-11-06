@@ -1683,7 +1683,6 @@ var Ax =
 	var Rx = __webpack_require__(2);
 	var Ax = __webpack_require__(1);
 	var Parameter = __webpack_require__(4);
-	Ax.DEBUG = true;
 	/**
 	 * Convert animation coordinates (e.g. a coordinate of moveTo) to global canvas coordinates, cooeffecients are:
 	 * [ a c e
@@ -1741,31 +1740,30 @@ var Ax =
 	    return Events;
 	})();
 	exports.Events = Events;
-	var ComponentMouseEvents = (function () {
-	    function ComponentMouseEvents(source) {
-	        this.source = source;
+	var ComponentMouseState = (function () {
+	    function ComponentMouseState() {
 	        this.mousedown = new Rx.Subject();
 	        this.mouseup = new Rx.Subject();
 	        this.mousemove = new Rx.Subject();
 	        this.mouseenter = new Rx.Subject();
 	        this.mouseleave = new Rx.Subject();
 	    }
-	    ComponentMouseEvents.prototype.isMouseOver = function () {
+	    ComponentMouseState.prototype.isMouseOver = function () {
 	        var toggle = Rx.Observable.merge([
 	            this.mouseenter.map(function (x) { return true; }),
 	            this.mouseleave.map(function (x) { return false; })]);
 	        return Parameter.updateFrom(false, toggle);
 	    };
-	    ComponentMouseEvents.prototype.isMouseDown = function () {
+	    ComponentMouseState.prototype.isMouseDown = function () {
 	        var mouseDown = Rx.Observable.merge([
 	            this.mousedown.map(function (x) { return true; }),
 	            this.mouseup.map(function (x) { return false; }),
 	            this.mouseleave.map(function (x) { return false; })]);
 	        return Parameter.updateFrom(false, mouseDown);
 	    };
-	    return ComponentMouseEvents;
+	    return ComponentMouseState;
 	})();
-	exports.ComponentMouseEvents = ComponentMouseEvents;
+	exports.ComponentMouseState = ComponentMouseState;
 	/**
 	 * returns an animation that can be pipelined after a path, which used canvas isPointInPath to detect if a mouse event has
 	 * occured over the source animation

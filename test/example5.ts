@@ -13,18 +13,15 @@ import helper = require("../dist/helper");
 // @start
 var animator: Ax.Animator = helper.getExampleAnimator(100, 100);
 
+/**
+ * A Button is an animation but with extra mouse state attached
+ */
 class Button extends Ax.Animation {
-    hotspot: Ax.PathAnimation;
-    events: events.ComponentMouseEvents;
-
     /**
-     * creates a button
-     * @param postprocessor a hook for attaching listeners so you can chain the button to other animations without interruption
+     * @param postprocessor hook to do things like attach listeners without breaking the animation chaining
      */
-    constructor(postprocessor?: (Button) => void) {
-        // we need animations before an after the hotspot's path to create a complete button
-        // first lets deal with the path that listens to the mouse
-        this.hotspot = Ax
+    static rectangular(postprocessor ?: (Button) => void): Button { // note Babel doesn't like this type
+        var hotspot = Ax
             .withinPath(Ax
                 .lineTo([ 40,  0])
                 .lineTo([ 40, 20])
@@ -32,25 +29,37 @@ class Button extends Ax.Animation {
                 .lineTo([  0,  0])
             );
 
-        this.events = new events.ComponentMouseEvents(this);
+        var button = new Button(
+            hotspot,
+            new events.ComponentMouseState(),
+            Ax.fillStyle("red"),    /* pressed */
+            Ax.fillStyle("orange"), /* over */
+            Ax.fillStyle("white")); /* idle */
 
-        // now build the animations either side of the hot spot sandwich,
-        // then we use the total sandwiches attach function as the animation attach for this class
-        // so the Button Animation subclass exposes a richer API (i.e. events) than a basic animation normally would
+        if (postprocessor) postprocessor(button);
+
+        return button;
+    }
+
+    constructor(public hotspot: Ax.PathAnimation, // Babel doesn't like public modifier
+                public mouseState: events.ComponentMouseState, // Babel doesn't like public modifier
+                onMouseDown: Ax.Animation,
+                onMouseOver: Ax.Animation,
+                onIdle: Ax.Animation
+    ) {
+        // we build a grand animation pipeline either side of the hot spot,
+        // then we use the total pipeline's attach function as the attach function for this animation
+        // so the constructed Button exposes a richer API (e.g. state) than a basic animation normally wouldn't
 
         super(Ax.Empty
-            .if(this.events.isMouseDown(),
-                Ax.fillStyle(Parameter.rgba(255, 0, 0, 0.5)))
-            .elif(this.events.isMouseOver(),
-                Ax.fillStyle(Parameter.rgba(0, 255, 0, 0.5)))
-            .else(
-                Ax.fillStyle(Parameter.rgba(0, 0, 255, 0.5)))
-            .pipe(this.hotspot)
-            .pipe(events.ComponentMouseEventHandler(this.events))
+            .if(mouseState.isMouseDown(), onMouseDown)
+            .elif(mouseState.isMouseOver(), onMouseOver)
+            .else(onIdle)
+            .pipe(hotspot)
+            .pipe(events.ComponentMouseEventHandler(mouseState))
             .fill()
             .attach);
-
-        if (postprocessor) postprocessor(this);
+        mouseState.source = this;
     }
 }
 
@@ -60,17 +69,17 @@ animator.play(Ax.fillStyle("#000000").fillRect([0,0],[100,100]));
 animator.play(Ax
     .translate([40, 40])
     .rotate(Math.PI / 4)
-    .pipe(new Button(
-            button => {
-                button.events.mousedown.subscribe(
+    .pipe(Button.rectangular(
+        (button: Button) => {
+                button.mouseState.mousedown.subscribe(
                     (evt: events.AxMouseEvent) => console.log("Button: mousedown",  evt.animationCoord));
-                button.events.mouseup.subscribe(
+                button.mouseState.mouseup.subscribe(
                     (evt: events.AxMouseEvent) => console.log("Button: mouseup",    evt.animationCoord));
-                button.events.mousemove.subscribe(
+                button.mouseState.mousemove.subscribe(
                     (evt: events.AxMouseEvent) => console.log("Button: mousemove",  evt.animationCoord));
-                button.events.mouseenter.subscribe(
+                button.mouseState.mouseenter.subscribe(
                     (evt: events.AxMouseEvent) => console.log("Button: mouseenter", evt.animationCoord));
-                button.events.mouseleave.subscribe(
+                button.mouseState.mouseleave.subscribe(
                     (evt: events.AxMouseEvent) => console.log("Button: mouseleave", evt.animationCoord));
             }
         )
