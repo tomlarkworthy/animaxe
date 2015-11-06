@@ -121,7 +121,10 @@ gulp.task("webpack-animaxe", function(callback) {
       },
       externals: {
           // require("rx") is external and on the Rx variable
-          "rx": "Rx"
+          "rx": "Rx"/*, Issues with circular dependancies
+          "./events": './events',
+          "./parameter": 'Parameter',
+          "helper": './helper'*/
       },
       node: {
         fs: "empty"

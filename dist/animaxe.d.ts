@@ -5,6 +5,7 @@ import events = require('./events');
 import Parameter = require('./parameter');
 export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
+export declare var DEBUG_IF: boolean;
 export declare var DEBUG_EMIT: boolean;
 export declare var DEBUG_PARALLEL: boolean;
 export declare var DEBUG_EVENTS: boolean;
@@ -57,6 +58,10 @@ export declare type ColorArg = Color | Parameter<Color>;
  * A literal or a dynamic Parameter alias, used as arguments to animations.
  */
 export declare type StringArg = string | Parameter<string>;
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
+export declare type BooleanArg = boolean | Parameter<boolean>;
 /**
  * Each frame an animation is provided a Tick. The tick exposes access to the local animation time, the
  * time delta between the previous frame (dt) and the drawing context. Animators typically use the drawing context
@@ -140,6 +145,7 @@ export declare class Animation {
      * You just have to supply a function that does something with the draw tick.
      */
     draw(drawFactory: () => ((tick: Tick) => void)): Animation;
+    if(condition: BooleanArg, animation: Animation): If;
     /**
      * Dynamic chainable wrapper for strokeStyle in the canvas API.
      */
@@ -287,6 +293,7 @@ export declare class Animation {
     velocity(vector: PointArg): Animation;
     glow(decay: NumberArg): Animation;
 }
+export declare var Empty: Animation;
 export declare class Animator {
     ctx: CanvasRenderingContext2D;
     root: Rx.Subject<Tick>;
@@ -338,6 +345,22 @@ export declare function emit(animation: Animation): Animation;
  * @returns {Animation}
  */
 export declare function loop(animation: Animation): Animation;
+export declare type ConditionActionPair = [BooleanArg, Animation];
+/**
+ * An if () elif() else() block. The semantics are subtle when considering animation lifecycles.
+ * One intepretation is that an action is triggered until completion, before reevaluating the conditions. However,
+ * as many animations are infinite in length, this would only ever select a single animation path.
+ * So rather, this block reevaluates the condition every message. If an action completes, the block passes on the completion,
+ * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
+ * Whenever the active clause changes, the new active animation is reinitialised.
+ */
+export declare class If {
+    conditions: ConditionActionPair[];
+    constructor(conditions: ConditionActionPair[]);
+    elif(clause: BooleanArg, action: Animation): If;
+    endif(): Animation;
+    else(otherwise: Animation): Animation;
+}
 export declare function draw(drawFactory: () => ((tick: Tick) => void)): Animation;
 export declare function translate(delta: PointArg): Animation;
 export declare function globalCompositeOperation(composite_mode: string): Animation;

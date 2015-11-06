@@ -77,7 +77,7 @@
 				</ul>
 				<p>Now you can compose animations <em>functionally</em>. Ideal for procedural and <em>interactive</em> animations.</p>
 				<p>Its still very early on this project, the basic building blocks are not complete, and the repository layout is not useful for libraries to link to. However, the following is a proof-of-concept for the API feel. Maybe you want to contribute?</p>
-				<h2 id="being-a-better-canvas-api">Being a better Canvas API</h2>
+				<h2 id="being-a-nicer-canvas-api">Being a nicer Canvas API</h2>
 				<p>Instead of the procedural style of drawing that the Canvas API uses, we chain. So instead of:</p>
 				<pre><code>ctx.fillStyle = <span class="hljs-string">"red"</span>;
 ctx.translate(<span class="hljs-number">30</span>, <span class="hljs-number">45</span>);
@@ -86,8 +86,9 @@ ctx.fillRect(<span class="hljs-number">0</span>,<span class="hljs-number">0</spa
 				<pre><code>Ax.fillStyle(<span class="hljs-string">"red"</span>)
   .translate([<span class="hljs-number">30</span>, <span class="hljs-number">45</span>])
   .fillRect([<span class="hljs-number">0</span>,<span class="hljs-number">0</span>], [<span class="hljs-number">10</span>,<span class="hljs-number">10</span>]);
-</code></pre><p>It&#39;s worth noting almost every parameter in Animaxe can be a literal, like in the above, OR, it can be dynamic. The Parameter module is the entrance to 
-				time varying functions, which can also be chained together with the normal functional primatives.</p>
+</code></pre><h2 id="being-reactive">Being reactive</h2>
+				<p>It&#39;s worth noting almost every argument in Animaxe can be a literal, like in the example above, OR, it can be a dynamic time varying value.
+				The Parameter module is the entrance to time varying functions, which can also be chained together with the normal functional primitives.</p>
 				<p>For example, a fading in an out example:</p>
 				<pre><code>Ax.fillStyle(Parameter.rgba(<span class="hljs-number">255</span>, <span class="hljs-number">255</span>, <span class="hljs-number">255</span>, Parameter.<span class="hljs-built_in">sin</span>(Parameter.t())))
   .translate(Parameter.point(<span class="hljs-number">30</span>, Parameter.<span class="hljs-built_in">sin</span>(<span class="hljs-number">30</span>).<span class="hljs-built_in">map</span>(x =&gt; x * <span class="hljs-number">50</span>)))
@@ -133,7 +134,7 @@ ctx.fillRect(<span class="hljs-number">0</span>,<span class="hljs-number">0</spa
 				<h2 id="packaging">Packaging</h2>
 				<ul>
 					<li>I don&#39;t like the webpack names have to be different</li>
-					<li>Test npm integration</li>
+					<li>Test npm integration...</li>
 					<li>ES6 modules? Can we make the packaging equivalent? Maybe jsut a browser &amp; and node.js directory structure?</li>
 				</ul>
 				<h2 id="glow">Glow</h2>
@@ -146,21 +147,22 @@ ctx.fillRect(<span class="hljs-number">0</span>,<span class="hljs-number">0</spa
 				</ul>
 				<h2 id="features">Features</h2>
 				<ul>
+					<li>.if .elif .else .fi e.g. .if(BoolArg, <anim>).fi().fill()</li>
 					<li>Reflection</li>
-					<li>systems (fold?)</li>
+					<li>L-systems (fold?)</li>
+					<li>Perlin noise</li>
 					<li>simulate a lazer show, XY parametric functions (Lissajous curves), intergrate with ODE solve</li>
 				</ul>
 				<h2 id="engineering">Engineering</h2>
 				<ul>
 					<li>figure out why example3 cannot have move than 1000 particles without a stack overflow</li>
 					<li>remove randomness (example 3) with a random seed (seed random with animation seed?) for repeatabe tests</li>
-					<li>replace parralel with its own internal animator OR make parallel the only option</li>
+					<li>replace paralel with its own internal animator OR make parallel the only option</li>
+					<li>check for memory leaks from recursive closures.</li>
 				</ul>
 				<h2 id="refactors">Refactors</h2>
 				<ul>
 					<li>change order of playExample parameters</li>
-				</ul>
-				<ul>
 					<li>(done) Parameter to go in own module, params chained to make value read left to right</li>
 					<li>(done) Parameter.rnd().first()        // maybe we should just make it pure by seeding the rnd by epock or tree position?</li>
 					<li>(done) Parameter.rnd().map(x =&gt; x*x)</li>
@@ -177,7 +179,8 @@ ctx.fillRect(<span class="hljs-number">0</span>,<span class="hljs-number">0</spa
 					<li>maybe put context methods in their own namespace if possible? (long term goal)</li>
 					<li>consider hiding time from Animation? It should only be used in params</li>
 					<li>simplifying closure situation? Maybe handle params internally through DI?</li>
-					<li>the tick in animator is ugly</li>
+					<li>the way the tick is passed on in Animator is ugly</li>
+					<li>All the complex methods are implemented badly, then, emit, parrallel. Maybe state machines?</li>
 				</ul>
 				<h2 id="api-documentation">API documentation</h2>
 				<ul>

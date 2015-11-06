@@ -53,6 +53,36 @@ var Parameter =
 /***/ function(module, exports) {
 
 	exports.DEBUG = false;
+	/**
+	 * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
+	 * every time and event is received from the Rx source
+	 */
+	function updateFrom(initialValue, source) {
+	    return new Parameter(function () {
+	        var value = initialValue;
+	        source.subscribe(function (x) { return value = x; });
+	        return function (clock) {
+	            return value;
+	        };
+	    });
+	}
+	exports.updateFrom = updateFrom;
+	/**
+	 * convert an Rx.Observable into a Parameter by providing an default value. The Parameter's value will be replaced
+	 * with the value from the provided Rx.Observable for one tick only
+	 */
+	function overwriteWith(defaultValue, source) {
+	    return new Parameter(function () {
+	        var value = defaultValue;
+	        source.subscribe(function (x) { return value = x; });
+	        return function (clock) {
+	            var returnValue = value;
+	            value = defaultValue; // reset value each time
+	            return returnValue;
+	        };
+	    });
+	}
+	exports.overwriteWith = overwriteWith;
 	var Parameter = (function () {
 	    /**
 	     * Before a parameter is used, the enclosing animation must call init. This returns a function which

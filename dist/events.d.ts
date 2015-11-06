@@ -1,4 +1,5 @@
 /// <reference path="../types/canvas.d.ts" />
+import Rx = require("rx");
 import Ax = require("./animaxe");
 export declare type SystemMouseEvents = Ax.Point[];
 /**
@@ -40,6 +41,8 @@ export declare class ComponentMouseEvents {
     mouseenter: Rx.Subject<AxMouseEvent>;
     mouseleave: Rx.Subject<AxMouseEvent>;
     constructor(source: any);
+    isMouseOver(): Ax.Parameter<boolean>;
+    isMouseDown(): Ax.Parameter<boolean>;
 }
 /**
  * returns an animation that can be pipelined after a path, which used canvas isPointInPath to detect if a mouse event has

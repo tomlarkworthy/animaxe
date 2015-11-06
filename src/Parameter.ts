@@ -11,6 +11,41 @@ export type NumberArg = number | Parameter<number>
 export type PointArg  = Point | Parameter<Point>
 
 
+/**
+ * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
+ * every time and event is received from the Rx source
+ */
+export function updateFrom<T>(initialValue: T, source: Rx.Observable<T>): Parameter<T> {
+    return new Parameter(
+        () => {
+            var value = initialValue;
+            source.subscribe(x => value = x);
+            return (clock: number) => {
+                return value;
+            }
+        }
+    );
+}
+
+/**
+ * convert an Rx.Observable into a Parameter by providing an default value. The Parameter's value will be replaced
+ * with the value from the provided Rx.Observable for one tick only
+ */
+export function overwriteWith<T>(defaultValue: T, source: Rx.Observable<T>): Parameter<T> {
+    return new Parameter(
+        () => {
+            var value = defaultValue;
+            source.subscribe(x => value = x);
+            return (clock: number) => {
+                var returnValue = value;
+                value = defaultValue; // reset value each time
+                return returnValue;
+            }
+        }
+    );
+}
+
+
 export class Parameter<Value> {
     /**
      * Before a parameter is used, the enclosing animation must call init. This returns a function which

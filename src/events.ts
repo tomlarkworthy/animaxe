@@ -1,6 +1,7 @@
 /// <reference path="../types/canvas.d.ts" />
+import Rx = require("rx");
 import Ax = require("./animaxe");
-
+import Parameter = require ("./parameter");
 
 export type SystemMouseEvents = Ax.Point[];
 
@@ -66,6 +67,23 @@ export class ComponentMouseEvents {
     mouseleave   = new Rx.Subject<AxMouseEvent>();
 
     constructor(public source: any) {}
+
+    isMouseOver(): Ax.Parameter<boolean> {
+        var toggle: Rx.Observable<boolean> =
+            Rx.Observable.merge([
+                this.mouseenter.map((x) => true),
+                this.mouseleave.map((x) => false)]);
+        return Parameter.updateFrom(false, toggle);
+    }
+
+    isMouseDown(): Ax.Parameter<boolean> {
+        var mouseDown: Rx.Observable<boolean> =
+            Rx.Observable.merge([
+                this.mousedown.map((x)  => true),
+                this.mouseup.map((x)    => false),
+                this.mouseleave.map((x) => false)]);
+        return Parameter.updateFrom(false, mouseDown);
+    }
 }
 
 /**

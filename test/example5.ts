@@ -17,7 +17,13 @@ class Button extends Ax.Animation {
     hotspot: Ax.PathAnimation;
     events: events.ComponentMouseEvents;
 
+    /**
+     * creates a button
+     * @param postprocessor a hook for attaching listeners so you can chain the button to other animations without interruption
+     */
     constructor(postprocessor?: (Button) => void) {
+        // we need animations before an after the hotspot's path to create a complete button
+        // first lets deal with the path that listens to the mouse
         this.hotspot = Ax
             .withinPath(Ax
                 .lineTo([ 40,  0])
@@ -28,25 +34,32 @@ class Button extends Ax.Animation {
 
         this.events = new events.ComponentMouseEvents(this);
 
-        var button = this;
+        // now build the animations either side of the hot spot sandwich,
+        // then we use the total sandwiches attach function as the animation attach for this class
+        // so the Button Animation subclass exposes a richer API (i.e. events) than a basic animation normally would
 
-        // build the animations either side of the hot spot,
-        // and use the total animation's attach function as the animation primative for this class
-        super(Ax
-            .fillStyle(Parameter.rgba(255, 0, 0, 0.5))
+        super(Ax.Empty
+            .if(this.events.isMouseDown(),
+                Ax.fillStyle(Parameter.rgba(255, 0, 0, 0.5)))
+            .elif(this.events.isMouseOver(),
+                Ax.fillStyle(Parameter.rgba(0, 255, 0, 0.5)))
+            .else(
+                Ax.fillStyle(Parameter.rgba(0, 0, 255, 0.5)))
             .pipe(this.hotspot)
-            .pipe(events.ComponentMouseEventHandler(button.events))
+            .pipe(events.ComponentMouseEventHandler(this.events))
             .fill()
             .attach);
 
-        if (postprocessor) postprocessor(button);
+        if (postprocessor) postprocessor(this);
     }
 }
 
+//each frame, first draw black background to erase the previous contents
+animator.play(Ax.fillStyle("#000000").fillRect([0,0],[100,100]));
 
 animator.play(Ax
-    .translate([50, 50])
-    .rotate(Math.PI / 8)
+    .translate([40, 40])
+    .rotate(Math.PI / 4)
     .pipe(new Button(
             button => {
                 button.events.mousedown.subscribe(
@@ -64,7 +77,7 @@ animator.play(Ax
     )
 );
 
-helper.playExample("example5", 1, animator, 100, 100);
+helper.playExample("example5", 2, animator, 100, 100);
 // @end
 
 describe('example5', function () {

@@ -1,10 +1,21 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
+import Rx = require('rx');
 export declare var DEBUG: boolean;
 export declare type Color = string;
 export declare type Point = [number, number];
 export declare type NumberArg = number | Parameter<number>;
 export declare type PointArg = Point | Parameter<Point>;
+/**
+ * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
+ * every time and event is received from the Rx source
+ */
+export declare function updateFrom<T>(initialValue: T, source: Rx.Observable<T>): Parameter<T>;
+/**
+ * convert an Rx.Observable into a Parameter by providing an default value. The Parameter's value will be replaced
+ * with the value from the provided Rx.Observable for one tick only
+ */
+export declare function overwriteWith<T>(defaultValue: T, source: Rx.Observable<T>): Parameter<T>;
 export declare class Parameter<Value> {
     /**
      * Before a parameter is used, the enclosing animation must call init. This returns a function which

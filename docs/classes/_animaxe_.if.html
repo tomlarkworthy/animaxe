@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Events | Animaxe</title>
+	<title>If | Animaxe</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -57,13 +57,13 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/_events_.html">&quot;events&quot;</a>
+					<a href="../modules/_animaxe_.html">&quot;animaxe&quot;</a>
 				</li>
 				<li>
-					<a href="_events_.events.html">Events</a>
+					<a href="_animaxe_.if.html">If</a>
 				</li>
 			</ul>
-			<h1>Class Events</h1>
+			<h1>Class If</h1>
 		</div>
 	</div>
 </header>
@@ -73,8 +73,12 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Objects of this type are passed through the tick pipeline, and encapsulate potentially many concurrent system events
-						originating from the canvas DOM. These have to be intepreted by UI components to see if they hit</p>
+						<p>An if () elif() else() block. The semantics are subtle when considering animation lifecycles.
+							One intepretation is that an action is triggered until completion, before reevaluating the conditions. However,
+							as many animations are infinite in length, this would only ever select a single animation path.
+							So rather, this block reevaluates the condition every message. If an action completes, the block passes on the completion,
+							and the whole clause is over, so surround action animations with loop if you don&#39;t want that behaviour.
+						Whenever the active clause changes, the new active animation is reinitialised.</p>
 					</div>
 				</div>
 			</section>
@@ -82,7 +86,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Events</span>
+						<span class="target">If</span>
 					</li>
 				</ul>
 			</section>
@@ -91,73 +95,63 @@
 				<section class="tsd-panel tsd-index-panel">
 					<div class="tsd-index-content">
 						<section class="tsd-index-section ">
+							<h3>Constructors</h3>
+							<ul class="tsd-index-list">
+								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="_animaxe_.if.html#constructor" class="tsd-kind-icon">constructor</a></li>
+							</ul>
+						</section>
+						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.events.html#mousedowns" class="tsd-kind-icon">mousedowns</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.events.html#mouseenters" class="tsd-kind-icon">mouseenters</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.events.html#mouseleaves" class="tsd-kind-icon">mouseleaves</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.events.html#mousemoves" class="tsd-kind-icon">mousemoves</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_events_.events.html#mouseups" class="tsd-kind-icon">mouseups</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-class"><a href="_animaxe_.if.html#conditions" class="tsd-kind-icon">conditions</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_events_.events.html#clear" class="tsd-kind-icon">clear</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.if.html#elif" class="tsd-kind-icon">elif</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.if.html#else" class="tsd-kind-icon">else</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="_animaxe_.if.html#endif" class="tsd-kind-icon">endif</a></li>
 							</ul>
 						</section>
 					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
+				<h2>Constructors</h2>
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+					<a name="constructor" class="tsd-anchor"></a>
+					<h3>constructor</h3>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>If<span class="tsd-signature-symbol">(</span>conditions<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#conditionactionpair" class="tsd-signature-type">ConditionActionPair</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.if.html" class="tsd-signature-type">If</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L766">animaxe.ts:766</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>conditions: <a href="../modules/_animaxe_.html#conditionactionpair" class="tsd-signature-type">ConditionActionPair</a><span class="tsd-signature-symbol">[]</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.if.html" class="tsd-signature-type">If</a></h4>
+						</li>
+					</ul>
+				</section>
+			</section>
+			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="mousedowns" class="tsd-anchor"></a>
-					<h3>mousedowns</h3>
-					<div class="tsd-signature tsd-kind-icon">mousedowns<span class="tsd-signature-symbol">:</span> <a href="../modules/_events_.html#systemmouseevents" class="tsd-signature-type">SystemMouseEvents</a></div>
+					<a name="conditions" class="tsd-anchor"></a>
+					<h3>conditions</h3>
+					<div class="tsd-signature tsd-kind-icon">conditions<span class="tsd-signature-symbol">:</span> <a href="../modules/_animaxe_.html#conditionactionpair" class="tsd-signature-type">ConditionActionPair</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L44">events.ts:44</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="mouseenters" class="tsd-anchor"></a>
-					<h3>mouseenters</h3>
-					<div class="tsd-signature tsd-kind-icon">mouseenters<span class="tsd-signature-symbol">:</span> <a href="../modules/_events_.html#systemmouseevents" class="tsd-signature-type">SystemMouseEvents</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L47">events.ts:47</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="mouseleaves" class="tsd-anchor"></a>
-					<h3>mouseleaves</h3>
-					<div class="tsd-signature tsd-kind-icon">mouseleaves<span class="tsd-signature-symbol">:</span> <a href="../modules/_events_.html#systemmouseevents" class="tsd-signature-type">SystemMouseEvents</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L48">events.ts:48</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="mousemoves" class="tsd-anchor"></a>
-					<h3>mousemoves</h3>
-					<div class="tsd-signature tsd-kind-icon">mousemoves<span class="tsd-signature-symbol">:</span> <a href="../modules/_events_.html#systemmouseevents" class="tsd-signature-type">SystemMouseEvents</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L46">events.ts:46</a></li>
-						</ul>
-					</aside>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="mouseups" class="tsd-anchor"></a>
-					<h3>mouseups</h3>
-					<div class="tsd-signature tsd-kind-icon">mouseups<span class="tsd-signature-symbol">:</span> <a href="../modules/_events_.html#systemmouseevents" class="tsd-signature-type">SystemMouseEvents</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L45">events.ts:45</a></li>
+							<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L767">animaxe.ts:767</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -165,24 +159,68 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="clear" class="tsd-anchor"></a>
-					<h3>clear</h3>
+					<a name="elif" class="tsd-anchor"></a>
+					<h3>elif</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">clear<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">elif<span class="tsd-signature-symbol">(</span>clause<span class="tsd-signature-symbol">: </span><a href="../modules/_animaxe_.html#booleanarg" class="tsd-signature-type">BooleanArg</a>, action<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.if.html" class="tsd-signature-type">If</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/events.ts#L55">events.ts:55</a></li>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L769">animaxe.ts:769</a></li>
 								</ul>
 							</aside>
-							<div class="tsd-comment tsd-typography">
-								<div class="lead">
-									<p>clear all the events, done by animator at the end of a tick</p>
-								</div>
-							</div>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>clause: <a href="../modules/_animaxe_.html#booleanarg" class="tsd-signature-type">BooleanArg</a></h5>
+								</li>
+								<li>
+									<h5>action: <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.if.html" class="tsd-signature-type">If</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="else" class="tsd-anchor"></a>
+					<h3>else</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">else<span class="tsd-signature-symbol">(</span>otherwise<span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L778">animaxe.ts:778</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>otherwise: <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="endif" class="tsd-anchor"></a>
+					<h3>endif</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">endif<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/tomlarkworthy/animaxe/blob/master/src/animaxe.ts#L774">animaxe.ts:774</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="_animaxe_.animation.html" class="tsd-signature-type">Animation</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -194,10 +232,10 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
-					<li class=" tsd-kind-external-module">
+					<li class="current tsd-kind-external-module">
 						<a href="../modules/_animaxe_.html">"animaxe"</a>
 					</li>
-					<li class="current tsd-kind-external-module">
+					<li class=" tsd-kind-external-module">
 						<a href="../modules/_events_.html">"events"</a>
 					</li>
 					<li class=" tsd-kind-external-module">
@@ -210,54 +248,30 @@
 			</nav>
 			<nav class="tsd-navigation secondary menu-sticky">
 				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_events_.axmouseevent.html" class="tsd-kind-icon">Ax<wbr>Mouse<wbr>Event</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_events_.componentmouseevents.html" class="tsd-kind-icon">Component<wbr>Mouse<wbr>Events</a>
-					</li>
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-external-module">
-						<a href="_events_.events.html" class="tsd-kind-icon">Events</a>
+						<a href="_animaxe_.if.html" class="tsd-kind-icon">If</a>
 						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_events_.events.html#mousedowns" class="tsd-kind-icon">mousedowns</a>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class">
+								<a href="_animaxe_.if.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_events_.events.html#mouseenters" class="tsd-kind-icon">mouseenters</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_events_.events.html#mouseleaves" class="tsd-kind-icon">mouseleaves</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_events_.events.html#mousemoves" class="tsd-kind-icon">mousemoves</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="_events_.events.html#mouseups" class="tsd-kind-icon">mouseups</a>
+								<a href="_animaxe_.if.html#conditions" class="tsd-kind-icon">conditions</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="_events_.events.html#clear" class="tsd-kind-icon">clear</a>
+								<a href="_animaxe_.if.html#elif" class="tsd-kind-icon">elif</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.if.html#else" class="tsd-kind-icon">else</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="_animaxe_.if.html#endif" class="tsd-kind-icon">endif</a>
 							</li>
 						</ul>
 					</li>
 				</ul>
 				<ul class="after-current">
-					<li class=" tsd-kind-type-alias tsd-parent-kind-external-module">
-						<a href="../modules/_events_.html#systemmouseevents" class="tsd-kind-icon">System<wbr>Mouse<wbr>Events</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="../modules/_events_.html#componentmouseeventhandler" class="tsd-kind-icon">Component<wbr>Mouse<wbr>Event<wbr>Handler</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="../modules/_events_.html#animation2canvas" class="tsd-kind-icon">animation2<wbr>Canvas</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module">
-						<a href="../modules/_events_.html#canvas2animation" class="tsd-kind-icon">canvas2<wbr>Animation</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-external-module tsd-is-not-exported">
-						<a href="../modules/_events_.html#canvas2animationusingcontext" class="tsd-kind-icon">canvas2<wbr>Animation<wbr>Using<wbr>Context</a>
-					</li>
 				</ul>
 			</nav>
 		</div>

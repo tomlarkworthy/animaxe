@@ -6,6 +6,7 @@ import Parameter = require('./parameter');
 
 export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
+export var DEBUG_IF = false;
 export var DEBUG_EMIT = false;
 export var DEBUG_PARALLEL = false;
 export var DEBUG_EVENTS = false;
@@ -35,7 +36,10 @@ function moveTo(
 ```
  *
  */
-export interface Parameter<T> extends Parameter.Parameter<T> {}
+export interface Parameter<T> extends Parameter.Parameter<T> {
+
+}
+
 
 // todo we should move these into an ES6 module but my IDE does not support it yet
 /**
@@ -62,6 +66,10 @@ export type ColorArg  = Color | Parameter<Color>
  * A literal or a dynamic Parameter alias, used as arguments to animations.
  */
 export type StringArg = string | Parameter<string>
+/**
+ * A literal or a dynamic Parameter alias, used as arguments to animations.
+ */
+export type BooleanArg = boolean | Parameter<boolean>
 
 /**
  * Each frame an animation is provided a Tick. The tick exposes access to the local animation time, the
@@ -252,6 +260,10 @@ export class Animation {
      */
     draw(drawFactory: () => ((tick: Tick) => void)): Animation {
         return this.pipe(draw(drawFactory));
+    }
+
+    if(condition: BooleanArg, animation:Animation): If{
+        return new If([[condition, animation]]);
     }
 
     // Canvas API
@@ -482,8 +494,10 @@ export class Animation {
     glow(decay: NumberArg): Animation {
         return this.pipe(glow(decay));
     }
-
 }
+
+
+export var Empty: Animation = new Animation(upstream => upstream);
 
 export class Animator {
     root: Rx.Subject<Tick>;
@@ -689,11 +703,11 @@ export function loop(
             var loopSubscription = null;
             var t = 0;
 
+
             function attachLoop(next) { //todo I feel like we can remove a level from this somehow
                 if (DEBUG_LOOP) console.log("loop: new inner loop starting at", t);
 
                 loopStart = new Rx.Subject<Tick>();
-
                 loopSubscription = animation.attach(loopStart).subscribe(
                     function(next) {
                         if (DEBUG_LOOP) console.log("loop: post-inner loop to downstream");
@@ -737,6 +751,83 @@ export function loop(
         }).subscribeOn(Rx.Scheduler.immediate);
     });
 }
+
+export type ConditionActionPair = [BooleanArg, Animation];
+
+
+/**
+ * An if () elif() else() block. The semantics are subtle when considering animation lifecycles.
+ * One intepretation is that an action is triggered until completion, before reevaluating the conditions. However,
+ * as many animations are infinite in length, this would only ever select a single animation path.
+ * So rather, this block reevaluates the condition every message. If an action completes, the block passes on the completion,
+ * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
+ * Whenever the active clause changes, the new active animation is reinitialised.
+ */
+export class If {
+    constructor(public conditions: ConditionActionPair[]) {}
+
+    elif(clause:BooleanArg, action: Animation): If {
+        this.conditions.push([clause, action]);
+        return this;
+    }
+
+    endif() {
+        return this.else(Empty);
+    }
+
+    else(otherwise: Animation): Animation {
+        return new Animation(
+            (upstream: TickStream) => {
+                if (DEBUG_IF) console.log("If: attach");
+                var downstream = new Rx.Subject<Tick>();
+                var anchor = new Rx.Subject<Tick>();
+
+                var currentAnimation = otherwise;
+                var activeSubscription = otherwise.attach(anchor).subscribe(downstream);
+
+
+                // we initialise all the condition parameters
+                var conditions_next = this.conditions.map(
+                    (condition: ConditionActionPair) => Parameter.from(condition[0]).init()
+                );
+
+                var fork = upstream.subscribe(
+                    (tick: Tick) => {
+                        if (DEBUG_IF) console.log("If: upstream tick");
+                        // first, we find which animation should active, by using the conditions array
+                        var nextActiveAnimation = null;
+                        // ideally we would use find, but that is not in TS yet..
+                        for (var i = 0 ;i < this.conditions.length && nextActiveAnimation == null; i++) {
+                            if (conditions_next[i](tick.clock)) {
+                                nextActiveAnimation = this.conditions[i][1];
+                            }
+                        }
+                        if (nextActiveAnimation == null) nextActiveAnimation = otherwise;
+
+                        assert(nextActiveAnimation != null, "an animation should always be selected in an if block");
+
+                        // second, we see if this is the same as the current animation, or whether we have switched
+                        if (nextActiveAnimation != currentAnimation) {
+                            // this is a new animation being sequenced, cancel the old one and add a new one
+                            if (DEBUG_IF) console.log("If: new subscription");
+                            if (activeSubscription != null) activeSubscription.dispose();
+                            activeSubscription = nextActiveAnimation.attach(anchor).subscribe(downstream);
+                            currentAnimation = nextActiveAnimation;
+                        } else {
+                            //we don't need to do anything becuase the subscription is already stream downstrem
+                        }
+                        anchor.onNext(tick);
+                    },
+                    err => anchor.onError(err),
+                    () => anchor.onCompleted()
+                );
+
+                return downstream.tap(x => {if (DEBUG_IF) console.log("If: downstream tick")});
+            }
+        )
+    }
+}
+
 
 export function draw(
     drawFactory: () => ((tick: Tick) => void)
@@ -1078,7 +1169,7 @@ export function fill(): Animation {
         () => {
             if (DEBUG) console.log("fill: attach");
             return function (tick: Tick) {
-                if (DEBUG) console.log("fill: stroke");
+                if (DEBUG) console.log("fill: fill");
                 tick.ctx.fill();
             }
         });

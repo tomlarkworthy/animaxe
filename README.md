@@ -14,7 +14,7 @@ Now you can compose animations *functionally*. Ideal for procedural and *interac
 
 Its still very early on this project, the basic building blocks are not complete, and the repository layout is not useful for libraries to link to. However, the following is a proof-of-concept for the API feel. Maybe you want to contribute?
 
-Being a better Canvas API
+Being a nicer Canvas API
 -------------------------
 
 Instead of the procedural style of drawing that the Canvas API uses, we chain. So instead of:
@@ -32,9 +32,11 @@ Ax.fillStyle("red")
   .fillRect([0,0], [10,10]);
 ```
 
-It's worth noting almost every parameter in Animaxe can be a literal, like in the above, OR, it can be dynamic. The Parameter module is the entrance to 
-time varying functions, which can also be chained together with the normal functional primatives.
+Being reactive
+-------------------------
 
+It's worth noting almost every argument in Animaxe can be a literal, like in the example above, OR, it can be a dynamic time varying value. 
+The Parameter module is the entrance to time varying functions, which can also be chained together with the normal functional primitives.
 
 For example, a fading in an out example:
  
@@ -42,7 +44,9 @@ For example, a fading in an out example:
 Ax.fillStyle(Parameter.rgba(255, 255, 255, Parameter.sin(Parameter.t())))
   .translate(Parameter.point(30, Parameter.sin(30).map(x => x * 50)))
   .fillRect([0,0], [10,10]); 
-``` 
+```
+
+
 
 Examples
 -----------------------------------
@@ -123,7 +127,7 @@ TODOS
 Packaging
 -----------
 - I don't like the webpack names have to be different
-- Test npm integration
+- Test npm integration...
 - ES6 modules? Can we make the packaging equivalent? Maybe jsut a browser & and node.js directory structure?
 
 
@@ -135,22 +139,22 @@ Glow
 
 Features
 --------
+- .if .elif .else .fi e.g. .if(BoolArg, <anim>).fi().fill()
 - Reflection
-- systems (fold?)
+- L-systems (fold?)
+- Perlin noise
 - simulate a lazer show, XY parametric functions (Lissajous curves), intergrate with ODE solve
  
 Engineering
 --------------
 - figure out why example3 cannot have move than 1000 particles without a stack overflow
 - remove randomness (example 3) with a random seed (seed random with animation seed?) for repeatabe tests
-- replace parralel with its own internal animator OR make parallel the only option
+- replace paralel with its own internal animator OR make parallel the only option
+- check for memory leaks from recursive closures.
 
 Refactors
 ----------
-
 - change order of playExample parameters
-
-
 - (done) Parameter to go in own module, params chained to make value read left to right
 - (done) Parameter.rnd().first()        // maybe we should just make it pure by seeding the rnd by epock or tree position?
 - (done) Parameter.rnd().map(x => x*x)
@@ -165,7 +169,8 @@ Refactors
 - maybe put context methods in their own namespace if possible? (long term goal)
 - consider hiding time from Animation? It should only be used in params
 - simplifying closure situation? Maybe handle params internally through DI?
-- the tick in animator is ugly
+- the way the tick is passed on in Animator is ugly
+- All the complex methods are implemented badly, then, emit, parrallel. Maybe state machines?
 
 API documentation
 -------------------

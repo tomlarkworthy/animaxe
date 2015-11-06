@@ -134,6 +134,7 @@ var helper =
 	var Parameter = __webpack_require__(5);
 	exports.DEBUG_LOOP = false;
 	exports.DEBUG_THEN = false;
+	exports.DEBUG_IF = false;
 	exports.DEBUG_EMIT = false;
 	exports.DEBUG_PARALLEL = false;
 	exports.DEBUG_EVENTS = false;
@@ -301,6 +302,9 @@ var helper =
 	     */
 	    Animation.prototype.draw = function (drawFactory) {
 	        return this.pipe(draw(drawFactory));
+	    };
+	    Animation.prototype.if = function (condition, animation) {
+	        return new If([[condition, animation]]);
 	    };
 	    // Canvas API
 	    /**
@@ -525,6 +529,7 @@ var helper =
 	    return Animation;
 	})();
 	exports.Animation = Animation;
+	exports.Empty = new Animation(function (upstream) { return upstream; });
 	var Animator = (function () {
 	    function Animator(ctx) {
 	        this.ctx = ctx;
@@ -767,6 +772,71 @@ var helper =
 	    });
 	}
 	exports.loop = loop;
+	/**
+	 * An if () elif() else() block. The semantics are subtle when considering animation lifecycles.
+	 * One intepretation is that an action is triggered until completion, before reevaluating the conditions. However,
+	 * as many animations are infinite in length, this would only ever select a single animation path.
+	 * So rather, this block reevaluates the condition every message. If an action completes, the block passes on the completion,
+	 * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
+	 * Whenever the active clause changes, the new active animation is reinitialised.
+	 */
+	var If = (function () {
+	    function If(conditions) {
+	        this.conditions = conditions;
+	    }
+	    If.prototype.elif = function (clause, action) {
+	        this.conditions.push([clause, action]);
+	        return this;
+	    };
+	    If.prototype.endif = function () {
+	        return this.else(exports.Empty);
+	    };
+	    If.prototype.else = function (otherwise) {
+	        var _this = this;
+	        return new Animation(function (upstream) {
+	            if (exports.DEBUG_IF)
+	                console.log("If: attach");
+	            var downstream = new Rx.Subject();
+	            var anchor = new Rx.Subject();
+	            var currentAnimation = otherwise;
+	            var activeSubscription = otherwise.attach(anchor).subscribe(downstream);
+	            // we initialise all the condition parameters
+	            var conditions_next = _this.conditions.map(function (condition) { return Parameter.from(condition[0]).init(); });
+	            var fork = upstream.subscribe(function (tick) {
+	                if (exports.DEBUG_IF)
+	                    console.log("If: upstream tick");
+	                // first, we find which animation should active, by using the conditions array
+	                var nextActiveAnimation = null;
+	                // ideally we would use find, but that is not in TS yet..
+	                for (var i = 0; i < _this.conditions.length && nextActiveAnimation == null; i++) {
+	                    if (conditions_next[i](tick.clock)) {
+	                        nextActiveAnimation = _this.conditions[i][1];
+	                    }
+	                }
+	                if (nextActiveAnimation == null)
+	                    nextActiveAnimation = otherwise;
+	                assert(nextActiveAnimation != null, "an animation should always be selected in an if block");
+	                // second, we see if this is the same as the current animation, or whether we have switched
+	                if (nextActiveAnimation != currentAnimation) {
+	                    // this is a new animation being sequenced, cancel the old one and add a new one
+	                    if (exports.DEBUG_IF)
+	                        console.log("If: new subscription");
+	                    if (activeSubscription != null)
+	                        activeSubscription.dispose();
+	                    activeSubscription = nextActiveAnimation.attach(anchor).subscribe(downstream);
+	                    currentAnimation = nextActiveAnimation;
+	                }
+	                else {
+	                }
+	                anchor.onNext(tick);
+	            }, function (err) { return anchor.onError(err); }, function () { return anchor.onCompleted(); });
+	            return downstream.tap(function (x) { if (exports.DEBUG_IF)
+	                console.log("If: downstream tick"); });
+	        });
+	    };
+	    return If;
+	})();
+	exports.If = If;
 	function draw(drawFactory) {
 	    return new Animation(function (previous) {
 	        var draw = drawFactory();
@@ -1057,7 +1127,7 @@ var helper =
 	            console.log("fill: attach");
 	        return function (tick) {
 	            if (exports.DEBUG)
-	                console.log("fill: stroke");
+	                console.log("fill: fill");
 	            tick.ctx.fill();
 	        };
 	    });
@@ -1680,7 +1750,10 @@ var helper =
 /***/ function(module, exports, __webpack_require__) {
 
 	/// <reference path="../types/canvas.d.ts" />
+	var Rx = __webpack_require__(3);
 	var Ax = __webpack_require__(2);
+	var Parameter = __webpack_require__(5);
+	Ax.DEBUG = true;
 	/**
 	 * Convert animation coordinates (e.g. a coordinate of moveTo) to global canvas coordinates, cooeffecients are:
 	 * [ a c e
@@ -1747,6 +1820,19 @@ var helper =
 	        this.mouseenter = new Rx.Subject();
 	        this.mouseleave = new Rx.Subject();
 	    }
+	    ComponentMouseEvents.prototype.isMouseOver = function () {
+	        var toggle = Rx.Observable.merge([
+	            this.mouseenter.map(function (x) { return true; }),
+	            this.mouseleave.map(function (x) { return false; })]);
+	        return Parameter.updateFrom(false, toggle);
+	    };
+	    ComponentMouseEvents.prototype.isMouseDown = function () {
+	        var mouseDown = Rx.Observable.merge([
+	            this.mousedown.map(function (x) { return true; }),
+	            this.mouseup.map(function (x) { return false; }),
+	            this.mouseleave.map(function (x) { return false; })]);
+	        return Parameter.updateFrom(false, mouseDown);
+	    };
 	    return ComponentMouseEvents;
 	})();
 	exports.ComponentMouseEvents = ComponentMouseEvents;
@@ -1809,6 +1895,36 @@ var helper =
 /***/ function(module, exports) {
 
 	exports.DEBUG = false;
+	/**
+	 * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
+	 * every time and event is received from the Rx source
+	 */
+	function updateFrom(initialValue, source) {
+	    return new Parameter(function () {
+	        var value = initialValue;
+	        source.subscribe(function (x) { return value = x; });
+	        return function (clock) {
+	            return value;
+	        };
+	    });
+	}
+	exports.updateFrom = updateFrom;
+	/**
+	 * convert an Rx.Observable into a Parameter by providing an default value. The Parameter's value will be replaced
+	 * with the value from the provided Rx.Observable for one tick only
+	 */
+	function overwriteWith(defaultValue, source) {
+	    return new Parameter(function () {
+	        var value = defaultValue;
+	        source.subscribe(function (x) { return value = x; });
+	        return function (clock) {
+	            var returnValue = value;
+	            value = defaultValue; // reset value each time
+	            return returnValue;
+	        };
+	    });
+	}
+	exports.overwriteWith = overwriteWith;
 	var Parameter = (function () {
 	    /**
 	     * Before a parameter is used, the enclosing animation must call init. This returns a function which
