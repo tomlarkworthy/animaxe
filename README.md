@@ -1,11 +1,18 @@
 Animaxe, Composable Animation Library
 ==============================================
 
-The aim of Animaxe is to be a few things:
+Maybe I should explain my motivation, I like procedural graphics, graphics drawn by code. 
+But fiddling with parameters in a compile-execute cycle is slow and does not get the best artistic results. 
+So I want a graphical system that allows me to:
+
+- Alter the generation code dynamically and see the results immediately (that's why I put the examples on Codepen)
+- Fiddle with the animation meta parameters live (that's what the FRP-like bit helps with)
+
+So the aim of Animaxe is to be a few things:
 
 - Make it easy to create animations that are composable. 
 - Be a nicer API for the Canvas drawing API
-- Be reactive, every parameter to every animation primative should be alterable at any time
+- Be reactive, every parameter to every animation primitive should be alterable at any time
 - Be functional, a lot of inspiration is drawn from Functional Reactive Programming, although the intention is not to be too pure
 - Be efficient
 - Be typed using Typescript

@@ -18,7 +18,7 @@ var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"));
 
 var npm_info = JSON.parse(fs.readFileSync("package.json"));
 
-var num_examples = 5;
+var num_examples = 6;
 
 gulp.task('clean', function(cb) {
   del([

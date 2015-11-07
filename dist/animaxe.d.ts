@@ -293,7 +293,6 @@ export declare class Animation {
     velocity(vector: PointArg): Animation;
     glow(decay: NumberArg): Animation;
 }
-export declare var Empty: Animation;
 export declare class Animator {
     ctx: CanvasRenderingContext2D;
     root: Rx.Subject<Tick>;
@@ -311,6 +310,8 @@ export declare class Animator {
      */
     registerEvents(canvas: any): void;
 }
+export declare var Empty: Animation;
+export declare function pipe(animation: Animation): Animation;
 /**
  * NOTE: currently fails if the streams are different lengths
  * @param expectedDt the expected clock tick values

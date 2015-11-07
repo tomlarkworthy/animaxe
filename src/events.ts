@@ -151,6 +151,37 @@ export function ComponentMouseEventHandler(events: ComponentMouseState): Ax.Anim
     )
 }
 
+/**
+ * returns an animation that can be pipelined anywhere, which listens for global mouse events over the entire canvas
+ * AxMouseEvent raised globally have a null source field, and identical global and local coordinates
+ */
+export function CanvasMouseEventHandler(events: ComponentMouseState): Ax.Animation {
+    return Ax.draw(
+        () => {
+            return (tick: Ax.Tick) => {
+                function processSystemMouseEvents(
+                    sourceEvents: SystemMouseEvents,
+                    componentEventStream: Rx.Subject<AxMouseEvent>
+                ) {
+                    sourceEvents.forEach(
+                        (evt: Ax.Point) => {
+                            if (componentEventStream.hasObservers()) {
+                                componentEventStream.onNext(new AxMouseEvent(null, evt, evt));
+                            }
+                        }
+                    )
+                }
+
+                processSystemMouseEvents(tick.events.mousedowns, events.mousedown);
+                processSystemMouseEvents(tick.events.mouseups, events.mouseup);
+                processSystemMouseEvents(tick.events.mousemoves, events.mousemove);
+                processSystemMouseEvents(tick.events.mouseenters, events.mouseenter);
+                processSystemMouseEvents(tick.events.mouseleaves, events.mouseleave);
+            }
+        }
+    )
+}
+
 export class AxMouseEvent {
     constructor(public source: any, public animationCoord: Ax.Point, public canvasCoord: Ax.Point) {}
 }

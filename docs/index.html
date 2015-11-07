@@ -66,11 +66,18 @@
 		<div class="col-8 col-content">
 			<div class="tsd-panel tsd-typography">
 				<h1 id="animaxe-composable-animation-library">Animaxe, Composable Animation Library</h1>
-				<p>The aim of Animaxe is to be a few things:</p>
+				<p>Maybe I should explain my motivation, I like procedural graphics, graphics drawn by code.
+					But fiddling with parameters in a compile-execute cycle is slow and does not get the best artistic results.
+				So I want a graphical system that allows me to:</p>
+				<ul>
+					<li>Alter the generation code dynamically and see the results immediately (that&#39;s why I put the examples on Codepen)</li>
+					<li>Fiddle with the animation meta parameters live (that&#39;s what the FRP-like bit helps with)</li>
+				</ul>
+				<p>So the aim of Animaxe is to be a few things:</p>
 				<ul>
 					<li>Make it easy to create animations that are composable. </li>
 					<li>Be a nicer API for the Canvas drawing API</li>
-					<li>Be reactive, every parameter to every animation primative should be alterable at any time</li>
+					<li>Be reactive, every parameter to every animation primitive should be alterable at any time</li>
 					<li>Be functional, a lot of inspiration is drawn from Functional Reactive Programming, although the intention is not to be too pure</li>
 					<li>Be efficient</li>
 					<li>Be typed using Typescript</li>
@@ -102,13 +109,14 @@ ctx.fillRect(<span class="hljs-number">0</span>,<span class="hljs-number">0</spa
 				<p><img src="./images/example2.gif?raw=true" alt="Example2"></p>
 				<p>Example 3 - Particles
 					(<a href="./test/example3.ts">source</a>)
-				(<a href="http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=101">edit on Codepen</a>)</p>
+				(<a href="http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=001">edit on Codepen</a>)</p>
 				<p><img src="./images/example3.gif?raw=true" alt="Example3"></p>
 				<p>Example 4 - Glow filter
 				(<a href="./test/example4.ts">source</a>)</p>
 				<p><img src="./images/example4.gif?raw=true" alt="Example4"></p>
-				<p>Example 5 - UI control
-				(<a href="./test/example5.ts">source</a>)</p>
+				<p>Example 5 - UI Button
+					(<a href="./test/example5.ts">source</a>)
+				(<a href="http://codepen.io/tomlarkworthy/pen/yYxwga?editors=001">edit on Codepen</a>)</p>
 				<p><img src="./images/example5.gif?raw=true" alt="Example5"></p>
 				<p>We have some examples in the test directory written in Typescript.
 				You can use the babel preprocessor within Codepen quite well:</p>

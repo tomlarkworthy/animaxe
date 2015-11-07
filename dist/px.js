@@ -144,7 +144,7 @@ var Parameter =
 	        var y_next = from(y).init();
 	        return function (t) {
 	            var result = [x_next(t), y_next(t)];
-	            //if (DEBUG) console.log("point: next", result);
+	            // console.log("point: next", result);
 	            return result;
 	        };
 	    });

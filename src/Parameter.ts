@@ -111,14 +111,14 @@ export function point(
     x: number | Parameter<number>,
     y: number | Parameter<number>
 ): Parameter<Point>
-{   //if (DEBUG) console.log("point: init", x_stream, y_stream);
+{
     return new Parameter(
         () => {
             var x_next = from(x).init();
             var y_next = from(y).init();
             return function(t: number) {
                 var result: [number, number] = [x_next(t), y_next(t)];
-                //if (DEBUG) console.log("point: next", result);
+                // console.log("point: next", result);
                 return result;
             }
         }

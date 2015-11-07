@@ -529,7 +529,6 @@ var helper =
 	    return Animation;
 	})();
 	exports.Animation = Animation;
-	exports.Empty = new Animation(function (upstream) { return upstream; });
 	var Animator = (function () {
 	    function Animator(ctx) {
 	        this.ctx = ctx;
@@ -600,6 +599,11 @@ var helper =
 	    return Animator;
 	})();
 	exports.Animator = Animator;
+	exports.Empty = new Animation(function (upstream) { return upstream; });
+	function pipe(animation) {
+	    return animation;
+	}
+	exports.pipe = pipe;
 	/**
 	 * NOTE: currently fails if the streams are different lengths
 	 * @param expectedDt the expected clock tick values
@@ -1877,6 +1881,29 @@ var helper =
 	    });
 	}
 	exports.ComponentMouseEventHandler = ComponentMouseEventHandler;
+	/**
+	 * returns an animation that can be pipelined anywhere, which listens for global mouse events over the entire canvas
+	 * AxMouseEvent raised globally have a null source field, and identical global and local coordinates
+	 */
+	function CanvasMouseEventHandler(events) {
+	    return Ax.draw(function () {
+	        return function (tick) {
+	            function processSystemMouseEvents(sourceEvents, componentEventStream) {
+	                sourceEvents.forEach(function (evt) {
+	                    if (componentEventStream.hasObservers()) {
+	                        componentEventStream.onNext(new AxMouseEvent(null, evt, evt));
+	                    }
+	                });
+	            }
+	            processSystemMouseEvents(tick.events.mousedowns, events.mousedown);
+	            processSystemMouseEvents(tick.events.mouseups, events.mouseup);
+	            processSystemMouseEvents(tick.events.mousemoves, events.mousemove);
+	            processSystemMouseEvents(tick.events.mouseenters, events.mouseenter);
+	            processSystemMouseEvents(tick.events.mouseleaves, events.mouseleave);
+	        };
+	    });
+	}
+	exports.CanvasMouseEventHandler = CanvasMouseEventHandler;
 	var AxMouseEvent = (function () {
 	    function AxMouseEvent(source, animationCoord, canvasCoord) {
 	        this.source = source;
@@ -1984,7 +2011,7 @@ var helper =
 	        var y_next = from(y).init();
 	        return function (t) {
 	            var result = [x_next(t), y_next(t)];
-	            //if (DEBUG) console.log("point: next", result);
+	            // console.log("point: next", result);
 	            return result;
 	        };
 	    });

@@ -497,8 +497,6 @@ export class Animation {
 }
 
 
-export var Empty: Animation = new Animation(upstream => upstream);
-
 export class Animator {
     root: Rx.Subject<Tick>;
     t: number = 0;
@@ -565,6 +563,13 @@ export class Animator {
     }
 }
 
+
+
+export var Empty: Animation = new Animation(upstream => upstream);
+
+export function pipe(animation: Animation) {
+    return animation;
+}
 
 /**
  * NOTE: currently fails if the streams are different lengths

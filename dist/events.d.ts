@@ -51,6 +51,11 @@ export declare class ComponentMouseState {
  * occured over the source animation
  */
 export declare function ComponentMouseEventHandler(events: ComponentMouseState): Ax.Animation;
+/**
+ * returns an animation that can be pipelined anywhere, which listens for global mouse events over the entire canvas
+ * AxMouseEvent raised globally have a null source field, and identical global and local coordinates
+ */
+export declare function CanvasMouseEventHandler(events: ComponentMouseState): Ax.Animation;
 export declare class AxMouseEvent {
     source: any;
     animationCoord: Ax.Point;

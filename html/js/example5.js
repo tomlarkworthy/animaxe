@@ -13,12 +13,14 @@ var animator = helper.getExampleAnimator(100, 100);
  */
 var Button = (function (_super) {
     __extends(Button, _super);
-    function Button(hotspot, mouseState, onMouseDown, onMouseOver, onIdle) {
+    function Button(hotspot, // Babel doesn't like public modifier
+        mouseState, // Babel doesn't like public modifier
+        onMouseDown, onMouseOver, onIdle) {
         // we build a grand animation pipeline either side of the hot spot,
         // then we use the total pipeline's attach function as the attach function for this animation
         // so the constructed Button exposes a richer API (e.g. state) than a basic animation normally wouldn't
         _super.call(this, Ax.Empty
-            .if(mouseState.isMouseDown(), onMouseDown)
+            .if(mouseState.isMouseDown(), onMouseDown) // Condition the animation played based on mouse state
             .elif(mouseState.isMouseOver(), onMouseOver)
             .else(onIdle)
             .pipe(hotspot)

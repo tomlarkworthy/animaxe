@@ -52,7 +52,7 @@ class Button extends Ax.Animation {
         // so the constructed Button exposes a richer API (e.g. state) than a basic animation normally wouldn't
 
         super(Ax.Empty
-            .if(mouseState.isMouseDown(), onMouseDown)
+            .if(mouseState.isMouseDown(), onMouseDown)   // Condition the animation played based on mouse state
             .elif(mouseState.isMouseOver(), onMouseOver)
             .else(onIdle)
             .pipe(hotspot)
