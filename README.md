@@ -74,8 +74,6 @@ Example 3 - Particles
 
 ![Example3](./images/example3.gif?raw=true)
 
-
-
 Example 4 - Glow filter
 ([source](./test/example4.ts))
 
@@ -95,15 +93,15 @@ Example 6 - UI Slider
 
 
 We have some examples in the test directory written in Typescript.
-You can use the babel preprocessor within Codepen quite well:
-
+You can use the babel preprocessor within Codepen quite well. Although it borks on some of the typescript syntax, 
+if anyone knows a good online Typescript editor that can read type definition files I would love to hear.
 
 
 Using on web
 -------------
 
 Animaxe is written with commonjs modules, so for web distribution its webpacked.
-So an alternative set of libraries should be used in script tags
+So an alternative set of libraries (compared to node.js) should be used in script tags
 
 ```
 <script src="rx/dist/rx.all.js"></script>
@@ -184,8 +182,7 @@ Refactors
 - simplifying closure situation? Maybe handle params internally through DI?
 - the way the tick is passed on in Animator is ugly
 - All the complex methods are implemented badly, then, emit, parallel. Maybe state machines? (if else is quite good)
-- As we need global event listeners (e.g. slider needs to listen to mouse moves after the mouse has left the component)
-  we should have a global mouse listener implemented with RxJS which local listeners map over, instead of the ropey array thing we have for global events
+- Maybe we can make Parameter and Rx.JS, in the init, we pass a clock Behaviour, and use combineLatest within the animations to merge
 
 API documentation
 -------------------
@@ -211,10 +208,15 @@ Code pen example
 UI controls
 ------------
 - slider
-- button
+  - todo: let the user pass in the source of truth, and through a callback, let the user connect the value change to the source of truth
+    this will allow min/max without hardcoding logic in the basic slider
+  - 
+- (done) button
 - knob
 - (done) Default mouse behaviour.
 - (done) relative positions and transformation aware
+- As we need global event listeners (e.g. slider needs to listen to mouse moves after the mouse has left the component)
+  we should have a global mouse listener implemented with RxJS which local listeners map over, instead of the ropey array thing we have for global events
 
 Random IDEAS
 -------------
