@@ -134,7 +134,7 @@ animator.play(Ax
     .pipe(Slider.rectangular(value))
 );
 
-helper.playExample("example5", 2, animator, 100, 100);
+helper.playExample("example6", 2, animator, 100, 100);
 // @end
 
 describe('example6', function () {
