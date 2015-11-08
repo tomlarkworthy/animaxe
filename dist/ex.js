@@ -406,7 +406,7 @@ var events =
 	        return this.pipe(draw(drawFactory));
 	    };
 	    Animation.prototype.if = function (condition, animation) {
-	        return new If([[condition, animation]]);
+	        return new If([[condition, animation]], this);
 	    };
 	    // Canvas API
 	    /**
@@ -887,19 +887,21 @@ var events =
 	 * Whenever the active clause changes, the new active animation is reinitialised.
 	 */
 	var If = (function () {
-	    function If(conditions) {
+	    function If(conditions, preceeding) {
+	        if (preceeding === void 0) { preceeding = exports.Empty; }
 	        this.conditions = conditions;
+	        this.preceeding = preceeding;
 	    }
 	    If.prototype.elif = function (clause, action) {
 	        this.conditions.push([clause, action]);
 	        return this;
 	    };
 	    If.prototype.endif = function () {
-	        return this.else(exports.Empty);
+	        return this.preceeding.pipe(this.else(exports.Empty));
 	    };
 	    If.prototype.else = function (otherwise) {
 	        var _this = this;
-	        return new Animation(function (upstream) {
+	        return this.preceeding.pipe(new Animation(function (upstream) {
 	            if (exports.DEBUG_IF)
 	                console.log("If: attach");
 	            var downstream = new Rx.Subject();
@@ -938,7 +940,7 @@ var events =
 	            }, function (err) { return anchor.onError(err); }, function () { return anchor.onCompleted(); });
 	            return downstream.tap(function (x) { if (exports.DEBUG_IF)
 	                console.log("If: downstream tick"); });
-	        });
+	        }));
 	    };
 	    return If;
 	})();
@@ -1962,7 +1964,7 @@ var events =
 	exports.displaceT = displaceT;
 	/*
 	    RGB between 0 and 255
-	    a between 0 - 1
+	    a between 0 - 1 (1 is opaque, 0 is transparent)
 	 */
 	function rgba(r, g, b, a) {
 	    return new Parameter(function () {

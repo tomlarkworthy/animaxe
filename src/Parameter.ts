@@ -142,7 +142,7 @@ export function displaceT<T>(displacement: NumberArg, value: T | Parameter<T>): 
 
 /*
     RGB between 0 and 255
-    a between 0 - 1
+    a between 0 - 1 (1 is opaque, 0 is transparent)
  */
 export function rgba(
     r: number | Parameter<number>,

@@ -263,7 +263,7 @@ export class Animation {
     }
 
     if(condition: BooleanArg, animation:Animation): If{
-        return new If([[condition, animation]]);
+        return new If([[condition, animation]], this);
     }
 
     // Canvas API
@@ -769,19 +769,19 @@ export type ConditionActionPair = [BooleanArg, Animation];
  * Whenever the active clause changes, the new active animation is reinitialised.
  */
 export class If {
-    constructor(public conditions: ConditionActionPair[]) {}
+    constructor(public conditions: ConditionActionPair[], public preceeding: Animation = Empty) {}
 
     elif(clause:BooleanArg, action: Animation): If {
         this.conditions.push([clause, action]);
         return this;
     }
 
-    endif() {
-        return this.else(Empty);
+    endif(): Animation {
+        return this.preceeding.pipe(this.else(Empty));
     }
 
     else(otherwise: Animation): Animation {
-        return new Animation(
+        return this.preceeding.pipe(new Animation(
             (upstream: TickStream) => {
                 if (DEBUG_IF) console.log("If: attach");
                 var downstream = new Rx.Subject<Tick>();
@@ -829,7 +829,7 @@ export class If {
 
                 return downstream.tap(x => {if (DEBUG_IF) console.log("If: downstream tick")});
             }
-        )
+        ))
     }
 }
 

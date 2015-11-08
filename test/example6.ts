@@ -14,6 +14,12 @@ import helper = require("../dist/helper");
 // @start
 var animator: Ax.Animator = helper.getExampleAnimator(100, 100);
 
+
+// todo
+// make add a max and min value
+// scale the value
+// make the slider impervious to rotation (mouse movement needs to be transformed by transform matrix-1 )
+
 /**
  * A Button is an animation but with extra mouse state attached
  */
@@ -23,7 +29,7 @@ class Slider extends Ax.Animation {
     /**
      * @param postprocessor hook to do things like attach listeners without breaking the animation chaining
      */
-    static rectangular(postprocessor ?: (Button) => void): Slider { // note Babel doesn't like this type
+    static rectangular(value: Rx.BehaviorSubject<number>, postprocessor ?: (Button) => void): Slider { // note Babel doesn't like this type
         var hotspot = Ax
             .withinPath(Ax
                 .lineTo([ 20,  0])
@@ -32,7 +38,6 @@ class Slider extends Ax.Animation {
                 .lineTo([  0,  0])
             );
 
-        var value = new Rx.Subject<number>();
 
         value.subscribe(x => console.log("pre construction value changed", x));
 
@@ -63,14 +68,15 @@ class Slider extends Ax.Animation {
         // we build a grand animation pipeline either side of the hot spot,
         // then we use the total pipeline's attach function as the attach function for this animation
         // so the constructed Button exposes a richer API (e.g. state) than a basic animation normally wouldn't
+        // todo slider value is not changed relatively
         super(Ax.Empty
             .pipe(events.CanvasMouseEventHandler(canvasMouseState)) //global mouse listener
             .parallel([
                 Ax.Empty
+                    .translate(Parameter.point(0, Parameter.updateFrom(0, value)))
                     .if(knobMouseState.isMouseDown(), onMouseDownKnob)   // Condition the animation played based on mouse state
                     .elif(knobMouseState.isMouseOver(), onMouseOverKnob)
                     .else(onIdleKnob)
-                    .translate(Parameter.point(0, Parameter.updateFrom(0, value.tap(x => console.log("value changed for param", x))))) // todo this breaks infront of if
                     .pipe(hotspot)
                     .pipe(events.ComponentMouseEventHandler(knobMouseState))
                     .fill(),
@@ -83,22 +89,32 @@ class Slider extends Ax.Animation {
         this.value.subscribe(x => console.log("slider value changed", x));
 
 
+
+        type SlideState = {eventStart: events.AxMouseEvent, valueStart: number};
+
         // a stream of points indicating the start of the slide move, or null if a slide move is not in progress
-        var startSlideStream = Rx.Observable.merge([
-            knobMouseState.mousedown.map((evt: events.AxMouseEvent) => evt),
-            canvasMouseState.mouseup.map((evt: events.AxMouseEvent) => null)
+        var startSlideStream: Rx.Observable<SlideState> = Rx.Observable.merge<SlideState>([
+            knobMouseState.mousedown
+                .withLatestFrom(value,
+                    (evt: events.AxMouseEvent, value: number) => {
+                        return {eventStart: evt, valueStart: value}
+                    }
+                ),
+            canvasMouseState.mouseup.map((evt: events.AxMouseEvent) => <SlideState>null)
         ]);
+
+
         // a stream of number or null, indicating the new value of the slider, or null to mean no change
-        var slideStream = Rx.Observable.combineLatest(
+        var slideChangeStream = Rx.Observable.combineLatest(
             startSlideStream,
             canvasMouseState.mousemove,
-            (start: events.AxMouseEvent, current: events.AxMouseEvent) => {
-                return start == null ? null : current.canvasCoord[1] - start.canvasCoord[1];
+            (start: SlideState, current: events.AxMouseEvent) => {
+                return start == null ? null : current.canvasCoord[1] - start.eventStart.canvasCoord[1] + start.valueStart;
             }
-        );
+        ).filter(val => val != null);
 
         // remove the nulls from the stream, and pipe into the value for the slider.
-        slideStream.filter(val => val != null).tap(
+        slideChangeStream.tap(
                 v => console.log("slider: value", v),
                 err => console.error(err))
             .subscribe(this.value);
@@ -107,13 +123,15 @@ class Slider extends Ax.Animation {
     }
 }
 
+var value = new Rx.BehaviorSubject<number>(0);
+
 //each frame, first draw black background to erase the previous contents
-animator.play(Ax.fillStyle("#000000").fillRect([0,0],[100,100]));
+animator.play(Ax.fillStyle(Parameter.rgba(Parameter.updateFrom(0, value).map(x=>x*2.5), 0,0,1)).fillRect([0,0],[100,100]));
 
 animator.play(Ax
     //.translate([40, 40])
     //.rotate(Math.PI / 4)
-    .pipe(Slider.rectangular())
+    .pipe(Slider.rectangular(value))
 );
 
 helper.playExample("example5", 2, animator, 100, 100);

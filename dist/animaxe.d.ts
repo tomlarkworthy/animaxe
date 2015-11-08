@@ -357,7 +357,8 @@ export declare type ConditionActionPair = [BooleanArg, Animation];
  */
 export declare class If {
     conditions: ConditionActionPair[];
-    constructor(conditions: ConditionActionPair[]);
+    preceeding: Animation;
+    constructor(conditions: ConditionActionPair[], preceeding?: Animation);
     elif(clause: BooleanArg, action: Animation): If;
     endif(): Animation;
     else(otherwise: Animation): Animation;

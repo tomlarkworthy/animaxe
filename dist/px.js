@@ -165,7 +165,7 @@ var Parameter =
 	exports.displaceT = displaceT;
 	/*
 	    RGB between 0 and 255
-	    a between 0 - 1
+	    a between 0 - 1 (1 is opaque, 0 is transparent)
 	 */
 	function rgba(r, g, b, a) {
 	    return new Parameter(function () {

@@ -179,7 +179,9 @@ Refactors
 - consider hiding time from Animation? It should only be used in params
 - simplifying closure situation? Maybe handle params internally through DI?
 - the way the tick is passed on in Animator is ugly
-- All the complex methods are implemented badly, then, emit, parrallel. Maybe state machines?
+- All the complex methods are implemented badly, then, emit, parallel. Maybe state machines? (if else is quite good)
+- As we need global event listeners (e.g. slider needs to listen to mouse moves after the mouse has left the component)
+  we should have a global mouse listener implemented with RxJS which local listeners map over, instead of the ropey array thing we have for global events
 
 API documentation
 -------------------
