@@ -72,7 +72,6 @@ Example 3 - Particles
 ([source](./test/example3.ts))
 ([edit on Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=001))
 
-
 ![Example3](./images/example3.gif?raw=true)
 
 
@@ -86,8 +85,13 @@ Example 5 - UI Button
 ([source](./test/example5.ts))
 ([edit on Codepen](http://codepen.io/tomlarkworthy/pen/yYxwga?editors=001))
 
-
 ![Example5](./images/example5.gif?raw=true)
+
+Example 6 - UI Slider
+([source](./test/example6.ts))
+([edit on Codepen](http://codepen.io/tomlarkworthy/pen/ojaGZz?editors=001))
+
+![Example6](./images/example6.gif?raw=true)
 
 
 We have some examples in the test directory written in Typescript.

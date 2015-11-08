@@ -137,9 +137,9 @@ animator.play(Ax
 helper.playExample("example5", 2, animator, 100, 100);
 // @end
 
-describe('example5', function () {
+describe('example6', function () {
     it ('should match the reference', function(done) {
-        helper.sameExample("example5", "ref5", function(equal) {
+        helper.sameExample("example6", "ref6", function(equal) {
             equal.should.equal(true);
             done();
         })
