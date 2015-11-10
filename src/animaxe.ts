@@ -40,6 +40,19 @@ export interface Parameter<T> extends Parameter.Parameter<T> {
 
 }
 
+interface Function2<A1, A2, R> extends Function {
+    (arg1: A1, arg2: A2):R;
+}
+
+var add: Function2<number, number, number> = (a:number, b:number) => a + b;
+
+function foldr<T, V>(init: T, fn: Function2<T, V, T>, array: V[]): T {
+    var val = init;
+    for (var i: number =0; i < array.length; i++) val = fn(val, array[i]);
+    return val;
+}
+
+var sum: number = foldr(0, add, [1,2,3,4]);
 
 // todo we should move these into an ES6 module but my IDE does not support it yet
 /**

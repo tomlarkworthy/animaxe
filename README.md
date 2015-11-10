@@ -53,6 +53,80 @@ Ax.fillStyle(Parameter.rgba(255, 255, 255, Parameter.sin(Parameter.t())))
   .fillRect([0,0], [10,10]); 
 ```
 
+The animation life lifecycle (and why this is not like Elm)
+-----------------------------------------------------------
+ 
+
+Traditional Functional Reactive Programming (FRP), e.g. Fran, Elm, is built using Signals. 
+A Signal is a static stream of data, there is no meaningful 'end' to the data stream. 
+This contrasts with reactive extentions', Observable, where each stream, in addition to sending data, also has an explicit 'completed' semantic. 
+*Reactive Extension streams have the potential to have an end*.
+
+FRP has some amazing features, history rewinding, complete abstraction away from "updating" the dependency graph, etc. 
+However, these features come at the great cost of generally not being able to dynamically add and remove signals in a running application. 
+Signal's in FRP are *static*. (In Elm this is the explicit exclusion of Signals of Signals, in FRP theory you can do this, but it eats all your memory) 
+ 
+Reactive Extensions was developed independently from traditional FRP, on the observation that the pull based iterator had a dual in the observer pattern.
+The rich composable API you can build around iterators, also exist for push based stream.
+It's amazing that FRP and Rx have any conceptual overlap, given their independent roots and derivations.
+
+Now consider you want to build an graphical application. You want it to look cool (e.g. its a game), 
+so some of the elements are animations. You want the animations to be chainable, so the next things happens fluidly when the first is done. 
+Typically, you will want a few different screens (e.g. main menu, the main view etc.). On each screen the user interface is completely different.
+Some screens have many elements (e.g. units on a battlefield) that are created and destroyed dynamically via complex logic. 
+I hypothesise that static dataflow a la FRP is not what you want to use to build such an application, as the high amount of dynamism is a bad fit. However,
+ reactive extensions observers *are* what you want, as they have the nice chainable temporal characteristics but without the straight jacket of static dataflow. 
+ As a consequence though, that you have to take control of how values update through the dataflow graph.
+
+The composable building block of Animaxe is an Animation. An animation does something with the drawing context. An animation can do something indefinitely, for example this draws a red square forever:
+
+```
+ foreverRedSquare() {
+    return Ax 
+        .fillStyle = "red";
+        .fillRect(0,0, 10, 10);
+ }
+```
+
+But an animation can also have a finite duration. You can turn an infinite animation into a finite animation using `take(<n>)`:
+
+```
+  redSquareFor2Frames() {return foreverRedSquare().take(2);}
+```
+
+You can chain animations temporally using `.then`, which creates a new animation from the the temporal concatenation.
+
+```
+  redThenGreenSquareFor4Frames() {return redSquareFor2Frames().then(greenSquareFor2Frames());}
+```
+
+You can create an infinite length animation from a limited duration animation by using `.loop()`, which just repeatedly sequences the same animation end-to-end
+
+```
+ foreverRedAndGreenSquare() {return Ax.loop(redThenGreenSquareFor4Frames());}
+```
+
+These animation operators are the defining characteristics of Animaxe,
+which internally resolve around using Rx's onCompleted semantic to dynamically change the dataflow graph. 
+I believe these dynamic operators are hard to implement in traditional* FRP (see also https://blogs.janestreet.com/breaking-down-frp/). The dynamic operators so far in Animaxe are:-
+
+- parallel (play multiple animations at the same time)
+- clone (specialised version of parallel which plays the same animation multiple times)
+- emit (spawn a new animation every frame)
+- take (limit the temporal duration of an animation)
+- then (concatinate animations temporally)
+- pipe (pass the context of one animation into another)
+- loop (create an infinite duration animation by repeatedly resequencing)
+- .if .elif .else (switch an animation based on reevaluated conditionals)
+
+* note though, arrowized FRP seems to solve a similar problem.
+
+
+
+
+
+
+
 
 
 Examples
