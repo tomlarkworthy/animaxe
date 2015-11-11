@@ -1,6 +1,6 @@
 /// <reference path="../types/canvas.d.ts" />
-import Rx = require("rx");
-import Ax = require("./animaxe");
+import * as Rx from "rx";
+import * as Ax from "./animaxe.ts";
 export declare type SystemMouseEvents = Ax.Point[];
 /**
  * Convert animation coordinates (e.g. a coordinate of moveTo) to global canvas coordinates, cooeffecients are:

@@ -34,7 +34,7 @@ gulp.task('clean', function(cb) {
 gulp.task('compile', function() {
     var TS_SETTINGS = {
       outDir: "dist",
-      module: "commonjs",
+      module: "es6",
       declarationFiles: true,
       noEmitOnError: true
     };
@@ -57,7 +57,7 @@ function exampleTask(i) {
     var TS_SETTINGS = {
       outDir: ".",
       declarationFiles: false,
-      module: "commonjs",
+      module: "system",
       noEmitOnError: true
     };
     var exampleName = 'example' + i;

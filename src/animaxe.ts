@@ -1,8 +1,8 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
-import Rx = require('rx');
-import events = require('./events');
-import Parameter = require('./parameter');
+import * as Rx from "rx";
+import * as events from "./events.ts";
+import * as Parameter from "./parameter.ts";
 
 export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;

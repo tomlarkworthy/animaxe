@@ -1,6 +1,7 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
-import Rx = require('rx');
+import * as Rx from "rx";
+
 
 export var DEBUG = false;
 

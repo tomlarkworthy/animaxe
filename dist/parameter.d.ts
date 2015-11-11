@@ -1,6 +1,6 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
-import Rx = require('rx');
+import * as Rx from "rx";
 export declare var DEBUG: boolean;
 export declare type Color = string;
 export declare type Point = [number, number];

@@ -1,21 +1,32 @@
 <!doctype html>
 <html lang="en">
-<head>
   <meta charset="utf-8">
-
-  <title>Animaxe example1</title>
+  <title>Animaxe - example1</title>
   <meta name="author" content="Tom Larkworthy">
-  <!-- include Rx yourself -->
-  <script src="../node_modules/rx/dist/rx.all.js"></script>
-  <!-- standalone webpack works -->
-  <script src="../dist/ax.js"></script>
-  <script src="../dist/px.js"></script>
-  <script src="../dist/hx.js"></script>
-  <script src="../dist/ex.js"></script>
-</head>
+    <head>
+        <script src="../node_modules/systemjs/dist/system.js"></script>
+        <script>
+          System.config({
+              packages: {
+                    '/node_modules/ctx-get-transform-bugfix/node_modules/gl-mat3': {
+                        main: 'index',
+                        defaultExtension: 'js'
+                    }
+              },
+              map: {
+                  typescript: 'node_modules/typescript/lib/typescript.js',
+                  rx: 'node_modules/rx/dist/rx.js',
+                  'ctx-get-transform': 'node_modules/ctx-get-transform-bugfix/ctx-get-transform.js',
+                  'gl-mat3': 'node_modules/ctx-get-transform-bugfix/node_modules/gl-mat3/index.js',
+              },
+              transpiler: 'typescript',
+              baseURL: '..'
+          });
+        </script>
+    </head>
 
-<body>
-  <canvas id = "canvas" width="100" height="100"></canvas>
-  <script src="js/example1.js"></script>
-</body>
+    <body>
+    <canvas id = "canvas" width="100" height="100"></canvas>
+    <script>System.import('test/example1.ts');</script>
+    </body>
 </html>

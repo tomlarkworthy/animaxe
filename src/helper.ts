@@ -1,9 +1,9 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
 /// <reference path="../types/should.d.ts" />
-
-import Ax = require("../src/animaxe");
-import Rx = require("rx");
+import * as Rx from "rx";
+import * as Ax from "./animaxe.ts";
+import { default as transform_fix } from "ctx-get-transform";
 
 export function getExampleAnimator(width: number = 100, height: number = 100): Ax.Animator {
     try {
@@ -12,7 +12,8 @@ export function getExampleAnimator(width: number = 100, height: number = 100): A
         console.log("browser", canvas);
         var context: CanvasRenderingContext2D = canvas.getContext('2d');
 
-        require('ctx-get-transform-bugfix')(context); //monkey patch context to get transform tracking
+        console.log(transform_fix);
+        transform_fix(context); //monkey patch context to get transform tracking
 
         var animator =  new Ax.Animator(context);
 

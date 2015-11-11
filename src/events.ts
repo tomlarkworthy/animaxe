@@ -1,7 +1,8 @@
 /// <reference path="../types/canvas.d.ts" />
-import Rx = require("rx");
-import Ax = require("./animaxe");
-import Parameter = require ("./parameter");
+
+import * as Rx from "rx";
+import * as Ax from "./animaxe.ts";
+import * as Parameter from "./parameter.ts";
 
 export type SystemMouseEvents = Ax.Point[];
 
