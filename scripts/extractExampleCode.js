@@ -3,7 +3,7 @@ var through = require('through2');
 var gutil = require('gulp-util');
 var PluginError = gutil.PluginError;
 
-function extractExampleCode(prefixText) {
+function extractExampleCode() {
   // Creating a stream through which each file will pass
   return through.obj(function(file, enc, cb) {
 
@@ -13,8 +13,8 @@ function extractExampleCode(prefixText) {
     var end = contents.indexOf("@end");
 
     file.contents = new Buffer(contents.substring(0, header) + contents.substring(start, end));
-    cb(null, file);
 
+    cb(null, file);
   });
 
 }

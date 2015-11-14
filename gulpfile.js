@@ -3,6 +3,7 @@ var ts = require('gulp-typescript');
 var merge = require('merge2');
 var mocha = require('gulp-mocha');
 var gutil = require('gulp-util');
+var replace = require('gulp-replace');
 var template = require('gulp-template');
 var rename = require('gulp-rename');
 var sourcemaps = require('gulp-sourcemaps');
@@ -18,7 +19,10 @@ var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"));
 
 var npm_info = JSON.parse(fs.readFileSync("package.json"));
 
-var num_examples = 6;
+var examples = fs.readdirSync("examples").map(function(filename) {
+  return filename.replace(".ts", "");
+});
+
 
 gulp.task('clean', function(cb) {
   del([
@@ -26,18 +30,22 @@ gulp.task('clean', function(cb) {
     'compiled',
     'test/*.js',
     'test/*.js.map',
+    'examples/*.js',
+    'examples/*.js.map',
     'src/*.js',
     'src/*.js.map'
   ], cb);
 });
 
+
+var TS_SETTINGS = {
+  outDir: "dist",
+  module: "commonjs",
+  declarationFiles: true,
+  noEmitOnError: true
+};
+
 gulp.task('compile', function() {
-    var TS_SETTINGS = {
-      outDir: "dist",
-      module: "es6",
-      declarationFiles: true,
-      noEmitOnError: true
-    };
     var tsResult = gulp.src('src/*.ts')
                     .pipe(sourcemaps.init())
                     .pipe(ts(ts.createProject(TS_SETTINGS)));
@@ -51,211 +59,49 @@ gulp.task('compile', function() {
 
 projects = {}; // each example has a set of ts projects to enable continuous compilation
 
-deploy_tasks = [];
-
-function exampleTask(i) {
-    var TS_SETTINGS = {
-      outDir: ".",
-      declarationFiles: false,
-      module: "system",
-      noEmitOnError: true
-    };
-    var exampleName = 'example' + i;
-    var exampleNameJS = 'example' + i + '.js';
-    var exampleNameTS = 'example' + i + '.ts';
-
-    projects[exampleName] = ts.createProject(TS_SETTINGS);
+function createExampleTasksFor(exampleName) {
+    var exampleNameJS = exampleName + '.js';
+    var exampleNameTS = exampleName + '.ts';
 
     gulp.task('compile-' + exampleName, ["compile"], function() {
-        var tsResult = gulp.src("test/" + exampleNameTS)
+        var tsResult = gulp.src("examples/" + exampleNameTS)
                         .pipe(sourcemaps.init())
                         .pipe(ts(projects[exampleName]));
-        return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('.'));
+        return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('dist'));
     });
 
-    gulp.task('test-' + exampleName, ['compile-' + exampleName], function() {
-        return gulp.src('test/' + exampleNameJS, { read: false })
-            .pipe(mocha({ reporter: 'list' }));
+    gulp.task('html-' + exampleName, function() {
+        gulp.src('html/example.template.html')
+          .pipe(rename("html/" + exampleName + ".html"))
+          .pipe(template({name: exampleName}))
+          .pipe(gulp.dest('.'))
     });
 
-    deploy_tasks.push('compile-' + exampleName);
-    gulp.task('watch-' + exampleName, ['compile', 'compile-' + exampleName, 'test-' + exampleName], function() {
-        gulp.watch('src/*.ts', ['compile']);
-        gulp.watch('test/' + exampleNameTS, ['compile-' + exampleName]);
-        gulp.watch(['compiled/src/*.js', 'compiled/test/' +  + exampleNameJS], ['test-' + exampleName]);
+    gulp.task('test-' + exampleName, function() {
+        // we take the example source code
+        var content = fs.readFileSync('examples/' + exampleNameTS).toString()
+        content = content
+            .replace("@name", exampleName);
+        return gulp.src('test/example.template.ts')
+            .pipe(template({name: exampleName, content: content})) // pass it through a template
+            .pipe(sourcemaps.init())
+            .pipe(ts(ts.createProject(TS_SETTINGS)))  // compile it
+            .js.pipe(rename("test/" + exampleName + ".js"))  //rename the js
+              .pipe(replace("../src/animaxe.ts", "../dist/animaxe.js")) //fix the imports
+              .pipe(replace("../src/helper.ts", "../dist/helper.js"))
+              .pipe(replace("./events.ts", "./events.js"))
+              .pipe(gulp.dest("."))
+              .pipe(mocha({ reporter: 'list' })); // run it with mocha
+
+
     });
 }
 
-// create a compile and watch task for each example
-for (var i = 1; i<= num_examples; i++ ) { // (counting from 1)
-    exampleTask(i);
+// create various tasks on a per example basis
+for (var i = 0; i < examples.length; i++ ) { // (counting from 1)
+    createExampleTasksFor(examples[i]);
 }
 
-gulp.task('watch', ['compile', 'compile-test','test'], function() {
-    gulp.watch(['src/*.ts', 'test/*.ts'], ['test']);
-});
-
-
-/**
- * animaxe is loaded into global scope, so can be added in a script tag, and the user is able to write
- * the examples in their own scripts. The need to include Rx themselves
- */
-gulp.task("webpack-animaxe", function(callback) {
-    // run webpack
-    webpack({
-      entry: {
-        "ax": ['./src/animaxe.ts']
-      },
-      output: {
-        libraryTarget: "var",
-        library: "Ax",
-        filename: './dist/ax.js'
-      },
-      resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
-      },
-      module: {
-        loaders: [
-          { test: /\.ts$/, loader: 'ts-loader'}
-        ]
-      },
-      externals: {
-          // require("rx") is external and on the Rx variable
-          "rx": "Rx"/*, Issues with circular dependancies
-          "./events": './events',
-          "./parameter": 'Parameter',
-          "helper": './helper'*/
-      },
-      node: {
-        fs: "empty"
-      },
-      plugins: [ignore]
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-
-        }));
-        callback();
-    });
-});
-
-/**
- * animaxe is loaded into global scope, so can be added in a script tag, and the user is able to write
- * the examples in their own scripts. The need to include Rx themselves
- */
-gulp.task("webpack-parameter", function(callback) {
-    // run webpack
-    webpack({
-      entry: {
-        "ax": ['./src/parameter.ts']
-      },
-      output: {
-        libraryTarget: "var",
-        library: "Parameter",
-        filename: './dist/px.js'
-      },
-      resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
-      },
-      module: {
-        loaders: [
-          { test: /\.ts$/, loader: 'ts-loader'}
-        ]
-      },
-      externals: {
-          // require("rx") is external and on the Rx variable
-          "rx": "Rx"
-      },
-      node: {
-        fs: "empty"
-      },
-      plugins: [ignore]
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-        }));
-        callback();
-    });
-});
-
-gulp.task("webpack-helper", function(callback) {
-    // run webpack
-    webpack({
-      entry: {
-        "ax-helper": ['./src/helper.ts']
-      },
-      output: {
-        libraryTarget: "var",
-        library: "helper",
-        filename: './dist/hx.js'
-      },
-      resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
-      },
-      module: {
-        loaders: [
-          { test: /\.ts$/, loader: 'ts-loader'}
-        ]
-      },
-      externals: {
-          // require("rx") is external and on the Rx variable
-          "rx": "Rx"
-      },
-      node: {
-        fs: "empty"
-      },
-      plugins: [ignore]
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-
-        }));
-        callback();
-    });
-});
-
-gulp.task("webpack-events", function(callback) {
-    // run webpack
-    webpack({
-      entry: {
-        "ax-helper": ['./src/events.ts']
-      },
-      output: {
-        libraryTarget: "var",
-        library: "events",
-        filename: './dist/ex.js'
-      },
-      resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
-      },
-      module: {
-        loaders: [
-          { test: /\.ts$/, loader: 'ts-loader'}
-        ]
-      },
-      externals: {
-          // require("rx") is external and on the Rx variable
-          "rx": "Rx"
-      },
-      node: {
-        fs: "empty"
-      },
-      plugins: [ignore]
-    }, function(err, stats) {
-        if(err) throw new gutil.PluginError("webpack", err);
-        gutil.log("[webpack]", stats.toString({
-            // output options
-
-        }));
-        callback();
-    });
-});
-
-
-gulp.task("webpack", ["webpack-animaxe", "webpack-parameter", "webpack-events", "webpack-helper"]);
 
 gulp.task("typedoc", function() {
     return gulp
@@ -271,35 +117,16 @@ gulp.task("typedoc", function() {
 
 
 
-
-deploy_tasks.push("webpack");
-deploy_tasks.push("typedoc");
-gulp.task("deploy", deploy_tasks, function() {
+gulp.task("deploy", [], function() {
   console.log("deploying");
   console.log(npm_info);
   var imgs     = gulp.src('./images/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/master/images"));
   var lib_dist = gulp.src('./dist/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/libs"));
+  var src_dist = gulp.src('./src/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/src"));
   var docs     = gulp.src('./docs/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site"));
 
-  return merge([imgs, lib_dist, docs]);
+  return merge([imgs, src_dist, lib_dist, docs]);
 });
 
-
-gulp.task('html-examples', deploy_tasks, function () {
-  subtasks = [];
-  for (var i = 1; i <= num_examples; i++) { // (counting from 1)
-    subtasks.push(
-      gulp.src('html/example.template.html')
-        .pipe(rename("html/example" + i + ".html"))
-        .pipe(template({name: "example" + i}))
-        .pipe(gulp.dest('.'))
-    );
-  }
-  subtasks.push(
-    gulp.src('test/example*.js')
-      .pipe(extractExampleCode()).pipe(gulp.dest('html/js/'))
-  );
-  return merge(subtasks);
-});
 
 

@@ -1,4 +1,4 @@
-/// <reference path="../types/canvas.d.ts" />
+/// <reference path="../types/ctx-get-transform.d.ts" />
 import * as Rx from "rx";
 import * as Ax from "./animaxe.ts";
 export declare type SystemMouseEvents = Ax.Point[];

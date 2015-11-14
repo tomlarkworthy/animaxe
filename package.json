@@ -11,7 +11,7 @@
   "scripts": {},
   "dependencies": {
     "canvas": "^1.2.7",
-    "ctx-get-transform-bugfix": "^1.0.3",
+    "ctx-get-transform": "^1.0.3",
     "husl": "^6.0.1",
     "rx": "^3.1.1",
     "should": "^7.1.0",
@@ -27,6 +27,7 @@
     "gulp": "^3.9.0",
     "gulp-mocha": "^2.1.3",
     "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.5.4",
     "gulp-sourcemaps": "^1.5.2",
     "gulp-template": "^3.0.0",
     "gulp-tslint": "^3.3.0",

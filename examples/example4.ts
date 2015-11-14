@@ -1,15 +1,9 @@
-/// <reference path="../types/should.d.ts" />
-/// <reference path="../types/mocha.d.ts" />
-/// <reference path="../types/node.d.ts" />
-// @header
-//require("should");
 import * as Rx from "rx";
 import * as Ax from "../src/animaxe.ts";
 import * as helper from "../src/helper.ts";
 import * as events from "../src/events.ts";
 import * as Parameter from "../src/parameter.ts";
 
-// @start
 var animator: Ax.Animator = helper.getExampleAnimator(100, 100);
 
 var red   = 255;
@@ -40,15 +34,5 @@ animator.play(
 // we apply a glow filter last
 animator.play(Ax.glow(0.01));
 
-helper.playExample("example4", 20, animator, 100, 100);
-
-// @end
-describe('example4', function () {
-    it ('should match the reference', function(done) {
-        helper.sameExample("example4", "ref4", function(equal) {
-            equal.should.equal(true);
-            done();
-        })
-    });
-});
+helper.playExample("@name", 20, animator, 100, 100);
 

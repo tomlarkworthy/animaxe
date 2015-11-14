@@ -1,15 +1,9 @@
-/// <reference path="../types/should.d.ts" />
-/// <reference path="../types/mocha.d.ts" />
-/// <reference path="../types/node.d.ts" />
-// @header
-//require("should");
 import * as Rx from "rx";
 import * as Ax from "../src/animaxe.ts";
 import * as helper from "../src/helper.ts";
 import * as events from "../src/events.ts";
 import * as Parameter from "../src/parameter.ts";
 
-// @start
 var animator: Ax.Animator = helper.getExampleAnimator();
 
 // fixed base color for particles
@@ -38,14 +32,4 @@ animator.play(Ax
 );
 
 helper.playExample("example3", 15, animator, 100, 100);
-
-// @end
-describe('example3', function () {
-    it ('should match the reference', function(done) {
-        helper.sameExample("example3", "ref3", function(equal) {
-            // equal.should.equal(true); todo, random is screwing repeatability
-            done();
-        })
-    });
-});
 

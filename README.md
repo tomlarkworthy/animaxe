@@ -214,6 +214,7 @@ Packaging
 - I don't like the webpack names have to be different
 - Test npm integration...
 - ES6 modules? Can we make the packaging equivalent? Maybe jsut a browser & and node.js directory structure?
+- Change focus, Web should be 1st class, and node should be the one with janky scripts around it
 
 
 Glow
