@@ -87,9 +87,8 @@ function createExampleTasksFor(exampleName) {
             .pipe(sourcemaps.init())
             .pipe(ts(ts.createProject(TS_SETTINGS)))  // compile it
             .js.pipe(rename("test/" + exampleName + ".js"))  //rename the js
-              .pipe(replace("../src/animaxe.ts", "../dist/animaxe.js")) //fix the imports
-              .pipe(replace("../src/helper.ts", "../dist/helper.js"))
-              .pipe(replace("./events.ts", "./events.js"))
+              .pipe(replace("../src/animaxe", "../dist/animaxe")) //fix the imports
+              .pipe(replace("../src/helper", "../dist/helper"))
               .pipe(gulp.dest("."))
               .pipe(mocha({ reporter: 'list' })); // run it with mocha
 

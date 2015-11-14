@@ -1,8 +1,8 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
 import * as Rx from "rx";
-import * as events from "./events.ts";
-import * as Parameter from "./parameter.ts";
+import * as events from "./events";
+import * as Parameter from "./parameter";
 export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare var DEBUG_IF: boolean;
