@@ -148,37 +148,6 @@ We have some examples in the test directory written in Typescript.
 You can use the babel preprocessor within Codepen quite well. Although it borks on some of the typescript syntax, 
 if anyone knows a good online Typescript editor that can read type definition files I would love to hear.
 
-
-Using on web
--------------
-
-Animaxe is written with commonjs modules, so for web distribution its webpacked.
-So an alternative set of libraries (compared to node.js) should be used in script tags
-
-```
-<script src="rx/dist/rx.all.js"></script>
-<script src="animaxe/dist/ax.js"></script> <!-- exposes "var Ax" -->
-<script src="animaxe/dist/px.js"></script> <!-- exposes "var Parameter" -->
-<script src="animaxe/dist/hx.js"></script> <!-- exposes "var helper" -->
-<script src="animaxe/dist/ex.js"></script> <!-- exposes "var events" -->
-```
-
-Using with Typescript in node.js
------------------------------------
-
-Animations are rendered using canvas. Its a bitch to install. You should require() within a Typescript environment
-
-```
-import Rx = require("rx");
-import Ax = require("animaxe/dist/animaxe");
-import events = require("animaxe/dist/events");
-import Parameter = require("animaxe/dist/parameter");
-import helper = require("animaxe/dist/helper");
-```
-
-The definitions are also in dist.
-
-
 API
 -----
 Its being changed a lot but it's [here](https://animaxe.firebaseapp.com/)
