@@ -1,5 +1,5 @@
-/// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
-/// <reference path="../types/node.d.ts" />
+/// <reference path="../../node_modules/rx/ts/rx.all.d.ts" />
+/// <reference path="../../types/node.d.ts" />
 import * as Rx from "rx";
 export declare var DEBUG: boolean;
 export declare type Color = string;

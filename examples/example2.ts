@@ -1,8 +1,8 @@
 import * as Rx from "rx";
-import * as Ax from "../src/animaxe.ts";
-import * as helper from "../src/helper.ts";
-import * as events from "../src/events.ts";
-import * as Parameter from "../src/parameter.ts";
+import * as Ax from "../src/animaxe";
+import * as helper from "../src/helper";
+import * as events from "../src/events";
+import * as Parameter from "../src/parameter";
 
 var animator: Ax.Animator = helper.getExampleAnimator();
 

@@ -1,6 +1,6 @@
-/// <reference path="../types/ctx-get-transform.d.ts" />
+/// <reference path="../../types/ctx-get-transform.d.ts" />
 import * as Rx from "rx";
-import * as Ax from "./animaxe.ts";
+import * as Ax from "./animaxe";
 export declare type SystemMouseEvents = Ax.Point[];
 /**
  * Convert animation coordinates (e.g. a coordinate of moveTo) to global canvas coordinates, cooeffecients are:

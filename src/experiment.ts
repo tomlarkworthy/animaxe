@@ -1,29 +1,25 @@
-type Time = number;
 
-interface Function1<A1, R> extends Function {
-    (a1:A1): R
+
+interface SignalFn<T> {
+    (time: number): T;
 }
 
-interface Function2<A1, A2, R> extends Function {
-    (a1:A1, a2:A2): R
+interface SearchFunc<T> {
+  (source: string, subString: string): T;
 }
 
-interface Signal<T> extends Function {
-    (time: Time):T;
-}
-
-// you should not build these directly
-interface SignalFunction<A, B> extends Function {
-    (a: Signal<A>): Signal<B>
+interface SignalTransformer<A, B>{
+    (a: SignalFn<A>): SignalFn<B>
 }
 
 // the >>> function
-function pipe<A,B,C> (a: SignalFunction<A,B>, b: SignalFunction<B,C>): SignalFunction<A,C> {return (x: Signal<A>) => b(a(x));}
+function pipe<A,B,C> (a: SignalTransformer<A,B>, b: SignalTransformer<B,C>): SignalTransformer<A,C> {
+    return (x: SignalFn<A>) => b(a(x))
+}
 
-
-// lift (arr)
-function lift<A, B>(fn: Function1<A,B>): SignalFunction<A,B> {
-    return (input: Signal<A>) => (time: Time) => fn(input(time));
+// the arr lift
+function lift<A, B>(fn: Function1<A,B>): SignalTransformer<A,B> {
+    return (input: SignalFn<A>) => <SignalFn<B>>((time: Time) => fn(input(time)));
 }
 
 // & combinator
