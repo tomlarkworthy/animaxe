@@ -3,7 +3,7 @@
 /// <reference path="../types/should.d.ts" />
 /// <reference path="../types/ctx-get-transform.d.ts" />
 import * as Rx from "rx";
-import * as Ax from "./animaxe.ts";
+import * as Ax from "./animaxe";
 import { default as transform_fix} from "ctx-get-transform";
 
 export function getExampleAnimator(width: number = 100, height: number = 100): Ax.Animator {

@@ -8,10 +8,13 @@
         <script>
           System.config({
               packages: {
-                    '/node_modules/ctx-get-transform/node_modules/gl-mat3': {
-                        main: 'index',
-                        defaultExtension: 'js'
-                    }
+                  '/node_modules/ctx-get-transform/node_modules/gl-mat3': {
+                      main: 'index',
+                      defaultExtension: 'js'
+                  },
+                  'src/': {
+                      defaultExtension: 'ts'
+                  }
               },
               map: {
                   typescript: 'node_modules/typescript/lib/typescript.js',

@@ -1,8 +1,8 @@
 /// <reference path="../types/ctx-get-transform.d.ts" />
 
 import * as Rx from "rx";
-import * as Ax from "./animaxe.ts";
-import * as Parameter from "./parameter.ts";
+import * as Ax from "./animaxe";
+import * as Parameter from "./parameter";
 
 export type SystemMouseEvents = Ax.Point[];
 
