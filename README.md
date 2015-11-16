@@ -100,11 +100,15 @@ The dynamic dataflow operators, so far, in Animaxe are:-
 (This style is quite related to AFRP if your interested. Elm is about signals, whereas Animaxe and YAMPA are about signal transformer)
 
 
+Trying it out
+---------------
 
+Clone the repo, npm install, start a webserver, and browse to src/examples/example1.html
 
+We use SystemJS to compile the Typescript within the webpage, so you can modify the source within chrome.
 
-
-
+The library is best consumed as a Typescript module to be directly compiled against. I am not sure how to best do this, so
+ideas welcome!
 
 
 Examples
@@ -148,9 +152,10 @@ We have some examples in the test directory written in Typescript.
 You can use the babel preprocessor within Codepen quite well. Although it borks on some of the typescript syntax, 
 if anyone knows a good online Typescript editor that can read type definition files I would love to hear.
 
+
 API
 -----
-Its being changed a lot but it's [here](https://animaxe.firebaseapp.com/)
+Its in constant flux changed, but you can try it here [here](https://animaxe.firebaseapp.com/)
 
 
 TODOS
@@ -158,10 +163,10 @@ TODOS
 
 Packaging
 -----------
-- I don't like the webpack names have to be different
-- Test npm integration...
-- ES6 modules? Can we make the packaging equivalent? Maybe jsut a browser & and node.js directory structure?
-- Change focus, Web should be 1st class, and node should be the one with janky scripts around it
+- move examples inside of src, and simplify gulp
+- Test npm workflow
+- Test TS workflow (bower?)
+- Redo codepen examples with systemJS (?)
 
 
 Glow
@@ -172,7 +177,6 @@ Glow
 
 Features
 --------
-- .if .elif .else .fi e.g. .if(BoolArg, <anim>).fi().fill()
 - Reflection
 - L-systems (fold?)
 - Perlin noise
@@ -188,29 +192,26 @@ Engineering
 Refactors
 ----------
 - change order of playExample parameters
-- (done) Parameter to go in own module, params chained to make value read left to right
-- (done) Parameter.rnd().first()        // maybe we should just make it pure by seeding the rnd by epock or tree position?
-- (done) Parameter.rnd().map(x => x*x)
-- (done) Ax.Parameter() for construction
-- (done) Make methods chain as an alternative to wrapping, e.g. Ax.move(...).velocity(...)
-- (done) add .pipe(animation) so users can chain themselves
-- (partial) align names of methods with canvas context name, e.g. fillStyle(Color)
+- move canvas API into own module
+- implement Ax as a mixin of all specialised modules
+- add AFRP typing modulue
+  - make parameters a special case of an ObservableTransformer
+  - Maybe we can make Parameter and Rx.JS, in the init, we pass a clock Behaviour, and use combineLatest within the animations to merge
+  
+- (partial) do all of canvas API methods
      - finish that API!
      - withinClip, withinTx, (done) withinPath
      - createLinearGradient, createPattern(), createRadialGradient(), addColorStop(), isPointInPath(), measureText(), drawImage()
      - save() restore()
-- maybe put context methods in their own namespace if possible? (long term goal)
 - consider hiding time from Animation? It should only be used in params
 - simplifying closure situation? Maybe handle params internally through DI?
 - the way the tick is passed on in Animator is ugly
 - All the complex methods are implemented badly, then, emit, parallel. Maybe state machines? (if else is quite good)
-- Maybe we can make Parameter and Rx.JS, in the init, we pass a clock Behaviour, and use combineLatest within the animations to merge
+
 
 API documentation
 -------------------
 
-- method chaining
-- lifecycle
 - making your own Animation
 - making your own Parameters
 - overriding the prototype
@@ -247,9 +248,6 @@ Random IDEAS
 - mouse input, tailing glow (remember to tween between rapid movements)
 - prerendering an animation for fast playback
 - SVG path parser for withinPath
-
-TODO
-----
 
 
 
