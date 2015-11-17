@@ -3,6 +3,7 @@
 import * as Rx from "rx";
 import * as events from "./events";
 import * as Parameter from "./parameter";
+import * as Canvas from "./canvas2D";
 export declare var DEBUG_LOOP: boolean;
 export declare var DEBUG_THEN: boolean;
 export declare var DEBUG_IF: boolean;
@@ -10,6 +11,7 @@ export declare var DEBUG_EMIT: boolean;
 export declare var DEBUG_PARALLEL: boolean;
 export declare var DEBUG_EVENTS: boolean;
 export declare var DEBUG: boolean;
+export * from "./canvas2D";
 /**
  * A parameter is used for time varying values to animation functions.
  * Before a parameter is used, the enclosing animation must call init. This returns a function which
@@ -91,7 +93,7 @@ export declare type TickStream = Rx.Observable<Tick>;
  * When an animation is sequenced into the animation pipeline. Its attach method is called which atcually builds the
  * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
  */
-export declare class Animation {
+export declare class Animation extends Canvas.CanvasAnimation {
     attach: (upstream: TickStream) => TickStream;
     constructor(attach: (upstream: TickStream) => TickStream);
     /**
@@ -232,10 +234,6 @@ export declare class Animation {
      * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
      */
     bezierCurveTo(control1: PointArg, control2: PointArg, end: PointArg): Animation;
-    /**
-     * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
-     */
-    arc(center: PointArg, radius: NumberArg, radStartAngle: NumberArg, radEndAngle: NumberArg, counterclockwise?: boolean): Animation;
     /**
      * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
      */
@@ -392,10 +390,6 @@ export declare function quadraticCurveTo(control: PointArg, end: PointArg): Anim
  * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
  */
 export declare function bezierCurveTo(control1: PointArg, control2: PointArg, end: PointArg): Animation;
-/**
- * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
- */
-export declare function arc(center: PointArg, radius: NumberArg, radStartAngle: NumberArg, radEndAngle: NumberArg, counterclockwise?: boolean): Animation;
 /**
  * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
  */

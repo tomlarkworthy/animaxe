@@ -163,7 +163,6 @@ TODOS
 
 Packaging
 -----------
-- move examples inside of src, and simplify gulp
 - Test npm workflow
 - Test TS workflow (bower?)
 - Redo codepen examples with systemJS (?)
@@ -191,13 +190,15 @@ Engineering
 
 Refactors
 ----------
-- change order of playExample parameters
 - move canvas API into own module
+  - Key issue, its a subclass/implementor of tranformer functionality, but return types must keep the CanvasAPI
 - implement Ax as a mixin of all specialised modules
 - add AFRP typing modulue
   - make parameters a special case of an ObservableTransformer
   - Maybe we can make Parameter and Rx.JS, in the init, we pass a clock Behaviour, and use combineLatest within the animations to merge
-  
+ 
+- change order of playExample parameters
+
 - (partial) do all of canvas API methods
      - finish that API!
      - withinClip, withinTx, (done) withinPath
