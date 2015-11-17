@@ -42,7 +42,8 @@ var TS_SETTINGS = {
   outDir: "dist",
   module: "commonjs",
   declarationFiles: true,
-  noEmitOnError: false
+  noEmitOnError: false,
+  typescript: require('typescript')
 };
 
 gulp.task('compile', function() {

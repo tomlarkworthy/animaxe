@@ -19,6 +19,14 @@ export default class ObservableTransformer<Tick> {
     }
 
     /**
+     * subclasses should override this to create another animation of the same type
+     * @param attach
+     */
+    build(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>): this {
+        return new ObservableTransformer<Tick>(attach);
+    }
+
+    /**
      * send the downstream context of 'this' animation, as the upstream context to supplied animation.
      *
      * This allows you to chain custom animations.
@@ -108,8 +116,8 @@ export default class ObservableTransformer<Tick> {
      * The resultant animation is always runs forever while upstream is live. Only a single inner animation
      * plays at a time (unlike emit())
      */
-    loop<OT_API extends ObservableTransformer<Tick>>(inner: ObservableTransformer<Tick>): OT_API {
-        return this.pipe(loop(inner));
+    loop(inner: ObservableTransformer<Tick>): this {
+        return this.pipe(loop<Tick, this>(inner));
     }
     /**
      * Creates an animation that sequences the inner animation every time frame.
@@ -117,8 +125,8 @@ export default class ObservableTransformer<Tick> {
      * The resultant animation is always runs forever while upstream is live. Multiple inner animations
      * can be playing at the same time (unlike loop)
      */
-    emit<OT_API extends ObservableTransformer<Tick>>(inner: ObservableTransformer<Tick>): OT_API {
-        return this.pipe(emit(inner));
+    emit(inner: ObservableTransformer<Tick>): this {
+        return this.pipe(emit<Tick, this>(inner));
     }
 
     /**
@@ -127,34 +135,34 @@ export default class ObservableTransformer<Tick> {
      * The canvas states are restored before each fork, so styling and transforms of different child animations do not
      * interact (although obsviously the pixel buffer is affected by each animation)
      */
-    parallel<OT_API extends ObservableTransformer<Tick>>(inner_animations: ObservableTransformer<Tick>[]): OT_API {
-        return this.pipe(parallel(inner_animations));
+    parallel(inner_animations: ObservableTransformer<Tick>[]): this {
+        return this.pipe(parallel<Tick, this>(inner_animations));
     }
 
     /**
      * Sequences n copies of the inner animation. Clone completes when all inner animations are over.
      */
-    clone<OT_API extends ObservableTransformer<Tick>>(n: number, inner: ObservableTransformer<Tick>): OT_API {
-        return this.pipe(clone(n, inner));
+    clone(n: number, inner: ObservableTransformer<Tick>): this {
+        return this.pipe(clone<Tick, this>(n, inner));
     }
 
     /**
      * Creates an animation that is at most n frames from 'this'.
      */
-    take<OT_API extends ObservableTransformer<Tick>>(frames: number): OT_API {
-        return this.pipe(take(frames));
+    take(frames: number): this {
+        return this.pipe(take<Tick, this>(frames));
     }
 
     /**
      * helper method for implementing simple animations (that don't fork the animation tree).
      * You just have to supply a function that does something with the draw tick.
      */
-    draw<OT_API extends ObservableTransformer<Tick>>(drawFactory: () => ((tick: Tick) => void)): OT_API {
-        return this.pipe(draw(drawFactory));
+    draw(drawFactory: () => ((tick: Tick) => void)): this {
+        return this.pipe(draw<Tick, this>(drawFactory));
     }
 
-    if<OT_API extends ObservableTransformer<Tick>>(condition: BooleanArg, animation:OT_API): If{
-        return new If([new ConditionActionPair(condition, animation)], this);
+    if(condition: BooleanArg, animation: ObservableTransformer<Tick>): If<Tick, this>{
+        return new If<Tick, this>([new ConditionActionPair(condition, animation)], this);
     }
 }
 
@@ -162,6 +170,7 @@ export default class ObservableTransformer<Tick> {
 /**
  * Creates a new OT_API by piping the animation flow of A into B
  */
+//export function combine<Tick, A extends ObservableTransformer<Tick>, B extends ObservableTransformer<Tick>>(a: A, b: B): B {
 export function combine<Tick, A extends ObservableTransformer<Tick>, B extends ObservableTransformer<Tick>>(a: A, b: B): B {
     var b_prev_attach = b.attach;
     b.attach =
@@ -309,12 +318,12 @@ export function loop<Tick, OT_API extends ObservableTransformer<Tick>>(
     });
 }
 
-export function Noop<Tick, OT_API extends ObservableTransformer<Tick>>(): OT_API {
+export function Noop<Tick, OT_API extends ObservableTransformer>(): OT_API {
     return new ObservableTransformer(upstream => upstream);
 }
 
 
-export function take<Tick, OT_API extends ObservableTransformer<Tick>>(
+export function take<Tick, OT_API extends ObservableTransformer>(
     frames: number
 ): OT_API
 {
@@ -337,7 +346,7 @@ export class ConditionActionPair<Tick> {
  * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
  * Whenever the active clause changes, the new active animation is reinitialised.
  */
-export class If<Tick, OT_API extends ObservableTransformer<Tick>> {
+export class If<Tick, OT_API extends ObservableTransformer> {
     constructor(
         public conditions: ConditionActionPair[],
         public preceeding?: ObservableTransformer<Tick>) {
@@ -406,7 +415,7 @@ export class If<Tick, OT_API extends ObservableTransformer<Tick>> {
 }
 
 
-export function draw<Tick, OT_API extends ObservableTransformer<Tick>>(
+export function draw<Tick, OT_API extends ObservableTransformer>(
     drawFactory: () => ((tick: Tick) => void)
 ): OT_API
 {
