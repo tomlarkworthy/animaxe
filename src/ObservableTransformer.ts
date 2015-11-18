@@ -2,8 +2,8 @@ import * as Ax from "./animaxe"
 import * as Parameter from "./parameter"
 import * as Rx from "rx"
 import Observable = Rx.Observable;
+import * as types from "./types"
 export * from "./types"
-
 
 export var DEBUG_LOOP = false;
 export var DEBUG_THEN = false;
@@ -13,7 +13,16 @@ export var DEBUG_PARALLEL = false;
 export var DEBUG_EVENTS = false;
 export var DEBUG = false;
 
-export default class ObservableTransformer<Tick> {
+export class BaseTick {
+    constructor (
+        public clock: number,
+        public dt: number,
+        public ctx: CanvasRenderingContext2D) // TODO remove ctx from BaseTick
+    {
+    }
+}
+
+export class ObservableTransformer<Tick extends BaseTick> {
 
     constructor(public attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>) {
     }
@@ -22,8 +31,15 @@ export default class ObservableTransformer<Tick> {
      * subclasses should override this to create another animation of the same type
      * @param attach
      */
-    build(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>): this {
-        return new ObservableTransformer<Tick>(attach);
+    create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>): this {
+        return <this> new ObservableTransformer<Tick>(attach);
+    }
+
+    /**
+     * The identity trasformer that leaves the pipline unchanged
+     */
+    identity(): this {
+        return this.create(x => x)
     }
 
     /**
@@ -44,10 +60,10 @@ export default class ObservableTransformer<Tick> {
      * This allows you to sequence animations temporally.
      * frame1OT_API().then(frame2OT_API).then(frame3OT_API)
      */
-    then<OT_API extends ObservableTransformer<Tick>>(follower: ObservableTransformer<Tick>): OT_API {
+    then(follower: ObservableTransformer<Tick>): this {
         var self = this;
 
-        return new OT_API(function (prev: Rx.Observable<Tick>) : Rx.Observable<Tick> {
+        return this.create(function (prev: Rx.Observable<Tick>) : Rx.Observable<Tick> {
             return Rx.Observable.create<Tick>(function (observer) {
                 var first  = new Rx.Subject<Tick>();
                 var second = new Rx.Subject<Tick>();
@@ -116,8 +132,64 @@ export default class ObservableTransformer<Tick> {
      * The resultant animation is always runs forever while upstream is live. Only a single inner animation
      * plays at a time (unlike emit())
      */
-    loop(inner: ObservableTransformer<Tick>): this {
-        return this.pipe(loop<Tick, this>(inner));
+    loop(animation: ObservableTransformer<Tick>): this {
+        return this.pipe(
+            this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
+                if (DEBUG_LOOP) console.log("loop: initializing");
+                return Rx.Observable.create<Tick>(function(observer) {
+                    if (DEBUG_LOOP) console.log("loop: create new loop");
+                    var loopStart = null;
+                    var loopSubscription = null;
+                    var t = 0;
+
+
+                    function attachLoop(next) { //todo I feel like we can remove a level from this somehow
+                        if (DEBUG_LOOP) console.log("loop: new inner loop starting at", t);
+
+                        loopStart = new Rx.Subject<Tick>();
+                        loopSubscription = animation.attach(loopStart).subscribe(
+                            function(next) {
+                                if (DEBUG_LOOP) console.log("loop: post-inner loop to downstream");
+                                observer.onNext(next);
+                            },
+                            function(err) {
+                                if (DEBUG_LOOP) console.log("loop: post-inner loop err to downstream");
+                                observer.onError(err);
+                            },
+                            function() {
+                                if (DEBUG_LOOP) console.log("loop: post-inner completed");
+                                loopStart = null;
+                            }
+                        );
+                        if (DEBUG_LOOP) console.log("loop: new inner loop finished construction")
+                    }
+
+                    prev.subscribe(
+                        function(next) {
+                            if (loopStart == null) {
+                                if (DEBUG_LOOP) console.log("loop: no inner loop");
+                                attachLoop(next);
+                            }
+                            if (DEBUG_LOOP) console.log("loop: upstream to inner loop");
+                            loopStart.onNext(next);
+
+                            t += next.dt;
+                        },
+                        function(err){
+                            if (DEBUG_LOOP) console.log("loop: upstream error to downstream", err);
+                            observer.onError(err);
+                        },
+                        observer.onCompleted.bind(observer)
+                    );
+
+                    return function() {
+                        //dispose
+                        if (DEBUG_LOOP) console.log("loop: dispose");
+                        if (loopStart) loopStart.dispose();
+                    }
+                }).subscribeOn(Rx.Scheduler.immediate);
+            })
+        );
     }
     /**
      * Creates an animation that sequences the inner animation every time frame.
@@ -125,8 +197,18 @@ export default class ObservableTransformer<Tick> {
      * The resultant animation is always runs forever while upstream is live. Multiple inner animations
      * can be playing at the same time (unlike loop)
      */
-    emit(inner: ObservableTransformer<Tick>): this {
-        return this.pipe(emit<Tick, this>(inner));
+    emit(animation: ObservableTransformer<Tick>): this {
+        return this.pipe(this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
+            if (DEBUG_EMIT) console.log("emit: initializing");
+            var attachPoint = new Rx.Subject<Tick>();
+
+            return prev.tapOnNext(function(tick: Tick) {
+                    if (DEBUG_EMIT) console.log("emit: emmitting", animation);
+                    animation.attach(attachPoint).subscribe();
+                    attachPoint.onNext(tick);
+                }
+            );
+        }));
     }
 
     /**
@@ -135,22 +217,56 @@ export default class ObservableTransformer<Tick> {
      * The canvas states are restored before each fork, so styling and transforms of different child animations do not
      * interact (although obsviously the pixel buffer is affected by each animation)
      */
-    parallel(inner_animations: ObservableTransformer<Tick>[]): this {
-        return this.pipe(parallel<Tick, this>(inner_animations));
+    parallel(animations: ObservableTransformer<Tick>[]): this {
+        return this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
+            if (DEBUG_PARALLEL) console.log("parallel: initializing");
+
+            var activeOT_APIs = 0;
+            var attachPoint = new Rx.Subject<Tick>();
+
+            function decrementActive(err ?: any) {
+                if (DEBUG_PARALLEL) console.log("parallel: decrement active");
+                if (err) console.log("parallel error:", err);
+                activeOT_APIs --;
+            }
+
+            animations.forEach(function(animation: ObservableTransformer<Tick>) {
+                activeOT_APIs++;
+                animation.attach(attachPoint.tapOnNext(tick => tick.ctx.save())).subscribe(
+                        tick => tick.ctx.restore(),
+                    decrementActive,
+                    decrementActive)
+            });
+
+            return prev.takeWhile(() => activeOT_APIs > 0).tapOnNext(function(tick: Tick) {
+                    if (DEBUG_PARALLEL) console.log("parallel: emitting, animations", tick);
+                    attachPoint.onNext(tick);
+                    if (DEBUG_PARALLEL) console.log("parallel: emitting finished");
+                }
+            );
+        });
     }
 
     /**
      * Sequences n copies of the inner animation. Clone completes when all inner animations are over.
      */
-    clone(n: number, inner: ObservableTransformer<Tick>): this {
-        return this.pipe(clone<Tick, this>(n, inner));
+    clone(n: number, animation: ObservableTransformer<Tick>): this {
+        let array = new Array(n);
+        for (let i=0; i<n; i++) array[i] = animation;
+        return this.parallel(array);
+
     }
 
     /**
      * Creates an animation that is at most n frames from 'this'.
      */
     take(frames: number): this {
-        return this.pipe(take<Tick, this>(frames));
+        return this.pipe(
+            this.create((prev: Observable<Tick>) => {
+                if (DEBUG) console.log("take: attach");
+                return prev.take(frames);
+            })
+        );
     }
 
     /**
@@ -158,10 +274,10 @@ export default class ObservableTransformer<Tick> {
      * You just have to supply a function that does something with the draw tick.
      */
     draw(drawFactory: () => ((tick: Tick) => void)): this {
-        return this.pipe(draw<Tick, this>(drawFactory));
+        return this.pipe(this.create((upstream) => upstream.tapOnNext(drawFactory())));
     }
 
-    if(condition: BooleanArg, animation: ObservableTransformer<Tick>): If<Tick, this>{
+    if(condition: types.BooleanArg, animation: ObservableTransformer<Tick>): If<Tick, this>{
         return new If<Tick, this>([new ConditionActionPair(condition, animation)], this);
     }
 }
@@ -171,7 +287,7 @@ export default class ObservableTransformer<Tick> {
  * Creates a new OT_API by piping the animation flow of A into B
  */
 //export function combine<Tick, A extends ObservableTransformer<Tick>, B extends ObservableTransformer<Tick>>(a: A, b: B): B {
-export function combine<Tick, A extends ObservableTransformer<Tick>, B extends ObservableTransformer<Tick>>(a: A, b: B): B {
+export function combine<Tick, A extends ObservableTransformer<any>, B extends ObservableTransformer<any>>(a: A, b: B): B {
     var b_prev_attach = b.attach;
     b.attach =
         (upstream: Rx.Observable<Tick>) => {
@@ -180,161 +296,9 @@ export function combine<Tick, A extends ObservableTransformer<Tick>, B extends O
     return b;
 }
 
-/**
- * plays several animations, finishes when they are all done.
- * @param animations
- * @returns {OT_API}
- * todo: I think there are lots of bugs when an animation stops part way
- * I think it be better if this spawned its own Animator to handle ctx restores
- */
-export function parallel<Tick, OT_API extends ObservableTransformer<Tick>>(
-    animations: ObservableTransformer<Tick>[]
-): OT_API
-{
-    return new OT_API(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
-        if (DEBUG_PARALLEL) console.log("parallel: initializing");
 
-        var activeOT_APIs = 0;
-        var attachPoint = new Rx.Subject<Tick>();
-
-        function decrementActive(err ?: any) {
-            if (DEBUG_PARALLEL) console.log("parallel: decrement active");
-            if (err) console.log("parallel error:", err);
-            activeOT_APIs --;
-        }
-
-        animations.forEach(function(animation: ObservableTransformer<Tick>) {
-            activeOT_APIs++;
-            animation.attach(attachPoint.tapOnNext(tick => tick.ctx.save())).subscribe(
-                    tick => tick.ctx.restore(),
-                decrementActive,
-                decrementActive)
-        });
-
-        return prev.takeWhile(() => activeOT_APIs > 0).tapOnNext(function(tick: Tick) {
-                if (DEBUG_PARALLEL) console.log("parallel: emitting, animations", tick);
-                attachPoint.onNext(tick);
-                if (DEBUG_PARALLEL) console.log("parallel: emitting finished");
-            }
-        );
-    });
-}
-
-
-export function clone<Tick, OT_API extends ObservableTransformer<Tick>>(
-    n: number, // todo make dynamic
-    animation: ObservableTransformer<Tick>
-): OT_API {
-    return parallel(Rx.Observable.return(animation).repeat(n));
-}
-
-/**
- * The child animation is started every frame
- * @param animation
- */
-export function emit<Tick, OT_API extends ObservableTransformer<Tick>>(
-    animation: ObservableTransformer<Tick>
-): OT_API
-{
-    return new OT_API(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
-        if (DEBUG_EMIT) console.log("emit: initializing");
-        var attachPoint = new Rx.Subject<Tick>();
-
-        return prev.tapOnNext(function(tick: Tick) {
-                if (DEBUG_EMIT) console.log("emit: emmitting", animation);
-                animation.attach(attachPoint).subscribe();
-                attachPoint.onNext(tick);
-            }
-        );
-    });
-}
-
-
-/**
- * When the child loop finishes, it is spawned
- * @param animation
- * @returns {OT_API}
- */
-export function loop<Tick, OT_API extends ObservableTransformer<Tick>>(
-    animation: ObservableTransformer<Tick>
-): OT_API
-{
-    return new OT_API(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
-        if (DEBUG_LOOP) console.log("loop: initializing");
-
-
-        return Rx.Observable.create<Tick>(function(observer) {
-            if (DEBUG_LOOP) console.log("loop: create new loop");
-            var loopStart = null;
-            var loopSubscription = null;
-            var t = 0;
-
-
-            function attachLoop(next) { //todo I feel like we can remove a level from this somehow
-                if (DEBUG_LOOP) console.log("loop: new inner loop starting at", t);
-
-                loopStart = new Rx.Subject<Tick>();
-                loopSubscription = animation.attach(loopStart).subscribe(
-                    function(next) {
-                        if (DEBUG_LOOP) console.log("loop: post-inner loop to downstream");
-                        observer.onNext(next);
-                    },
-                    function(err) {
-                        if (DEBUG_LOOP) console.log("loop: post-inner loop err to downstream");
-                        observer.onError(err);
-                    },
-                    function() {
-                        if (DEBUG_LOOP) console.log("loop: post-inner completed");
-                        loopStart = null;
-                    }
-                );
-                if (DEBUG_LOOP) console.log("loop: new inner loop finished construction")
-            }
-
-            prev.subscribe(
-                function(next) {
-                    if (loopStart == null) {
-                        if (DEBUG_LOOP) console.log("loop: no inner loop");
-                        attachLoop(next);
-                    }
-                    if (DEBUG_LOOP) console.log("loop: upstream to inner loop");
-                    loopStart.onNext(next);
-
-                    t += next.dt;
-                },
-                function(err){
-                    if (DEBUG_LOOP) console.log("loop: upstream error to downstream", err);
-                    observer.onError(err);
-                },
-                observer.onCompleted.bind(observer)
-            );
-
-            return function() {
-                //dispose
-                if (DEBUG_LOOP) console.log("loop: dispose");
-                if (loopStart) loopStart.dispose();
-            }
-        }).subscribeOn(Rx.Scheduler.immediate);
-    });
-}
-
-export function Noop<Tick, OT_API extends ObservableTransformer>(): OT_API {
-    return new ObservableTransformer(upstream => upstream);
-}
-
-
-export function take<Tick, OT_API extends ObservableTransformer>(
-    frames: number
-): OT_API
-{
-    return new OT_API(function(prev: Observable<Tick>): Observable<Tick> {
-        if (DEBUG) console.log("take: attach");
-        return prev.take(frames);
-    });
-}
-
-export class ConditionActionPair<Tick> {
-    constructor(public condition: BooleanArg, public action: ObservableTransformer<Tick>){}
+export class ConditionActionPair<Tick extends BaseTick> {
+    constructor(public condition: types.BooleanArg, public action: ObservableTransformer<Tick>){}
 };
 
 
@@ -346,24 +310,23 @@ export class ConditionActionPair<Tick> {
  * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
  * Whenever the active clause changes, the new active animation is reinitialised.
  */
-export class If<Tick, OT_API extends ObservableTransformer> {
+export class If<Tick extends BaseTick, OT_API extends ObservableTransformer<any>> {
     constructor(
-        public conditions: ConditionActionPair[],
-        public preceeding?: ObservableTransformer<Tick>) {
-        if (!preceeding) this.preceeding = Noop<Tick, OT_API>();
+        public conditions: ConditionActionPair<Tick>[],
+        public preceeding: OT_API) {
     }
 
-    elif(clause:BooleanArg, action: ObservableTransformer<Tick>): If {
-        this.conditions.push([clause, action]);
+    elif(clause: types.BooleanArg, action: ObservableTransformer<Tick>): this {
+        this.conditions.push(new ConditionActionPair<Tick>(clause, action));
         return this;
     }
 
     endif(): OT_API {
-        return this.preceeding.pipe(this.else(Noop<Tick, OT_API>()));
+        return this.preceeding.pipe(this.else(this.preceeding.identity()));
     }
 
     else(otherwise: ObservableTransformer<Tick>): OT_API {
-        return this.preceeding.pipe(new OT_API(
+        return this.preceeding.pipe(this.preceeding.create(
             (upstream: Rx.Observable<Tick>) => {
                 if (DEBUG_IF) console.log("If: attach");
                 var downstream = new Rx.Subject<Tick>();
@@ -375,7 +338,7 @@ export class If<Tick, OT_API extends ObservableTransformer> {
 
                 // we initialise all the condition parameters
                 var conditions_next = this.conditions.map(
-                    (condition: ConditionActionPair) => Parameter.from(condition[0]).init()
+                    (condition: ConditionActionPair<Tick>) => Parameter.from(condition[0]).init()
                 );
 
                 var fork = upstream.subscribe(
@@ -412,15 +375,4 @@ export class If<Tick, OT_API extends ObservableTransformer> {
             }
         ))
     }
-}
-
-
-export function draw<Tick, OT_API extends ObservableTransformer>(
-    drawFactory: () => ((tick: Tick) => void)
-): OT_API
-{
-    return new OT_API(function (previous: Rx.Observable<Tick>): Rx.Observable<Tick> {
-        var draw: (tick: Tick) => void = drawFactory();
-        return previous.tapOnNext(draw);
-    });
 }

@@ -50,7 +50,7 @@ gulp.task('compile', function() {
   console.error("****************************************************TODO**************************************************");
   console.error("I know about 'src/ctx-get-transform.ts(27,23): error TS2307: Cannot find module 'gl-mat3'', just ignore it");
   console.error("**********************************************************************************************************");
-    var tsResult = gulp.src(['./src/*.ts', './examples/*.ts'])
+    var tsResult = gulp.src(['./src/Canvas*.ts', './examples/NONE*.ts'])
                     .pipe(sourcemaps.init())
                     .pipe(ts(ts.createProject(TS_SETTINGS)));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
