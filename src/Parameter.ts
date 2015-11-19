@@ -5,13 +5,8 @@ import * as Rx from "rx";
 
 export var DEBUG = false;
 
-// todo these chould be put in types ES6 module but my IDE does not support it yet (pycharm)
-export type Color = string
-export type Point     = [number, number]
-export type NumberArg = number | Parameter<number>
-export type PointArg  = Point | Parameter<Point>
-
-
+import * as types from "./types"
+export * from "./types"
 /**
  * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
  * every time and event is received from the Rx source
@@ -46,7 +41,27 @@ export function overwriteWith<T>(defaultValue: T, source: Rx.Observable<T>): Par
     );
 }
 
+/**
+ * A parameter is used for time varying values to animation functions.
+ * Before a parameter is used, the enclosing animation must call init. This returns a function which
+ * can be used to find the value of the function for specific values of time. Typically this is done within the
+ * animation's closure. For example:
+```
+function moveTo(
+    xy: PointArg
+): Animation {
+    return draw(
+        () => {
+            var xy_next = Parameter.from(xy).init(); // init to obtain 'next'
 
+            return function (tick: DrawTick) {
+                var xy = xy_next(tick.clock); // use 'next' to get value
+                tick.ctx.moveTo(xy[0], xy[1]);
+            }
+        });
+}
+```
+ */
 export class Parameter<Value> {
     /**
      * Before a parameter is used, the enclosing animation must call init. This returns a function which
@@ -111,7 +126,7 @@ export function from<T>(source: T | Parameter<T>): Parameter<T> {
 export function point(
     x: number | Parameter<number>,
     y: number | Parameter<number>
-): Parameter<Point>
+): Parameter<types.Point>
 {
     return new Parameter(
         () => {
@@ -127,13 +142,13 @@ export function point(
 }
 
 
-export function displaceT<T>(displacement: NumberArg, value: T | Parameter<T>): Parameter<T> {
+export function displaceT<T>(displacement: number | Parameter<number>, value: T | Parameter<T>): Parameter<T> {
     return new Parameter<T> (
         () => {
-            var dt_next    = from(displacement).init();
+            var dt_next    = from(displacement).init(); //todo remove <number>
             var value_next = from(value).init();
             return function (t) {
-                var dt = dt_next(t);
+                var dt: number = dt_next(t);
                 if (DEBUG) console.log("displaceT: ", dt);
                 return value_next(t + dt)
             }
@@ -150,7 +165,7 @@ export function rgba(
     g: number | Parameter<number>,
     b: number | Parameter<number>,
     a: number | Parameter<number>
-): Parameter<Color>
+): Parameter<types.Color>
 {
     return new Parameter(
         () => {
@@ -175,7 +190,7 @@ export function hsl(
     h: number | Parameter<number>,
     s: number | Parameter<number>,
     l: number | Parameter<number>
-): Parameter<Color>
+): Parameter<types.Color>
 {
     return new Parameter(
         () => {
@@ -218,12 +233,12 @@ export function constant<T>(val: T): Parameter<T> {
     );
 }
 
-export function rndNormal(scale : Parameter<number> | number = 1): Parameter<Point> {
-    return new Parameter<Point>(
+export function rndNormal(scale : Parameter<number> | number = 1): Parameter<types.Point> {
+    return new Parameter<types.Point>(
         () => {
             if (DEBUG) console.log("rndNormal: init");
             var scale_next = from(scale).init();
-            return function (t: number): Point {
+            return function (t: number): types.Point {
                 var scale = scale_next(t);
                 // generate random numbers
                 var norm2 = 100;
@@ -244,7 +259,7 @@ export function rndNormal(scale : Parameter<number> | number = 1): Parameter<Poi
 
 
 //todo: should be t as a parameter to a non tempor
-export function sin(period: NumberArg): Parameter<number> {
+export function sin(period: number | Parameter<number>): Parameter<number> {
     if (DEBUG) console.log("sin: new");
     return new Parameter(
         () => {
@@ -257,7 +272,7 @@ export function sin(period: NumberArg): Parameter<number> {
         }
     );
 }
-export function cos(period: number| Parameter<number>): Parameter<number> {
+export function cos(period: number | Parameter<number>): Parameter<number> {
     if (DEBUG) console.log("cos: new");
     return new Parameter(
         () => {

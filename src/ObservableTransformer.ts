@@ -1,8 +1,8 @@
 import * as Ax from "./animaxe"
-import * as Parameter from "./parameter"
 import * as Rx from "rx"
 import Observable = Rx.Observable;
 import * as types from "./types"
+import * as Parameter from "./Parameter"
 export * from "./types"
 
 export var DEBUG_LOOP = false;
@@ -31,15 +31,8 @@ export class ObservableTransformer<Tick extends BaseTick> {
      * subclasses should override this to create another animation of the same type
      * @param attach
      */
-    create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>): this {
+    create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick> = nop => nop): this {
         return <this> new ObservableTransformer<Tick>(attach);
-    }
-
-    /**
-     * The identity trasformer that leaves the pipline unchanged
-     */
-    identity(): this {
-        return this.create(x => x)
     }
 
     /**
@@ -322,7 +315,7 @@ export class If<Tick extends BaseTick, OT_API extends ObservableTransformer<any>
     }
 
     endif(): OT_API {
-        return this.preceeding.pipe(this.else(this.preceeding.identity()));
+        return this.preceeding.pipe(this.else(this.preceeding.create()));
     }
 
     else(otherwise: ObservableTransformer<Tick>): OT_API {

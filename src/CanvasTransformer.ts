@@ -1,5 +1,3 @@
-
-import * as Ax from "./animaxe"
 import * as Parameter from "./parameter"
 import * as events from "./events"
 import * as OT from "./ObservableTransformer"
@@ -25,7 +23,7 @@ export class CanvasTick extends OT.BaseTick{
 }
 
 
-export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
+export class Animation extends OT.ObservableTransformer<CanvasTick>{
 
 
     constructor(public attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>) {
@@ -36,13 +34,13 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
     /**
      * Dynamic chainable wrapper for strokeStyle in the canvas API.
      */
-    strokeStyle(color: types.ColorArg): CanvasAnimation {
+    strokeStyle(color: types.ColorArg): Animation {
         return this.pipe(strokeStyle(color));
     }
     /**
      * Dynamic chainable wrapper for fillStyle in the canvas API.
      */
-    fillStyle(color: types.ColorArg): CanvasAnimation {
+    fillStyle(color: types.ColorArg): Animation {
         return this.pipe(
             this.draw(
                 () => {
@@ -60,67 +58,67 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
     /**
      * Dynamic chainable wrapper for shadowColor in the canvas API.
      */
-    shadowColor(color: types.ColorArg): CanvasAnimation {
+    shadowColor(color: types.ColorArg): Animation {
         return this.pipe(shadowColor(color));
     }
     /**
      * Dynamic chainable wrapper for shadowBlur in the canvas API.
      */
-    shadowBlur(level: types.NumberArg): CanvasAnimation {
+    shadowBlur(level: types.NumberArg): Animation {
         return this.pipe(shadowBlur(level));
     }
     /**
      * Dynamic chainable wrapper for shadowOffsetX and shadowOffsetY in the canvas API.
      */
-    shadowOffset(xy: types.PointArg): CanvasAnimation {
+    shadowOffset(xy: types.PointArg): Animation {
         return this.pipe(shadowOffset(xy));
     }
     /**
      * Dynamic chainable wrapper for lineCap in the canvas API.
      */
-    lineCap(style: string): CanvasAnimation {
+    lineCap(style: string): Animation {
         return this.pipe(lineCap(style));
     }
     /**
      * Dynamic chainable wrapper for lineJoin in the canvas API.
      */
-    lineJoin(style: string): CanvasAnimation {
+    lineJoin(style: string): Animation {
         return this.pipe(lineJoin(style));
     }
     /**
      * Dynamic chainable wrapper for lineWidth in the canvas API.
      */
-    lineWidth(width: types.NumberArg): CanvasAnimation {
+    lineWidth(width: types.NumberArg): Animation {
         return this.pipe(lineWidth(width));
     }
     /**
      * Dynamic chainable wrapper for miterLimit in the canvas API.
      */
-    miterLimit(limit: types.NumberArg): CanvasAnimation {
+    miterLimit(limit: types.NumberArg): Animation {
         return this.pipe(miterLimit(limit));
     }
     /**
      * Dynamic chainable wrapper for rect in the canvas API.
      */
-    rect(xy: types.PointArg, width_height: types.PointArg): CanvasAnimation {
+    rect(xy: types.PointArg, width_height: types.PointArg): Animation {
         return this.pipe(rect(xy, width_height));
     }
     /**
      * Dynamic chainable wrapper for fillRect in the canvas API.
      */
-    fillRect(xy: types.PointArg, width_height: types.PointArg): CanvasAnimation {
+    fillRect(xy: types.PointArg, width_height: types.PointArg): Animation {
         return this.pipe(fillRect(xy, width_height));
     }
     /**
      * Dynamic chainable wrapper for strokeRect in the canvas API.
      */
-    strokeRect(xy: types.PointArg, width_height: types.PointArg): CanvasAnimation {
+    strokeRect(xy: types.PointArg, width_height: types.PointArg): Animation {
         return this.pipe(strokeRect(xy, width_height));
     }
     /**
      * Dynamic chainable wrapper for clearRect in the canvas API.
      */
-    clearRect(xy: types.PointArg, width_height: types.PointArg): CanvasAnimation {
+    clearRect(xy: types.PointArg, width_height: types.PointArg): Animation {
         return this.pipe(clearRect(xy, width_height));
     }
     /**
@@ -128,62 +126,62 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
      *
      * This returns a path object which events can be subscribed to
      */
-    withinPath(inner: CanvasAnimation): PathAnimation {
+    withinPath(inner: Animation): PathAnimation {
         return this.pipe(withinPath(inner));
     }
     /**
      * Dynamic chainable wrapper for fill in the canvas API. Use with withinPath.
      */
-    fill(): CanvasAnimation {
+    fill(): Animation {
         return this.pipe(fill());
     }
     /**
      * Dynamic chainable wrapper for stroke in the canvas API.
      */
-    stroke(): CanvasAnimation {
+    stroke(): Animation {
         return this.pipe(stroke());
     }
     /**
      * Dynamic chainable wrapper for moveTo in the canvas API. Use with withinPath.
      */
-    moveTo(xy: types.PointArg): CanvasAnimation {
+    moveTo(xy: types.PointArg): Animation {
         return this.pipe(moveTo(xy));
     }
     /**
      * Dynamic chainable wrapper for lineTo in the canvas API. Use with withinPath.
      */
-    lineTo(xy: types.PointArg): CanvasAnimation {
+    lineTo(xy: types.PointArg): Animation {
         return this.pipe(lineTo(xy));
     }
     /**
      * Dynamic chainable wrapper for clip in the canvas API. Use with withinPath.
      */
-    clip(): CanvasAnimation {
+    clip(): Animation {
         return this.pipe(clip());
     }
     /**
      * Dynamic chainable wrapper for quadraticCurveTo in the canvas API. Use with withinPath.
      */
-    quadraticCurveTo(control: types.PointArg, end: types.PointArg): CanvasAnimation {
+    quadraticCurveTo(control: types.PointArg, end: types.PointArg): Animation {
         return this.pipe(quadraticCurveTo(control, end));
     }
     /**
      * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
      */
-    bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): CanvasAnimation {
+    bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): Animation {
         return this.pipe(bezierCurveTo(control1, control2, end));
     }
 
     /**
      * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
      */
-    arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius: types.NumberArg): CanvasAnimation {
+    arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius: types.NumberArg): Animation {
         return this.pipe(arcTo(tangent1, tangent2, radius));
     }
     /**
      * Dynamic chainable wrapper for scale in the canvas API.
      */
-    scale(xy: types.PointArg): CanvasAnimation {
+    scale(xy: types.PointArg): Animation {
         return this.pipe(scale(xy));
     }
     /**
@@ -194,7 +192,7 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
             this.draw(
                 () => {
                     if (DEBUG) console.log("rotate: attach");
-                    var arg1_next = Parameter.from(clockwiseRadians).init();
+                    var arg1_next = Parameter.from<number>(clockwiseRadians).init();
                     return function (tick: CanvasTick) {
                         var arg1 = arg1_next(tick.clock);
                         if (DEBUG) console.log("rotate: rotate", arg1);
@@ -230,20 +228,20 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
      *   0 0 1 ]
      */
     transform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
-              d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): CanvasAnimation {
+              d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
         return this.pipe(transform(a,b,c,d,e,f));
     }
     /**
      * Dynamic chainable wrapper for setTransform in the canvas API.
      */
     setTransform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
-                 d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): CanvasAnimation {
+                 d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
         return this.pipe(setTransform(a,b,c,d,e,f));
     }
     /**
      * Dynamic chainable wrapper for font in the canvas API.
      */
-    font(style: string): CanvasAnimation {
+    font(style: string): Animation {
         return this.pipe(
             this.draw(
                 () => {
@@ -261,7 +259,7 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
     /**
      * Dynamic chainable wrapper for textAlign in the canvas API.
      */
-    textAlign(style: string): CanvasAnimation {
+    textAlign(style: string): Animation {
         return this.pipe(
             this.draw(
                 () => {
@@ -279,7 +277,7 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
     /**
      * Dynamic chainable wrapper for textBaseline in the canvas API.
      */
-    textBaseline(style: string): CanvasAnimation {
+    textBaseline(style: string): Animation {
         return this.pipe(
             this.draw(
                 () => {
@@ -297,7 +295,7 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
     /**
      * Dynamic chainable wrapper for textBaseline in the canvas API.
      */
-    fillText(text: types.StringArg, xy: types.PointArg, maxWidth?: types.NumberArg): CanvasAnimation {
+    fillText(text: types.StringArg, xy: types.PointArg, maxWidth?: types.NumberArg): Animation {
         return this.pipe(
             this.draw(
                 () => {
@@ -323,7 +321,7 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
     /**
      * Dynamic chainable wrapper for drawImage in the canvas API.
      */
-    drawImage(img, xy: types.PointArg): CanvasAnimation {
+    drawImage(img, xy: types.PointArg): Animation {
         return this.pipe(
             this.draw(
                 () => {
@@ -341,7 +339,7 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
     /**
      * * Dynamic chainable wrapper for globalCompositeOperation in the canvas API.
      */
-    globalCompositeOperation(operation: string): CanvasAnimation {
+    globalCompositeOperation(operation: string): Animation {
         return this.pipe(
             this.draw(
                 () => {
@@ -373,12 +371,15 @@ export class CanvasAnimation extends OT.ObservableTransformer<CanvasTick>{
                     if (DEBUG) console.log("arc: arc", arg1, arg2, arg3, arg4);
                     tick.ctx.arc(arg1[0], arg1[1], arg2, arg3, arg4, counterclockwise);
                 }
-            });
+            }
+        );
     }
 }
 
-
-export class PathAnimation extends CanvasAnimation {
+export function create(attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick> = x => x): Animation {
+    return new Animation(attach);
+}
+export class PathAnimation extends Animation {
 
 }
 
@@ -386,7 +387,7 @@ export class PathAnimation extends CanvasAnimation {
 
 export function strokeStyle(
     color: types.ColorArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("strokeStyle: attach");
@@ -402,8 +403,8 @@ export function strokeStyle(
 
 export function shadowColor(
     color: types.ColorArg
-): CanvasAnimation {
-    return OT.draw<CanvasAnimation>(
+): Animation {
+    return this.draw(
         () => {
             if (DEBUG) console.log("shadowColor: attach");
             var color_next = Parameter.from(color).init();
@@ -417,7 +418,7 @@ export function shadowColor(
 }
 export function shadowBlur(
     level: types.NumberArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("shadowBlur: attach");
@@ -434,7 +435,7 @@ export function shadowBlur(
 
 export function shadowOffset(
     xy: types.PointArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("shadowOffset: attach");
@@ -451,11 +452,11 @@ export function shadowOffset(
 
 export function lineCap(
     style: types.StringArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("lineCap: attach");
-            var arg_next: Parameter<String> = Parameter.from(style).init();
+            var arg_next = Parameter.from(style).init();
             return function (tick: CanvasTick) {
                 var arg = arg_next(tick.clock);
                 if (DEBUG) console.log("lineCap: lineCap", arg);
@@ -466,7 +467,7 @@ export function lineCap(
 }
 export function lineJoin(
     style: types.StringArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("lineJoin: attach");
@@ -482,7 +483,7 @@ export function lineJoin(
 
 export function lineWidth(
     width: types.NumberArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("lineWidth: attach");
@@ -492,12 +493,13 @@ export function lineWidth(
                 if (DEBUG) console.log("lineWidth: lineWidth", width);
                 tick.ctx.lineWidth = width;
             }
-        });
+        }
+    );
 }
 
 export function miterLimit(
     limit: types.NumberArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("miterLimit: attach");
@@ -507,14 +509,15 @@ export function miterLimit(
                 if (DEBUG) console.log("miterLimit: miterLimit", arg);
                 tick.ctx.miterLimit = arg;
             }
-        });
+        }
+    );
 }
 
 
 export function rect(
     xy: types.PointArg,
     width_height: types.PointArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("rect: attach");
@@ -527,13 +530,14 @@ export function rect(
                 if (DEBUG) console.log("rect: rect", xy, width_height);
                 tick.ctx.rect(xy[0], xy[1], width_height[0], width_height[1]);
             }
-        });
+        }
+    );
 }
 
 export function fillRect(
     xy: types.PointArg,
     width_height: types.PointArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("fillRect: attach");
@@ -546,13 +550,14 @@ export function fillRect(
                 if (DEBUG) console.log("fillRect: fillRect", xy, width_height);
                 tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
             }
-        });
+        }
+    );
 }
 
 export function strokeRect(
     xy: types.PointArg,
     width_height: types.PointArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("strokeRect: attach");
@@ -565,12 +570,13 @@ export function strokeRect(
                 if (DEBUG) console.log("strokeRect: strokeRect", xy, width_height);
                 tick.ctx.strokeRect(xy[0], xy[1], width_height[0], width_height[1]);
             }
-        });
+        }
+    );
 }
 export function clearRect(
     xy: types.PointArg,
     width_height: types.PointArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("clearRect: attach");
@@ -583,15 +589,16 @@ export function clearRect(
                 if (DEBUG) console.log("clearRect: clearRect", xy, width_height);
                 tick.ctx.clearRect(xy[0], xy[1], width_height[0], width_height[1]);
             }
-        });
+        }
+    );
 }
 
 
 export function withinPath(
-    inner: CanvasAnimation
+    inner: Animation
 ): PathAnimation {
     return new PathAnimation(
-        (upstream: CanvasTickStream) => {
+        (upstream: Rx.Observable<CanvasTick>) => {
             if (DEBUG) console.log("withinPath: attach");
             var beginPathBeforeInner = upstream.tapOnNext(
                 function (tick: CanvasTick) {tick.ctx.beginPath();}
@@ -599,10 +606,11 @@ export function withinPath(
             return inner.attach(beginPathBeforeInner).tapOnNext(
                 function (tick: CanvasTick) {tick.ctx.closePath();}
             )
-        });
+        }
+    );
 }
 
-export function stroke(): CanvasAnimation {
+export function stroke(): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("stroke: attach");
@@ -610,10 +618,11 @@ export function stroke(): CanvasAnimation {
                 if (DEBUG) console.log("stroke: stroke");
                 tick.ctx.stroke();
             }
-        });
+        }
+    );
 }
 
-export function fill(): CanvasAnimation {
+export function fill(): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("fill: attach");
@@ -621,12 +630,13 @@ export function fill(): CanvasAnimation {
                 if (DEBUG) console.log("fill: fill");
                 tick.ctx.fill();
             }
-        });
+        }
+    );
 }
 
 export function moveTo(
     xy: types.PointArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("moveTo: attach");
@@ -636,12 +646,13 @@ export function moveTo(
                 if (DEBUG) console.log("moveTo: moveTo", xy);
                 tick.ctx.moveTo(xy[0], xy[1]);
             }
-        });
+        }
+    );
 }
 
 export function lineTo(
     xy: types.PointArg
-): CanvasAnimation {
+): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("lineTo: attach");
@@ -651,11 +662,12 @@ export function lineTo(
                 if (DEBUG) console.log("lineTo: lineTo", xy);
                 tick.ctx.lineTo(xy[0], xy[1]);
             }
-        });
+        }
+    );
 }
 
 
-export function clip(): CanvasAnimation {
+export function clip(): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("clip: attach");
@@ -663,10 +675,11 @@ export function clip(): CanvasAnimation {
                 if (DEBUG) console.log("clip: clip");
                 tick.ctx.clip();
             }
-        });
+        }
+    );
 }
 
-export function quadraticCurveTo(control: types.PointArg, end: types.PointArg): CanvasAnimation {
+export function quadraticCurveTo(control: types.PointArg, end: types.PointArg): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("quadraticCurveTo: attach");
@@ -678,12 +691,13 @@ export function quadraticCurveTo(control: types.PointArg, end: types.PointArg): 
                 if (DEBUG) console.log("quadraticCurveTo: quadraticCurveTo", arg1, arg2);
                 tick.ctx.quadraticCurveTo(arg1[0], arg1[1], arg2[0], arg2[1]);
             }
-        });
+        }
+    );
 }
 /**
  * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
  */
-export function bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): CanvasAnimation {
+export function bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("bezierCurveTo: attach");
@@ -697,13 +711,14 @@ export function bezierCurveTo(control1: types.PointArg, control2: types.PointArg
                 if (DEBUG) console.log("bezierCurveTo: bezierCurveTo", arg1, arg2, arg3);
                 tick.ctx.bezierCurveTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3[0], arg3[1]);
             }
-        });
+        }
+    );
 }
 
 /**
  * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
  */
-export function arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius: types.NumberArg): CanvasAnimation {
+export function arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius: types.NumberArg): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("arc: attach");
@@ -717,12 +732,13 @@ export function arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius
                 if (DEBUG) console.log("arc: arc", arg1, arg2, arg3);
                 tick.ctx.arcTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3);
             }
-        });
+        }
+    );
 }
 /**
  * Dynamic chainable wrapper for scale in the canvas API.
  */
-export function scale(xy: types.PointArg): CanvasAnimation {
+export function scale(xy: types.PointArg): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("scale: attach");
@@ -732,7 +748,8 @@ export function scale(xy: types.PointArg): CanvasAnimation {
                 if (DEBUG) console.log("scale: scale", arg1);
                 tick.ctx.scale(arg1[0], arg1[1]);
             }
-        });
+        }
+    );
 }
 /**
  * Dynamic chainable wrapper for translate in the canvas API.
@@ -741,7 +758,7 @@ export function scale(xy: types.PointArg): CanvasAnimation {
  *   0 0 1 ]
  */
 export function transform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
-          d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): CanvasAnimation {
+          d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("transform: attach");
@@ -761,13 +778,14 @@ export function transform(a: types.NumberArg, b: types.NumberArg, c: types.Numbe
                 if (DEBUG) console.log("transform: transform", arg1, arg2, arg3, arg4, arg5, arg6);
                 tick.ctx.transform(arg1, arg2, arg3, arg4, arg5, arg6);
             }
-        });
+        }
+    );
 }
 /**
  * Dynamic chainable wrapper for setTransform in the canvas API.
  */
 export function setTransform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
-             d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): CanvasAnimation {
+             d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
     return this.draw(
         () => {
             if (DEBUG) console.log("setTransform: attach");
@@ -787,5 +805,30 @@ export function setTransform(a: types.NumberArg, b: types.NumberArg, c: types.Nu
                 if (DEBUG) console.log("setTransform: setTransform", arg1, arg2, arg3, arg4, arg5, arg6);
                 tick.ctx.setTransform(arg1, arg2, arg3, arg4, arg5, arg6);
             }
-        });
+        }
+    );
+}
+
+
+export function save(width:number, height:number, path: string): Animation {
+    var GIFEncoder = require('gifencoder');
+    var fs = require('fs');
+
+
+    var encoder = new GIFEncoder(width, height);
+    encoder.createReadStream()
+      .pipe(encoder.createWriteStream({ repeat: 10000, delay: 100, quality: 1 }))
+      .pipe(fs.createWriteStream(path));
+    encoder.start();
+
+    return new Animation(function (upstream: Rx.Observable<CanvasTick>): Rx.Observable<CanvasTick> {
+        return upstream.tap(
+            function(tick: CanvasTick) {
+                if (DEBUG) console.log("save: wrote frame");
+                encoder.addFrame(tick.ctx);
+            },
+            function() {console.error("save: not saved", path);},
+            function() {console.log("save: saved", path); encoder.finish();}
+        )
+    });
 }
