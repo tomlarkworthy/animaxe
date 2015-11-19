@@ -1,6 +1,5 @@
 import * as Ax from "./animaxe"
 import * as Rx from "rx"
-import Observable = Rx.Observable;
 import * as types from "./types"
 import * as Parameter from "./Parameter"
 export * from "./types"
@@ -255,7 +254,7 @@ export class ObservableTransformer<Tick extends BaseTick> {
      */
     take(frames: number): this {
         return this.pipe(
-            this.create((prev: Observable<Tick>) => {
+            this.create((prev: Rx.Observable<Tick>) => {
                 if (DEBUG) console.log("take: attach");
                 return prev.take(frames);
             })

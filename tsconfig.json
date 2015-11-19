@@ -1,6 +1,10 @@
 {
     "compilerOptions": {
         "target": "ES5",
-        "module": "commonjs"
-    }
+        "module": "commonjs",
+        "outDir": "dist"
+    },
+    "files": [
+        "src/animaxe.ts"
+    ]
 }
