@@ -97,7 +97,19 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for strokeStyle in the canvas API.
      */
     strokeStyle(color: types.ColorArg): Animation {
-        return this.pipe(strokeStyle(color));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("strokeStyle: attach");
+                    var color_next = Parameter.from(color).init();
+                    return function (tick: CanvasTick) {
+                        var color = color_next(tick.clock);
+                        if (DEBUG) console.log("strokeStyle: strokeStyle", color);
+                        tick.ctx.strokeStyle = color;
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for fillStyle in the canvas API.
@@ -125,49 +137,149 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for shadowColor in the canvas API.
      */
     shadowColor(color: types.ColorArg): Animation {
-        return this.pipe(shadowColor(color));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("shadowColor: attach");
+                    var color_next = Parameter.from(color).init();
+                    return function (tick: CanvasTick) {
+                        var color = color_next(tick.clock);
+                        if (DEBUG) console.log("shadowColor: shadowColor", color);
+                        tick.ctx.shadowColor = color;
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for shadowBlur in the canvas API.
      */
     shadowBlur(level: types.NumberArg): Animation {
-        return this.pipe(shadowBlur(level));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("shadowBlur: attach");
+                    var level_next = Parameter.from(level).init();
+                    return function (tick: CanvasTick) {
+                        var level = level_next(tick.clock);
+                        if (DEBUG) console.log("shadowBlur: shadowBlur", level);
+                        tick.ctx.shadowBlur = level;
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for shadowOffsetX and shadowOffsetY in the canvas API.
      */
     shadowOffset(xy: types.PointArg): Animation {
-        return this.pipe(shadowOffset(xy));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("shadowOffset: attach");
+                    var xy_next = Parameter.from(xy).init();
+                    return function (tick: CanvasTick) {
+                        var xy = xy_next(tick.clock);
+                        if (DEBUG) console.log("shadowOffset: shadowOffset", xy);
+                        tick.ctx.shadowOffsetX = xy[0];
+                        tick.ctx.shadowOffsetY = xy[1];
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for lineCap in the canvas API.
      */
     lineCap(style: string): Animation {
-        return this.pipe(lineCap(style));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("lineCap: attach");
+                    var arg_next = Parameter.from(style).init();
+                    return function (tick: CanvasTick) {
+                        var arg = arg_next(tick.clock);
+                        if (DEBUG) console.log("lineCap: lineCap", arg);
+                        tick.ctx.lineCap = arg;
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for lineJoin in the canvas API.
      */
     lineJoin(style: string): Animation {
-        return this.pipe(lineJoin(style));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("lineJoin: attach");
+                    var arg_next = Parameter.from(style).init();
+                    return function (tick: CanvasTick) {
+                        var arg = arg_next(tick.clock);
+                        if (DEBUG) console.log("lineJoin: lineCap", arg);
+                        tick.ctx.lineJoin = arg;
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for lineWidth in the canvas API.
      */
     lineWidth(width: types.NumberArg): Animation {
-        return this.pipe(lineWidth(width));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("lineWidth: attach");
+                    var width_next = Parameter.from(width).init();
+                    return function (tick: CanvasTick) {
+                        var width = width_next(tick.clock);
+                        if (DEBUG) console.log("lineWidth: lineWidth", width);
+                        tick.ctx.lineWidth = width;
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for miterLimit in the canvas API.
      */
     miterLimit(limit: types.NumberArg): Animation {
-        return this.pipe(miterLimit(limit));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("miterLimit: attach");
+                    var arg_next = Parameter.from(limit).init();
+                    return function (tick: CanvasTick) {
+                        var arg = arg_next(tick.clock);
+                        if (DEBUG) console.log("miterLimit: miterLimit", arg);
+                        tick.ctx.miterLimit = arg;
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for rect in the canvas API.
      */
     rect(xy: types.PointArg, width_height: types.PointArg): Animation {
-        return this.pipe(rect(xy, width_height));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("rect: attach");
+                    var xy_next = Parameter.from(xy).init();
+                    var width_height_next = Parameter.from(width_height).init();
+        
+                    return function (tick: CanvasTick) {
+                        var xy: types.Point = xy_next(tick.clock);
+                        var width_height: types.Point = width_height_next(tick.clock);
+                        if (DEBUG) console.log("rect: rect", xy, width_height);
+                        tick.ctx.rect(xy[0], xy[1], width_height[0], width_height[1]);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for fillRect in the canvas API.
@@ -194,13 +306,43 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for strokeRect in the canvas API.
      */
     strokeRect(xy: types.PointArg, width_height: types.PointArg): Animation {
-        return this.pipe(strokeRect(xy, width_height));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("strokeRect: attach");
+                    var xy_next = Parameter.from(xy).init();
+                    var width_height_next = Parameter.from(width_height).init();
+        
+                    return function (tick: CanvasTick) {
+                        var xy: types.Point = xy_next(tick.clock);
+                        var width_height: types.Point = width_height_next(tick.clock);
+                        if (DEBUG) console.log("strokeRect: strokeRect", xy, width_height);
+                        tick.ctx.strokeRect(xy[0], xy[1], width_height[0], width_height[1]);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for clearRect in the canvas API.
      */
     clearRect(xy: types.PointArg, width_height: types.PointArg): Animation {
-        return this.pipe(clearRect(xy, width_height));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("clearRect: attach");
+                    var xy_next = Parameter.from(xy).init();
+                    var width_height_next = Parameter.from(width_height).init();
+        
+                    return function (tick: CanvasTick) {
+                        var xy: types.Point = xy_next(tick.clock);
+                        var width_height: types.Point = width_height_next(tick.clock);
+                        if (DEBUG) console.log("clearRect: clearRect", xy, width_height);
+                        tick.ctx.clearRect(xy[0], xy[1], width_height[0], width_height[1]);
+                    }
+                }
+            )
+        );
     }
     /**
      * Encloses the inner animation with a beginpath() and endpath() from the canvas API.
@@ -208,62 +350,186 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * This returns a path object which events can be subscribed to
      */
     withinPath(inner: Animation): PathAnimation {
-        return this.pipe(withinPath(inner));
+        return this.pipe(
+            new PathAnimation(
+                (upstream: Rx.Observable<CanvasTick>) => {
+                    if (DEBUG) console.log("withinPath: attach");
+                    var beginPathBeforeInner = upstream.tapOnNext(
+                        function (tick: CanvasTick) {tick.ctx.beginPath();}
+                    );
+                    return inner.attach(beginPathBeforeInner).tapOnNext(
+                        function (tick: CanvasTick) {tick.ctx.closePath();}
+                    )
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for fill in the canvas API. Use with withinPath.
      */
     fill(): Animation {
-        return this.pipe(fill());
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("fill: attach");
+                    return function (tick: CanvasTick) {
+                        if (DEBUG) console.log("fill: fill");
+                        tick.ctx.fill();
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for stroke in the canvas API.
      */
     stroke(): Animation {
-        return this.pipe(stroke());
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("stroke: attach");
+                    return function (tick: CanvasTick) {
+                        if (DEBUG) console.log("stroke: stroke");
+                        tick.ctx.stroke();
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for moveTo in the canvas API. Use with withinPath.
      */
     moveTo(xy: types.PointArg): Animation {
-        return this.pipe(moveTo(xy));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("moveTo: attach");
+                    var xy_next = Parameter.from(xy).init();
+                    return function (tick: CanvasTick) {
+                        var xy = xy_next(tick.clock);
+                        if (DEBUG) console.log("moveTo: moveTo", xy);
+                        tick.ctx.moveTo(xy[0], xy[1]);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for lineTo in the canvas API. Use with withinPath.
      */
     lineTo(xy: types.PointArg): Animation {
-        return this.pipe(lineTo(xy));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("lineTo: attach");
+                    var xy_next = Parameter.from(xy).init();
+                    return function (tick: CanvasTick) {
+                        var xy = xy_next(tick.clock);
+                        if (DEBUG) console.log("lineTo: lineTo", xy);
+                        tick.ctx.lineTo(xy[0], xy[1]);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for clip in the canvas API. Use with withinPath.
      */
     clip(): Animation {
-        return this.pipe(clip());
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("clip: attach");
+                    return function (tick: CanvasTick) {
+                        if (DEBUG) console.log("clip: clip");
+                        tick.ctx.clip();
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for quadraticCurveTo in the canvas API. Use with withinPath.
      */
     quadraticCurveTo(control: types.PointArg, end: types.PointArg): Animation {
-        return this.pipe(quadraticCurveTo(control, end));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("quadraticCurveTo: attach");
+                    var arg1_next = Parameter.from(control).init();
+                    var arg2_next = Parameter.from(end).init();
+                    return function (tick: CanvasTick) {
+                        var arg1 = arg1_next(tick.clock);
+                        var arg2 = arg2_next(tick.clock);
+                        if (DEBUG) console.log("quadraticCurveTo: quadraticCurveTo", arg1, arg2);
+                        tick.ctx.quadraticCurveTo(arg1[0], arg1[1], arg2[0], arg2[1]);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
      */
     bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): Animation {
-        return this.pipe(bezierCurveTo(control1, control2, end));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("bezierCurveTo: attach");
+                    var arg1_next = Parameter.from(control1).init();
+                    var arg2_next = Parameter.from(control2).init();
+                    var arg3_next = Parameter.from(end).init();
+                    return function (tick: CanvasTick) {
+                        var arg1 = arg1_next(tick.clock);
+                        var arg2 = arg2_next(tick.clock);
+                        var arg3 = arg3_next(tick.clock);
+                        if (DEBUG) console.log("bezierCurveTo: bezierCurveTo", arg1, arg2, arg3);
+                        tick.ctx.bezierCurveTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3[0], arg3[1]);
+                    }
+                }
+            )
+        );
     }
 
     /**
      * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
      */
     arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius: types.NumberArg): Animation {
-        return this.pipe(arcTo(tangent1, tangent2, radius));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("arc: attach");
+                    var arg1_next = Parameter.from(tangent1).init();
+                    var arg2_next = Parameter.from(tangent2).init();
+                    var arg3_next = Parameter.from(radius).init();
+                    return function (tick: CanvasTick) {
+                        var arg1 = arg1_next(tick.clock);
+                        var arg2 = arg2_next(tick.clock);
+                        var arg3 = arg3_next(tick.clock);
+                        if (DEBUG) console.log("arc: arc", arg1, arg2, arg3);
+                        tick.ctx.arcTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for scale in the canvas API.
      */
     scale(xy: types.PointArg): Animation {
-        return this.pipe(scale(xy));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("scale: attach");
+                    var arg1_next = Parameter.from(xy).init();
+                    return function (tick: CanvasTick) {
+                        var arg1 = arg1_next(tick.clock);
+                        if (DEBUG) console.log("scale: scale", arg1);
+                        tick.ctx.scale(arg1[0], arg1[1]);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for rotate in the canvas API.
@@ -310,14 +576,58 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      */
     transform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
               d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
-        return this.pipe(transform(a,b,c,d,e,f));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("transform: attach");
+                    var arg1_next = Parameter.from(a).init();
+                    var arg2_next = Parameter.from(b).init();
+                    var arg3_next = Parameter.from(c).init();
+                    var arg4_next = Parameter.from(d).init();
+                    var arg5_next = Parameter.from(e).init();
+                    var arg6_next = Parameter.from(f).init();
+                    return function (tick: CanvasTick) {
+                        var arg1 = arg1_next(tick.clock);
+                        var arg2 = arg2_next(tick.clock);
+                        var arg3 = arg3_next(tick.clock);
+                        var arg4 = arg4_next(tick.clock);
+                        var arg5 = arg5_next(tick.clock);
+                        var arg6 = arg6_next(tick.clock);
+                        if (DEBUG) console.log("transform: transform", arg1, arg2, arg3, arg4, arg5, arg6);
+                        tick.ctx.transform(arg1, arg2, arg3, arg4, arg5, arg6);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for setTransform in the canvas API.
      */
     setTransform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
                  d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
-        return this.pipe(setTransform(a,b,c,d,e,f));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("setTransform: attach");
+                    var arg1_next = Parameter.from(a).init();
+                    var arg2_next = Parameter.from(b).init();
+                    var arg3_next = Parameter.from(c).init();
+                    var arg4_next = Parameter.from(d).init();
+                    var arg5_next = Parameter.from(e).init();
+                    var arg6_next = Parameter.from(f).init();
+                    return function (tick: CanvasTick) {
+                        var arg1 = arg1_next(tick.clock);
+                        var arg2 = arg2_next(tick.clock);
+                        var arg3 = arg3_next(tick.clock);
+                        var arg4 = arg4_next(tick.clock);
+                        var arg5 = arg5_next(tick.clock);
+                        var arg6 = arg6_next(tick.clock);
+                        if (DEBUG) console.log("setTransform: setTransform", arg1, arg2, arg3, arg4, arg5, arg6);
+                        tick.ctx.setTransform(arg1, arg2, arg3, arg4, arg5, arg6);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for font in the canvas API.
@@ -464,412 +774,6 @@ export class PathAnimation extends Animation {
 
 }
 
-
-
-export function strokeStyle(
-    color: types.ColorArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("strokeStyle: attach");
-            var color_next = Parameter.from(color).init();
-            return function (tick: CanvasTick) {
-                var color = color_next(tick.clock);
-                if (DEBUG) console.log("strokeStyle: strokeStyle", color);
-                tick.ctx.strokeStyle = color;
-            }
-        }
-    );
-}
-
-export function shadowColor(
-    color: types.ColorArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("shadowColor: attach");
-            var color_next = Parameter.from(color).init();
-            return function (tick: CanvasTick) {
-                var color = color_next(tick.clock);
-                if (DEBUG) console.log("shadowColor: shadowColor", color);
-                tick.ctx.shadowColor = color;
-            }
-        }
-    );
-}
-export function shadowBlur(
-    level: types.NumberArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("shadowBlur: attach");
-            var level_next = Parameter.from(level).init();
-            return function (tick: CanvasTick) {
-                var level = level_next(tick.clock);
-                if (DEBUG) console.log("shadowBlur: shadowBlur", level);
-                tick.ctx.shadowBlur = level;
-            }
-        }
-    );
-}
-
-
-export function shadowOffset(
-    xy: types.PointArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("shadowOffset: attach");
-            var xy_next = Parameter.from(xy).init();
-            return function (tick: CanvasTick) {
-                var xy = xy_next(tick.clock);
-                if (DEBUG) console.log("shadowOffset: shadowBlur", xy);
-                tick.ctx.shadowOffsetX = xy[0];
-                tick.ctx.shadowOffsetY = xy[1];
-            }
-        }
-    );
-}
-
-export function lineCap(
-    style: types.StringArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("lineCap: attach");
-            var arg_next = Parameter.from(style).init();
-            return function (tick: CanvasTick) {
-                var arg = arg_next(tick.clock);
-                if (DEBUG) console.log("lineCap: lineCap", arg);
-                tick.ctx.lineCap = arg;
-            }
-        }
-    );
-}
-export function lineJoin(
-    style: types.StringArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("lineJoin: attach");
-            var arg_next = Parameter.from(style).init();
-            return function (tick: CanvasTick) {
-                var arg = arg_next(tick.clock);
-                if (DEBUG) console.log("lineJoin: lineCap", arg);
-                tick.ctx.lineJoin = arg;
-            }
-        }
-    );
-}
-
-export function lineWidth(
-    width: types.NumberArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("lineWidth: attach");
-            var width_next = Parameter.from(width).init();
-            return function (tick: CanvasTick) {
-                var width = width_next(tick.clock);
-                if (DEBUG) console.log("lineWidth: lineWidth", width);
-                tick.ctx.lineWidth = width;
-            }
-        }
-    );
-}
-
-export function miterLimit(
-    limit: types.NumberArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("miterLimit: attach");
-            var arg_next = Parameter.from(limit).init();
-            return function (tick: CanvasTick) {
-                var arg = arg_next(tick.clock);
-                if (DEBUG) console.log("miterLimit: miterLimit", arg);
-                tick.ctx.miterLimit = arg;
-            }
-        }
-    );
-}
-
-
-export function rect(
-    xy: types.PointArg,
-    width_height: types.PointArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("rect: attach");
-            var xy_next = Parameter.from(xy).init();
-            var width_height_next = Parameter.from(width_height).init();
-
-            return function (tick: CanvasTick) {
-                var xy: types.Point = xy_next(tick.clock);
-                var width_height: types.Point = width_height_next(tick.clock);
-                if (DEBUG) console.log("rect: rect", xy, width_height);
-                tick.ctx.rect(xy[0], xy[1], width_height[0], width_height[1]);
-            }
-        }
-    );
-}
-
-
-export function strokeRect(
-    xy: types.PointArg,
-    width_height: types.PointArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("strokeRect: attach");
-            var xy_next = Parameter.from(xy).init();
-            var width_height_next = Parameter.from(width_height).init();
-
-            return function (tick: CanvasTick) {
-                var xy: types.Point = xy_next(tick.clock);
-                var width_height: types.Point = width_height_next(tick.clock);
-                if (DEBUG) console.log("strokeRect: strokeRect", xy, width_height);
-                tick.ctx.strokeRect(xy[0], xy[1], width_height[0], width_height[1]);
-            }
-        }
-    );
-}
-export function clearRect(
-    xy: types.PointArg,
-    width_height: types.PointArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("clearRect: attach");
-            var xy_next = Parameter.from(xy).init();
-            var width_height_next = Parameter.from(width_height).init();
-
-            return function (tick: CanvasTick) {
-                var xy: types.Point = xy_next(tick.clock);
-                var width_height: types.Point = width_height_next(tick.clock);
-                if (DEBUG) console.log("clearRect: clearRect", xy, width_height);
-                tick.ctx.clearRect(xy[0], xy[1], width_height[0], width_height[1]);
-            }
-        }
-    );
-}
-
-
-export function withinPath(
-    inner: Animation
-): PathAnimation {
-    return new PathAnimation(
-        (upstream: Rx.Observable<CanvasTick>) => {
-            if (DEBUG) console.log("withinPath: attach");
-            var beginPathBeforeInner = upstream.tapOnNext(
-                function (tick: CanvasTick) {tick.ctx.beginPath();}
-            );
-            return inner.attach(beginPathBeforeInner).tapOnNext(
-                function (tick: CanvasTick) {tick.ctx.closePath();}
-            )
-        }
-    );
-}
-
-export function stroke(): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("stroke: attach");
-            return function (tick: CanvasTick) {
-                if (DEBUG) console.log("stroke: stroke");
-                tick.ctx.stroke();
-            }
-        }
-    );
-}
-
-export function fill(): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("fill: attach");
-            return function (tick: CanvasTick) {
-                if (DEBUG) console.log("fill: fill");
-                tick.ctx.fill();
-            }
-        }
-    );
-}
-
-export function moveTo(
-    xy: types.PointArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("moveTo: attach");
-            var xy_next = Parameter.from(xy).init();
-            return function (tick: CanvasTick) {
-                var xy = xy_next(tick.clock);
-                if (DEBUG) console.log("moveTo: moveTo", xy);
-                tick.ctx.moveTo(xy[0], xy[1]);
-            }
-        }
-    );
-}
-
-export function lineTo(
-    xy: types.PointArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("lineTo: attach");
-            var xy_next = Parameter.from(xy).init();
-            return function (tick: CanvasTick) {
-                var xy = xy_next(tick.clock);
-                if (DEBUG) console.log("lineTo: lineTo", xy);
-                tick.ctx.lineTo(xy[0], xy[1]);
-            }
-        }
-    );
-}
-
-
-export function clip(): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("clip: attach");
-            return function (tick: CanvasTick) {
-                if (DEBUG) console.log("clip: clip");
-                tick.ctx.clip();
-            }
-        }
-    );
-}
-
-export function quadraticCurveTo(control: types.PointArg, end: types.PointArg): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("quadraticCurveTo: attach");
-            var arg1_next = Parameter.from(control).init();
-            var arg2_next = Parameter.from(end).init();
-            return function (tick: CanvasTick) {
-                var arg1 = arg1_next(tick.clock);
-                var arg2 = arg2_next(tick.clock);
-                if (DEBUG) console.log("quadraticCurveTo: quadraticCurveTo", arg1, arg2);
-                tick.ctx.quadraticCurveTo(arg1[0], arg1[1], arg2[0], arg2[1]);
-            }
-        }
-    );
-}
-/**
- * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
- */
-export function bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("bezierCurveTo: attach");
-            var arg1_next = Parameter.from(control1).init();
-            var arg2_next = Parameter.from(control2).init();
-            var arg3_next = Parameter.from(end).init();
-            return function (tick: CanvasTick) {
-                var arg1 = arg1_next(tick.clock);
-                var arg2 = arg2_next(tick.clock);
-                var arg3 = arg3_next(tick.clock);
-                if (DEBUG) console.log("bezierCurveTo: bezierCurveTo", arg1, arg2, arg3);
-                tick.ctx.bezierCurveTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3[0], arg3[1]);
-            }
-        }
-    );
-}
-
-/**
- * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
- */
-export function arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius: types.NumberArg): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("arc: attach");
-            var arg1_next = Parameter.from(tangent1).init();
-            var arg2_next = Parameter.from(tangent2).init();
-            var arg3_next = Parameter.from(radius).init();
-            return function (tick: CanvasTick) {
-                var arg1 = arg1_next(tick.clock);
-                var arg2 = arg2_next(tick.clock);
-                var arg3 = arg3_next(tick.clock);
-                if (DEBUG) console.log("arc: arc", arg1, arg2, arg3);
-                tick.ctx.arcTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3);
-            }
-        }
-    );
-}
-/**
- * Dynamic chainable wrapper for scale in the canvas API.
- */
-export function scale(xy: types.PointArg): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("scale: attach");
-            var arg1_next = Parameter.from(xy).init();
-            return function (tick: CanvasTick) {
-                var arg1 = arg1_next(tick.clock);
-                if (DEBUG) console.log("scale: scale", arg1);
-                tick.ctx.scale(arg1[0], arg1[1]);
-            }
-        }
-    );
-}
-/**
- * Dynamic chainable wrapper for translate in the canvas API.
- * [ a c e
- *   b d f
- *   0 0 1 ]
- */
-export function transform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
-          d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("transform: attach");
-            var arg1_next = Parameter.from(a).init();
-            var arg2_next = Parameter.from(b).init();
-            var arg3_next = Parameter.from(c).init();
-            var arg4_next = Parameter.from(d).init();
-            var arg5_next = Parameter.from(e).init();
-            var arg6_next = Parameter.from(f).init();
-            return function (tick: CanvasTick) {
-                var arg1 = arg1_next(tick.clock);
-                var arg2 = arg2_next(tick.clock);
-                var arg3 = arg3_next(tick.clock);
-                var arg4 = arg4_next(tick.clock);
-                var arg5 = arg5_next(tick.clock);
-                var arg6 = arg6_next(tick.clock);
-                if (DEBUG) console.log("transform: transform", arg1, arg2, arg3, arg4, arg5, arg6);
-                tick.ctx.transform(arg1, arg2, arg3, arg4, arg5, arg6);
-            }
-        }
-    );
-}
-/**
- * Dynamic chainable wrapper for setTransform in the canvas API.
- */
-export function setTransform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
-             d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("setTransform: attach");
-            var arg1_next = Parameter.from(a).init();
-            var arg2_next = Parameter.from(b).init();
-            var arg3_next = Parameter.from(c).init();
-            var arg4_next = Parameter.from(d).init();
-            var arg5_next = Parameter.from(e).init();
-            var arg6_next = Parameter.from(f).init();
-            return function (tick: CanvasTick) {
-                var arg1 = arg1_next(tick.clock);
-                var arg2 = arg2_next(tick.clock);
-                var arg3 = arg3_next(tick.clock);
-                var arg4 = arg4_next(tick.clock);
-                var arg5 = arg5_next(tick.clock);
-                var arg6 = arg6_next(tick.clock);
-                if (DEBUG) console.log("setTransform: setTransform", arg1, arg2, arg3, arg4, arg5, arg6);
-                tick.ctx.setTransform(arg1, arg2, arg3, arg4, arg5, arg6);
-            }
-        }
-    );
-}
 
 
 export function save(width:number, height:number, path: string): Animation {

@@ -166,45 +166,4 @@ export declare class Animation extends OT.ObservableTransformer<CanvasTick> {
 export declare function create(attach?: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>): Animation;
 export declare class PathAnimation extends Animation {
 }
-export declare function strokeStyle(color: types.ColorArg): Animation;
-export declare function shadowColor(color: types.ColorArg): Animation;
-export declare function shadowBlur(level: types.NumberArg): Animation;
-export declare function shadowOffset(xy: types.PointArg): Animation;
-export declare function lineCap(style: types.StringArg): Animation;
-export declare function lineJoin(style: types.StringArg): Animation;
-export declare function lineWidth(width: types.NumberArg): Animation;
-export declare function miterLimit(limit: types.NumberArg): Animation;
-export declare function rect(xy: types.PointArg, width_height: types.PointArg): Animation;
-export declare function strokeRect(xy: types.PointArg, width_height: types.PointArg): Animation;
-export declare function clearRect(xy: types.PointArg, width_height: types.PointArg): Animation;
-export declare function withinPath(inner: Animation): PathAnimation;
-export declare function stroke(): Animation;
-export declare function fill(): Animation;
-export declare function moveTo(xy: types.PointArg): Animation;
-export declare function lineTo(xy: types.PointArg): Animation;
-export declare function clip(): Animation;
-export declare function quadraticCurveTo(control: types.PointArg, end: types.PointArg): Animation;
-/**
- * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
- */
-export declare function bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): Animation;
-/**
- * Dynamic chainable wrapper for arc in the canvas API. Use with withinPath.
- */
-export declare function arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius: types.NumberArg): Animation;
-/**
- * Dynamic chainable wrapper for scale in the canvas API.
- */
-export declare function scale(xy: types.PointArg): Animation;
-/**
- * Dynamic chainable wrapper for translate in the canvas API.
- * [ a c e
- *   b d f
- *   0 0 1 ]
- */
-export declare function transform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg, d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation;
-/**
- * Dynamic chainable wrapper for setTransform in the canvas API.
- */
-export declare function setTransform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg, d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation;
 export declare function save(width: number, height: number, path: string): Animation;
