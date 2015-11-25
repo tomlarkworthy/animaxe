@@ -13,9 +13,7 @@
     "canvas": "^1.2.7",
     "ctx-get-transform": "^1.0.3",
     "husl": "^6.0.1",
-    "rx": "^3.1.1",
-    "should": "^7.1.0",
-    "through2": "^2.0.0"
+    "rx": "^3.1.1"
   },
   "devDependencies": {
     "async": "0.7.0",
@@ -35,9 +33,11 @@
     "gulp-typescript": "^2.8.1",
     "gulp-util": "^3.0.6",
     "merge2": "^0.3.6",
-    "system-npm": "^0.3.5",
+    "should": "^7.1.0",
+    "systemjs": "^0.19.6",
+    "through2": "^2.0.0",
     "ts-loader": "^0.5.6",
-    "typescript": "^1.6.2",
+    "typescript": "^1.8.0-dev",
     "vinyl-transform": "^1.0.0",
     "webpack": "^1.12.2"
   }

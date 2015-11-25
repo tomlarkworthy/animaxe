@@ -266,7 +266,7 @@ export class ObservableTransformer<Tick extends BaseTick> {
      * You just have to supply a function that does something with the draw tick.
      */
     draw(drawFactory: () => ((tick: Tick) => void)): this {
-        return this.pipe(this.create((upstream) => upstream.tapOnNext(drawFactory())));
+        return this.create((upstream) => upstream.tapOnNext(drawFactory()));
     }
 
     if(condition: types.BooleanArg, animation: ObservableTransformer<Tick>): If<Tick, this>{

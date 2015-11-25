@@ -5,6 +5,19 @@
         "outDir": "dist"
     },
     "files": [
-        "src/animaxe.ts"
+        "./src/animaxe.ts",
+        "./src/CanvasAnimation",
+        "./src/ctx-get-transform.ts",
+        "./src/events.ts",
+        "./src/glow.ts",
+        "./src/helper.ts",
+        "./src/ObservableTransformer",
+        "./src/Parameter.ts",
+        "./src/types.ts",
+        "./examples/example1.ts",
+        "./examples/example2.ts",
+        "./examples/example3.ts",
+        "./examples/example4.ts",
+        "./examples/example5.ts"
     ]
 }

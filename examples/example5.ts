@@ -14,8 +14,8 @@ class Button extends Ax.Animation {
      * @param postprocessor hook to do things like attach listeners without breaking the animation chaining
      */
     static rectangular(postprocessor ?: (Button) => void): Button { // note Babel doesn't like this type
-        var hotspot = Ax
-            .withinPath(Ax
+        var hotspot = Ax.create()
+            .withinPath(Ax.create()
                 .lineTo([ 40,  0])
                 .lineTo([ 40, 20])
                 .lineTo([  0, 20])
@@ -25,9 +25,9 @@ class Button extends Ax.Animation {
         var button = new Button(
             hotspot,
             new events.ComponentMouseState(),
-            Ax.fillStyle("red"),    /* pressed */
-            Ax.fillStyle("orange"), /* over */
-            Ax.fillStyle("white")); /* idle */
+            Ax.create().fillStyle("red"),    /* pressed */
+            Ax.create().fillStyle("orange"), /* over */
+            Ax.create().fillStyle("white")); /* idle */
 
         if (postprocessor) postprocessor(button);
 
@@ -44,7 +44,7 @@ class Button extends Ax.Animation {
         // then we use the total pipeline's attach function as the attach function for this animation
         // so the constructed Button exposes a richer API (e.g. state) than a basic animation normally wouldn't
 
-        super(Ax.Empty
+        super(Ax.create()
             .if(mouseState.isMouseDown(), onMouseDown)   // Condition the animation played based on mouse state
             .elif(mouseState.isMouseOver(), onMouseOver)
             .else(onIdle)
@@ -57,9 +57,9 @@ class Button extends Ax.Animation {
 }
 
 //each frame, first draw black background to erase the previous contents
-animator.play(Ax.fillStyle("#000000").fillRect([0,0],[100,100]));
+animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));
 
-animator.play(Ax
+animator.play(Ax.create()
     .translate([40, 40])
     .rotate(Math.PI / 4)
     .pipe(Button.rectangular(

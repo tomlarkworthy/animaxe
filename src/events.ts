@@ -3,7 +3,7 @@
 import * as Rx from "rx"
 import Observable = Rx.Observable;
 import * as types from "./types"
-import * as canvas from "./CanvasTransformer"
+import * as canvas from "./CanvasAnimation"
 import * as parameter from "./Parameter"
 export * from "./types"
 

@@ -3,14 +3,14 @@
 import * as Rx from "rx";
 import * as events from "./events";
 import * as Parameter from "./parameter";
-import * as canvas from "./CanvasTransformer";
+import * as canvas from "./CanvasAnimation";
 import * as types from "./types";
-import * as OT from "./ObservableTransformer";
+import * as OT from "./CanvasAnimation";
 export * from "./types";
 
 
 
-export * from "./CanvasTransformer";
+export * from "./CanvasAnimation";
 
 console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 
@@ -146,54 +146,6 @@ export function assertClock(assertClock: number[]): canvas.Animation {
 
 
 
-
-
-export function velocity(
-    velocity: types.PointArg
-): canvas.Animation {
-    return canvas.create().draw(
-        () => {
-            if (DEBUG) console.log("velocity: attached");
-            var pos: types.Point = [0.0,0.0];
-            var velocity_next = Parameter.from(velocity).init();
-            return function(tick) {
-                tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
-                var velocity = velocity_next(tick.clock);
-                pos[0] += velocity[0] * tick.dt;
-                pos[1] += velocity[1] * tick.dt;
-            }
-        }
-    );
-}
-
-export function tween_linear(
-    from: types.PointArg,
-    to:   types.PointArg,
-    time: types.NumberArg
-): canvas.Animation
-{
-    return canvas.create(
-        function(prev: Rx.Observable<canvas.CanvasTick>): Rx.Observable<canvas.CanvasTick> {
-            var t = 0;
-            var from_next = Parameter.from(from).init();
-            var to_next   = Parameter.from(to).init();
-            var time_next   = Parameter.from(time).init();
-            return prev.map(function(tick: canvas.CanvasTick) {
-                if (DEBUG) console.log("tween: inner");
-                var from = from_next(tick.clock);
-                var to   = to_next(tick.clock);
-                var time = time_next(tick.clock);
-
-                t = t + tick.dt;
-                if (t > time) t = time;
-                var x = from[0] + (to[0] - from[0]) * t / time;
-                var y = from[1] + (to[1] - from[1]) * t / time;
-                tick.ctx.transform(1, 0, 0, 1, x, y);
-                return tick;
-            }).takeWhile(function(tick) {return t < time;})
-        }
-    );
-}
 
 
 

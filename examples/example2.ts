@@ -13,10 +13,10 @@ function thickLine1tick(
     end: Ax.PointArg,
     css_color: string | Ax.ColorArg)
 : Ax.Animation {
-    return Ax
+    return Ax.create()
         .take(1)
         .strokeStyle(css_color)
-        .withinPath(Ax
+        .withinPath(Ax.create()
             .lineWidth(thickness)
             .moveTo(start)
             .lineTo(end)
@@ -52,10 +52,10 @@ var green = Parameter.sin(2).map(x => x * 100 + 55);
 var blue = 50;
 
 //each frame, first draw black background to erase the previous contents
-animator.play(Ax.fillStyle("#000000").fillRect([0,0],[100,100]));
+animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));
 
 animator.play(
-    Ax.emit(
+    Ax.create().emit(
         sparkLine(
             Parameter.point(bigSin,bigCos),
             Parameter.displaceT(-0.1, Parameter.point(bigSin,bigCos)),

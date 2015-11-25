@@ -24,11 +24,73 @@ export class CanvasTick extends OT.BaseTick{
 
 
 export class Animation extends OT.ObservableTransformer<CanvasTick>{
-
-
+    
     constructor(public attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>) {
         super(attach);
     }
+    
+    /**
+     * subclasses should override this to create another animation of the same type
+     * @param attach
+     */
+    create(attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick> = nop => nop): this {
+        return <this> new Animation(attach);
+    }
+    
+
+        
+    velocity(
+        velocity: types.PointArg
+    ): Animation {
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("velocity: attached");
+                    var pos: types.Point = [0.0,0.0];
+                    var velocity_next = Parameter.from(velocity).init();
+                    return function(tick) {
+                        tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
+                        var velocity = velocity_next(tick.clock);
+                        pos[0] += velocity[0] * tick.dt;
+                        pos[1] += velocity[1] * tick.dt;
+                    }
+                }
+            )
+        );
+    }
+    
+    tween_linear(
+        from: types.PointArg,
+        to:   types.PointArg,
+        time: types.NumberArg
+    ): Animation
+    {
+        return this.pipe(
+            create(
+                function(prev: Rx.Observable<CanvasTick>): Rx.Observable<CanvasTick> {
+                    var t = 0;
+                    var from_next = Parameter.from(from).init();
+                    var to_next   = Parameter.from(to).init();
+                    var time_next   = Parameter.from(time).init();
+                    return prev.map(function(tick: CanvasTick) {
+                        if (DEBUG) console.log("tween: inner");
+                        var from = from_next(tick.clock);
+                        var to   = to_next(tick.clock);
+                        var time = time_next(tick.clock);
+        
+                        t = t + tick.dt;
+                        if (t > time) t = time;
+                        var x = from[0] + (to[0] - from[0]) * t / time;
+                        var y = from[1] + (to[1] - from[1]) * t / time;
+                        tick.ctx.transform(1, 0, 0, 1, x, y);
+                        return tick;
+                    }).takeWhile(function(tick) {return t < time;})
+                }
+            )
+        );
+    }
+    
+
 
     // Canvas API
     /**
@@ -41,8 +103,7 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for fillStyle in the canvas API.
      */
     fillStyle(color: types.ColorArg): Animation {
-        return this.pipe(
-            this.draw(
+        var innerDraw = this.draw(
                 () => {
                     if (DEBUG) console.log("fillStyle: attach");
                     var color_next = Parameter.from(color).init();
@@ -52,8 +113,13 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
                         tick.ctx.fillStyle = color;
                     }
                 }
-            )
+            );
+            
+        var ret = this.pipe(
+            innerDraw
         );
+
+        return ret;
     }
     /**
      * Dynamic chainable wrapper for shadowColor in the canvas API.
@@ -107,7 +173,22 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for fillRect in the canvas API.
      */
     fillRect(xy: types.PointArg, width_height: types.PointArg): Animation {
-        return this.pipe(fillRect(xy, width_height));
+        return this.pipe(
+            this.draw(
+                () => {
+                    if (DEBUG) console.log("fillRect: attach");
+                    var xy_next = Parameter.from(xy).init();
+                    var width_height_next = Parameter.from(width_height).init();
+        
+                    return function (tick: CanvasTick) {
+                        var xy: types.Point = xy_next(tick.clock);
+                        var width_height: types.Point = width_height_next(tick.clock);
+                        if (DEBUG) console.log("fillRect: fillRect", xy, width_height);
+                        tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
+                    }
+                }
+            )
+        );
     }
     /**
      * Dynamic chainable wrapper for strokeRect in the canvas API.
@@ -534,25 +615,6 @@ export function rect(
     );
 }
 
-export function fillRect(
-    xy: types.PointArg,
-    width_height: types.PointArg
-): Animation {
-    return this.draw(
-        () => {
-            if (DEBUG) console.log("fillRect: attach");
-            var xy_next = Parameter.from(xy).init();
-            var width_height_next = Parameter.from(width_height).init();
-
-            return function (tick: CanvasTick) {
-                var xy: types.Point = xy_next(tick.clock);
-                var width_height: types.Point = width_height_next(tick.clock);
-                if (DEBUG) console.log("fillRect: fillRect", xy, width_height);
-                tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
-            }
-        }
-    );
-}
 
 export function strokeRect(
     xy: types.PointArg,
@@ -832,3 +894,4 @@ export function save(width:number, height:number, path: string): Animation {
         )
     });
 }
+

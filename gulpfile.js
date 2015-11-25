@@ -17,7 +17,7 @@ var extractExampleCode = require("./scripts/extractExampleCode");
 var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"));
 
 
-var npm_info = JSON.parse(fs.readFileSync("package.json"));
+var npm_info = JSON.parse(fs.readFileSync("package.json").toString());
 
 var examples = fs.readdirSync("examples").map(function(filename) {
   return filename.replace(".ts", "");
@@ -50,7 +50,7 @@ gulp.task('compile', function() {
   console.error("****************************************************TODO**************************************************");
   console.error("I know about 'src/ctx-get-transform.ts(27,23): error TS2307: Cannot find module 'gl-mat3'', just ignore it");
   console.error("**********************************************************************************************************");
-    var tsResult = gulp.src(['./src/Canvas*.ts', './examples/NONE*.ts'])
+    var tsResult = gulp.src(['./src/*.ts', './examples/example1*.ts'])
                     .pipe(sourcemaps.init())
                     .pipe(ts(ts.createProject(TS_SETTINGS)));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
@@ -61,7 +61,7 @@ gulp.task('compile', function() {
     ]);
 });
 
-projects = {}; // each example has a set of ts projects to enable continuous compilation
+var projects = {}; // each example has a set of ts projects to enable continuous compilation
 
 function createExampleTasksFor(exampleName) {
     var exampleNameJS = exampleName + '.js';
@@ -92,7 +92,7 @@ function createExampleTasksFor(exampleName) {
             .pipe(sourcemaps.init())
             .pipe(ts(ts.createProject(TS_SETTINGS)))  // compile it
             .js
-              .pipe(rename("dist/test/" + exampleName + ".js"))//rename the js, and align with normal compile target
+              .pipe(rename("dist/test/" + exampleNameJS))//rename the js, and align with normal compile target
               .pipe(gulp.dest("."))// we need a real copy of it to satisfy mocha
               .pipe(mocha({ reporter: 'list' })); // run it with mocha*/
 
