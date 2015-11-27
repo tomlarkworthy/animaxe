@@ -210,33 +210,35 @@ export class ObservableTransformer<Tick extends BaseTick> {
      * interact (although obsviously the pixel buffer is affected by each animation)
      */
     parallel(animations: ObservableTransformer<Tick>[]): this {
-        return this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
-            if (DEBUG_PARALLEL) console.log("parallel: initializing");
-
-            var activeOT_APIs = 0;
-            var attachPoint = new Rx.Subject<Tick>();
-
-            function decrementActive(err ?: any) {
-                if (DEBUG_PARALLEL) console.log("parallel: decrement active");
-                if (err) console.log("parallel error:", err);
-                activeOT_APIs --;
-            }
-
-            animations.forEach(function(animation: ObservableTransformer<Tick>) {
-                activeOT_APIs++;
-                animation.attach(attachPoint.tapOnNext(tick => tick.ctx.save())).subscribe(
-                        tick => tick.ctx.restore(),
-                    decrementActive,
-                    decrementActive)
-            });
-
-            return prev.takeWhile(() => activeOT_APIs > 0).tapOnNext(function(tick: Tick) {
-                    if (DEBUG_PARALLEL) console.log("parallel: emitting, animations", tick);
-                    attachPoint.onNext(tick);
-                    if (DEBUG_PARALLEL) console.log("parallel: emitting finished");
+        return this.pipe(
+            this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
+                if (DEBUG_PARALLEL) console.log("parallel: initializing");
+    
+                var activeOT_APIs = 0;
+                var attachPoint = new Rx.Subject<Tick>();
+    
+                function decrementActive(err ?: any) {
+                    if (DEBUG_PARALLEL) console.log("parallel: decrement active");
+                    if (err) console.log("parallel error:", err);
+                    activeOT_APIs --;
                 }
-            );
-        });
+    
+                animations.forEach(function(animation: ObservableTransformer<Tick>) {
+                    activeOT_APIs++;
+                    animation.attach(attachPoint.tapOnNext(tick => tick.ctx.save())).subscribe(
+                            tick => tick.ctx.restore(),
+                        decrementActive,
+                        decrementActive)
+                });
+    
+                return prev.takeWhile(() => activeOT_APIs > 0).tapOnNext(function(tick: Tick) {
+                        if (DEBUG_PARALLEL) console.log("parallel: emitting, animations", tick);
+                        attachPoint.onNext(tick);
+                        if (DEBUG_PARALLEL) console.log("parallel: emitting finished");
+                    }
+                );
+            })
+        );
     }
 
     /**
@@ -309,6 +311,7 @@ export class If<Tick extends BaseTick, OT_API extends ObservableTransformer<any>
     }
 
     elif(clause: types.BooleanArg, action: ObservableTransformer<Tick>): this {
+        types.assert(clause != undefined && action != undefined)
         this.conditions.push(new ConditionActionPair<Tick>(clause, action));
         return this;
     }
@@ -327,10 +330,11 @@ export class If<Tick extends BaseTick, OT_API extends ObservableTransformer<any>
                 var currentOT_API = otherwise;
                 var activeSubscription = otherwise.attach(anchor).subscribe(downstream);
 
-
                 // we initialise all the condition parameters
                 var conditions_next = this.conditions.map(
-                    (condition: ConditionActionPair<Tick>) => Parameter.from(condition[0]).init()
+                    (pair: ConditionActionPair<Tick>) => {
+                        return Parameter.from(pair.condition).init()
+                    }
                 );
 
                 var fork = upstream.subscribe(
@@ -341,7 +345,7 @@ export class If<Tick extends BaseTick, OT_API extends ObservableTransformer<any>
                         // ideally we would use find, but that is not in TS yet..
                         for (var i = 0 ;i < this.conditions.length && nextActiveOT_API == null; i++) {
                             if (conditions_next[i](tick.clock)) {
-                                nextActiveOT_API = this.conditions[i][1];
+                                nextActiveOT_API = this.conditions[i].action;
                             }
                         }
                         if (nextActiveOT_API == null) nextActiveOT_API = otherwise;

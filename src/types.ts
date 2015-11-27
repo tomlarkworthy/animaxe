@@ -37,3 +37,14 @@ export function applyMixins(derivedCtor: any, baseCtors: any[]) {
         })
     });
 }
+
+export function assert(predicate: boolean, msg : string = "Assertion error") {
+    if (!predicate) {
+        throw new Error(msg);
+    }
+}
+
+export function stackTrace() {
+    var err = new Error();
+    return (<any>err).stack;
+}

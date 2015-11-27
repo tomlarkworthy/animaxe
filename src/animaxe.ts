@@ -17,17 +17,7 @@ console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 export var DEBUG = false;
 export var DEBUG_EVENTS = false;
 
-function assert(predicate: boolean, message ?: string) {
-    if (!predicate) {
-        console.error(stackTrace());
-        throw new Error();
-    }
-}
 
-function stackTrace() {
-    var err = new Error();
-    return (<any>err).stack;
-}
 
 /**
  * An animation is pipeline that modifies the drawing context found in an animation Tick. Animations can be chained

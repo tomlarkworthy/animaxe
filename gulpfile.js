@@ -41,6 +41,7 @@ gulp.task('clean', function(cb) {
 var TS_SETTINGS = {
   outDir: "dist",
   module: "commonjs",
+//  sourcemap: true,
   declarationFiles: true,
   noEmitOnError: false,
   typescript: require('typescript')
@@ -56,7 +57,7 @@ gulp.task('compile', function() {
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
         tsResult.dts.pipe(gulp.dest('./dist')),
         tsResult.js
-            .pipe(sourcemaps.write())
+            .pipe(sourcemaps.write({sourceMappingURLPrefix: "../"}))
             .pipe(gulp.dest('./dist'))
     ]);
 });
@@ -93,10 +94,9 @@ function createExampleTasksFor(exampleName) {
             .pipe(ts(ts.createProject(TS_SETTINGS)))  // compile it
             .js
               .pipe(rename("dist/test/" + exampleNameJS))//rename the js, and align with normal compile target
+              .pipe(sourcemaps.write())
               .pipe(gulp.dest("."))// we need a real copy of it to satisfy mocha
               .pipe(mocha({ reporter: 'list' })); // run it with mocha*/
-
-
     });
 }
 

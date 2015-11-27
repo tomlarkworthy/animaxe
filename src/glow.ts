@@ -1,4 +1,8 @@
-
+import * as Parameter from "./parameter"
+import * as events from "./events"
+import * as Animation from "./CanvasAnimation"
+import * as types from "./types"
+export * from "./types"
 
 // foreground color used to define emmitter regions around the canvas
 //  the hue, is reused in the particles
@@ -35,13 +39,14 @@
 
 
 export function glow(
+    previous: Animation.Animation,
     decay: types.NumberArg = 0.1
-): Animation
+): Animation.Animation
 {
-    return draw(
+    return previous.draw(
         () => {
             var decay_next = Parameter.from(decay).init();
-            return function (tick: Tick) {
+            return function (tick: Animation.CanvasTick) {
                 var ctx = tick.ctx;
 
                 // our src pixel data
@@ -105,8 +110,8 @@ export function glow(
                                 // c is in the same scale at qty i.e. (0 - 100, saturation)
                                 var c = (qty) / (1.0001 + Math.sqrt(d_squared) * decay * local_decay);
 
-                                assert(c <= 100);
-                                assert(c >= 0);
+                                types.assert(c <= 100);
+                                types.assert(c >= 0);
                                 rgb = hslToRgb(hue, 50, c, rgb);
                                 // rgb = husl.toRGB(hue, 50, c);
                                 //for (var husli = 0; husli< 3; husli++) rgb [husli] *= 255;
@@ -125,10 +130,10 @@ export function glow(
                                 var pre_alpha = glowData[a_i];
 
 
-                                assert(c_alpha <= 1);
-                                assert(c_alpha >= 0);
-                                assert(pre_alpha <= 1);
-                                assert(pre_alpha >= 0);
+                                types.assert(c_alpha <= 1);
+                                types.assert(c_alpha >= 0);
+                                types.assert(pre_alpha <= 1);
+                                types.assert(pre_alpha >= 0);
 
                                 // blend alpha first into accumulator
                                 // glowData[a_i] = glowData[a_i] + c_alpha - c_alpha * glowData[a_i];
@@ -136,14 +141,14 @@ export function glow(
 
                                 glowData[a_i] = 1;
 
-                                assert(glowData[a_i] <= 1);
-                                assert(glowData[a_i] >= 0);
-                                assert(glowData[r_i] <= 255);
-                                assert(glowData[r_i] >= 0);
-                                assert(glowData[g_i] <= 255);
-                                assert(glowData[g_i] >= 0);
-                                assert(glowData[b_i] <= 255);
-                                assert(glowData[b_i] >= 0);
+                                types.assert(glowData[a_i] <= 1);
+                                types.assert(glowData[a_i] >= 0);
+                                types.assert(glowData[r_i] <= 255);
+                                types.assert(glowData[r_i] >= 0);
+                                types.assert(glowData[g_i] <= 255);
+                                types.assert(glowData[g_i] >= 0);
+                                types.assert(glowData[b_i] <= 255);
+                                types.assert(glowData[b_i] >= 0);
 
                                 /*
                                 glowData[r_i] = (pre_alpha + rgb[0]/ 255.0 - c_alpha * rgb[0]/ 255.0) * 255;

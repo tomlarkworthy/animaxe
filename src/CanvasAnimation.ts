@@ -2,6 +2,7 @@ import * as Parameter from "./parameter"
 import * as events from "./events"
 import * as OT from "./ObservableTransformer"
 import * as types from "./types"
+import * as glow from "./glow"
 export * from "./types"
 
 var DEBUG = false;
@@ -90,6 +91,12 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
         );
     }
     
+    glow(
+        decay: types.NumberArg = 0.1
+    ): Animation {
+        return glow.glow(this, decay);
+    }
+    
 
 
     // Canvas API
@@ -115,7 +122,8 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for fillStyle in the canvas API.
      */
     fillStyle(color: types.ColorArg): Animation {
-        var innerDraw = this.draw(
+        return this.pipe(
+            this.draw(
                 () => {
                     if (DEBUG) console.log("fillStyle: attach");
                     var color_next = Parameter.from(color).init();
@@ -125,13 +133,8 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
                         tick.ctx.fillStyle = color;
                     }
                 }
-            );
-            
-        var ret = this.pipe(
-            innerDraw
+            )
         );
-
-        return ret;
     }
     /**
      * Dynamic chainable wrapper for shadowColor in the canvas API.
@@ -731,6 +734,7 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * * Dynamic chainable wrapper for globalCompositeOperation in the canvas API.
      */
     globalCompositeOperation(operation: string): Animation {
+        if (DEBUG) console.log("globalCompositeOperation: build");
         return this.pipe(
             this.draw(
                 () => {

@@ -21,7 +21,7 @@ animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));
 // a ring of exploding particles that fade our
 animator.play(Ax.create()
     .globalCompositeOperation("lighter")                          // use additive blending
-    .clone(500, Ax .create()                                               // clone 500 particles
+    .clone(500, Ax.create()                                         // clone 500 particles
         .translate([50, 50])                                      // move to center of canvas
         .velocity(Parameter.rndNormal(50).first())                // choose a random direction
         .parallel([                                               // draw overlapping particles

@@ -7,13 +7,18 @@ export var DEBUG = false;
 
 import * as types from "./types"
 export * from "./types"
+
+if (DEBUG) console.log("Parameter: module loading...");
+
 /**
  * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
  * every time and event is received from the Rx source
  */
 export function updateFrom<T>(initialValue: T, source: Rx.Observable<T>): Parameter<T> {
+    if (DEBUG) console.log("updateFrom: build");
     return new Parameter(
         () => {
+            if (DEBUG) console.log("updateFrom: init")
             var value = initialValue;
             source.subscribe(x => value = x);
             return (clock: number) => {
@@ -28,8 +33,10 @@ export function updateFrom<T>(initialValue: T, source: Rx.Observable<T>): Parame
  * with the value from the provided Rx.Observable for one tick only
  */
 export function overwriteWith<T>(defaultValue: T, source: Rx.Observable<T>): Parameter<T> {
+    if (DEBUG) console.log("overwriteWith: build");
     return new Parameter(
         () => {
+            if (DEBUG) console.log("overwriteWith: init")
             var value = defaultValue;
             source.subscribe(x => value = x);
             return (clock: number) => {
@@ -118,6 +125,8 @@ export class Parameter<Value> {
 
 
 export function from<T>(source: T | Parameter<T>): Parameter<T> {
+    types.assert (source != undefined, "source is not defined");
+    if (DEBUG) console.log("from: build");
     if (typeof (<any>source).init == 'function') return <Parameter<T>>source;
     else return constant(<T> source)
 }
@@ -128,6 +137,7 @@ export function point(
     y: number | Parameter<number>
 ): Parameter<types.Point>
 {
+    if (DEBUG) console.log("point: build");
     return new Parameter(
         () => {
             var x_next = from(x).init();
@@ -143,6 +153,7 @@ export function point(
 
 
 export function displaceT<T>(displacement: number | Parameter<number>, value: T | Parameter<T>): Parameter<T> {
+    if (DEBUG) console.log("displace: build");
     return new Parameter<T> (
         () => {
             var dt_next    = from(displacement).init(); //todo remove <number>
@@ -167,6 +178,7 @@ export function rgba(
     a: number | Parameter<number>
 ): Parameter<types.Color>
 {
+    if (DEBUG) console.log("rgba: build");
     return new Parameter(
         () => {
             var r_next = from(r).init();
@@ -192,6 +204,7 @@ export function hsl(
     l: number | Parameter<number>
 ): Parameter<types.Color>
 {
+    if (DEBUG) console.log("hsl: build");
     return new Parameter(
         () => {
             var h_next = from(h).init();
@@ -210,6 +223,7 @@ export function hsl(
 }
 
 export function t(): Parameter<number> {
+    if (DEBUG) console.log("t: build");
     return new Parameter(
         () => function (t) {
             return t;
@@ -218,6 +232,7 @@ export function t(): Parameter<number> {
 }
 
 export function rnd(): Parameter<number> {
+    if (DEBUG) console.log("rnd: build");
     return new Parameter(
         () => function (t) {
             return Math.random();
@@ -226,6 +241,7 @@ export function rnd(): Parameter<number> {
 }
 
 export function constant<T>(val: T): Parameter<T> {
+    if (DEBUG) console.log("constant: build");
     return new Parameter(
         () => function (t) {
             return val;
@@ -234,6 +250,7 @@ export function constant<T>(val: T): Parameter<T> {
 }
 
 export function rndNormal(scale : Parameter<number> | number = 1): Parameter<types.Point> {
+    if (DEBUG) console.log("rndNormal: build");
     return new Parameter<types.Point>(
         () => {
             if (DEBUG) console.log("rndNormal: init");
@@ -288,4 +305,5 @@ export function cos(period: number | Parameter<number>): Parameter<number> {
 
 
 
+if (DEBUG) console.log("Parameter: module loaded");
 

@@ -24,6 +24,7 @@ export declare class Animation extends OT.ObservableTransformer<CanvasTick> {
     create(attach?: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>): this;
     velocity(velocity: types.PointArg): Animation;
     tween_linear(from: types.PointArg, to: types.PointArg, time: types.NumberArg): Animation;
+    glow(decay?: types.NumberArg): Animation;
     /**
      * Dynamic chainable wrapper for strokeStyle in the canvas API.
      */

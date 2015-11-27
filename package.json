@@ -10,8 +10,9 @@
   },
   "scripts": {},
   "dependencies": {
-    "canvas": "^1.2.7",
+    "canvas": "1.2.8",
     "ctx-get-transform": "^1.0.3",
+    "gl-mat3": "^1.0.0",
     "husl": "^6.0.1",
     "rx": "^3.1.1"
   },
@@ -34,6 +35,7 @@
     "gulp-util": "^3.0.6",
     "merge2": "^0.3.6",
     "should": "^7.1.0",
+    "source-map-support": "^0.3.3",
     "systemjs": "^0.19.6",
     "through2": "^2.0.0",
     "ts-loader": "^0.5.6",

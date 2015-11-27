@@ -18,6 +18,7 @@
         "./examples/example2.ts",
         "./examples/example3.ts",
         "./examples/example4.ts",
-        "./examples/example5.ts"
+        "./examples/example5.ts",
+        "./examples/example6.ts"
     ]
 }

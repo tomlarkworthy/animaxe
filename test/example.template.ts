@@ -3,6 +3,7 @@
 /// <reference path="../types/mocha.d.ts" />
 /// <reference path="../types/node.d.ts" />
 require("should");
+require('source-map-support').install();
 
 <%= content %>
 describe('<%= name %>', function () {

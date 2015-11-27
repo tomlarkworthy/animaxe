@@ -28,3 +28,5 @@ export declare type StringArg = string | Parameter<string>;
  */
 export declare type BooleanArg = boolean | Parameter<boolean>;
 export declare function applyMixins(derivedCtor: any, baseCtors: any[]): void;
+export declare function assert(predicate: boolean, msg?: string): void;
+export declare function stackTrace(): any;

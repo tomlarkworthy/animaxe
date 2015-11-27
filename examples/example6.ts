@@ -22,8 +22,8 @@ class Slider extends Ax.Animation {
      * @param postprocessor hook to do things like attach listeners without breaking the animation chaining
      */
     static rectangular(value: Rx.BehaviorSubject<number>, postprocessor ?: (Button) => void): Slider { // note Babel doesn't like this type
-        var hotspot = Ax
-            .withinPath(Ax
+        var hotspot = Ax.create()
+            .withinPath(Ax.create()
                 .lineTo([ 20,  0])
                 .lineTo([ 20, 20])
                 .lineTo([  0, 20])
@@ -38,9 +38,9 @@ class Slider extends Ax.Animation {
             new events.ComponentMouseState(),
             new events.ComponentMouseState(),
             value,
-            Ax.fillStyle("red"),    /* pressed */
-            Ax.fillStyle("orange"), /* over */
-            Ax.fillStyle("white")   /* idle */
+            Ax.create().fillStyle("red"),    /* pressed */
+            Ax.create().fillStyle("orange"), /* over */
+            Ax.create().fillStyle("white")   /* idle */
 
         ); /* idle */
 
@@ -61,10 +61,10 @@ class Slider extends Ax.Animation {
         // then we use the total pipeline's attach function as the attach function for this animation
         // so the constructed Button exposes a richer API (e.g. state) than a basic animation normally wouldn't
         // todo slider value is not changed relatively
-        super(Ax.Empty
+        super(Ax.create()
             .pipe(events.CanvasMouseEventHandler(canvasMouseState)) //global mouse listener
             .parallel([
-                Ax.Empty
+                Ax.create()
                     .translate(Parameter.point(0, Parameter.updateFrom(0, value)))
                     .if(knobMouseState.isMouseDown(), onMouseDownKnob)   // Condition the animation played based on mouse state
                     .elif(knobMouseState.isMouseOver(), onMouseOverKnob)
@@ -72,7 +72,7 @@ class Slider extends Ax.Animation {
                     .pipe(hotspot)
                     .pipe(events.ComponentMouseEventHandler(knobMouseState))
                     .fill(),
-                Ax.Empty //todo, the slider
+                Ax.create() //todo, the slider
             ])
             .attach);
         knobMouseState.source = this;
@@ -118,9 +118,9 @@ class Slider extends Ax.Animation {
 var value = new Rx.BehaviorSubject<number>(0);
 
 //each frame, first draw black background to erase the previous contents
-animator.play(Ax.fillStyle(Parameter.rgba(Parameter.updateFrom(0, value).map(x=>x*2.5), 0,0,1)).fillRect([0,0],[100,100]));
+animator.play(Ax.create().fillStyle(Parameter.rgba(Parameter.updateFrom(0, value).map(x=>x*2.5), 0,0,1)).fillRect([0,0],[100,100]));
 
-animator.play(Ax
+animator.play(Ax.create()
     //.translate([40, 40])
     //.rotate(Math.PI / 4)
     .pipe(Slider.rectangular(value))
