@@ -155,6 +155,7 @@ if anyone knows a good online Typescript editor that can read type definition fi
 
 API
 -----
+Currently documentation is broken until typedoc can do later versions of TS.
 Its in constant flux changed, but you can try it here [here](https://animaxe.firebaseapp.com/)
 
 

@@ -14,12 +14,15 @@
                 },
                 'src/': {
                     defaultExtension: 'ts'
+                },
+                'node_modules/seedrandom': {
+                    defaultExtension: 'js'
                 }
             },
             map: {
                 typescript: 'node_modules/typescript/lib/typescript.js',
-                rx: 'node_modules/rx/dist/rx.js',
-                'ctx-get-transform': 'node_modules/ctx-get-transform/ctx-get-transform.js',
+                rx: 'node_modules/rx/dist/rx.all.js',
+                'seedrandom': 'node_modules/seedrandom/index.js',
                 'gl-mat3': 'node_modules/ctx-get-transform/node_modules/gl-mat3/index.js'
             },
             transpiler: 'typescript',

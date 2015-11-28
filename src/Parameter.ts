@@ -1,7 +1,8 @@
 /// <reference path="../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../types/node.d.ts" />
+/// <reference path="../types/seedrandom.d.ts" />
 import * as Rx from "rx";
-
+import * as seedrandom from "seedrandom";
 
 export var DEBUG = false;
 
@@ -9,6 +10,10 @@ import * as types from "./types"
 export * from "./types"
 
 if (DEBUG) console.log("Parameter: module loading...");
+
+
+//console.log("seed random", seedrandom)
+export var rndGenerator = seedrandom.xor4096();
 
 /**
  * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
@@ -133,8 +138,8 @@ export function from<T>(source: T | Parameter<T>): Parameter<T> {
 
 
 export function point(
-    x: number | Parameter<number>,
-    y: number | Parameter<number>
+    x: types.NumberArg,
+    y: types.NumberArg
 ): Parameter<types.Point>
 {
     if (DEBUG) console.log("point: build");
@@ -152,7 +157,7 @@ export function point(
 }
 
 
-export function displaceT<T>(displacement: number | Parameter<number>, value: T | Parameter<T>): Parameter<T> {
+export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T> {
     if (DEBUG) console.log("displace: build");
     return new Parameter<T> (
         () => {
@@ -172,10 +177,10 @@ export function displaceT<T>(displacement: number | Parameter<number>, value: T 
     a between 0 - 1 (1 is opaque, 0 is transparent)
  */
 export function rgba(
-    r: number | Parameter<number>,
-    g: number | Parameter<number>,
-    b: number | Parameter<number>,
-    a: number | Parameter<number>
+    r: types.NumberArg,
+    g: types.NumberArg,
+    b: types.NumberArg,
+    a: types.NumberArg
 ): Parameter<types.Color>
 {
     if (DEBUG) console.log("rgba: build");
@@ -199,9 +204,9 @@ export function rgba(
 }
 
 export function hsl(
-    h: number | Parameter<number>,
-    s: number | Parameter<number>,
-    l: number | Parameter<number>
+    h: types.NumberArg,
+    s: types.NumberArg,
+    l: types.NumberArg
 ): Parameter<types.Color>
 {
     if (DEBUG) console.log("hsl: build");
@@ -222,6 +227,19 @@ export function hsl(
     );
 }
 
+export function seedrnd(seed: types.StringArg): Parameter<void> {
+    if (DEBUG) console.log("seedrnd: build");
+    return new Parameter(
+        () => {
+            let seed_next = from(seed).init();
+            return t => {
+                rndGenerator = seedrandom.xor4096(seed_next(t));
+                return;
+            }
+        }
+    );
+}
+
 export function t(): Parameter<number> {
     if (DEBUG) console.log("t: build");
     return new Parameter(
@@ -235,7 +253,7 @@ export function rnd(): Parameter<number> {
     if (DEBUG) console.log("rnd: build");
     return new Parameter(
         () => function (t) {
-            return Math.random();
+            return rndGenerator();
         }
     );
 }
@@ -260,8 +278,8 @@ export function rndNormal(scale : Parameter<number> | number = 1): Parameter<typ
                 // generate random numbers
                 var norm2 = 100;
                 while (norm2 > 1) { //reject those outside the unit circle
-                    var x = (Math.random() - 0.5) * 2;
-                    var y = (Math.random() - 0.5) * 2;
+                    var x = (rndGenerator() - 0.5) * 2;
+                    var y = (rndGenerator() - 0.5) * 2;
                     norm2 = x * x + y * y;
                 }
 
@@ -276,7 +294,7 @@ export function rndNormal(scale : Parameter<number> | number = 1): Parameter<typ
 
 
 //todo: should be t as a parameter to a non tempor
-export function sin(period: number | Parameter<number>): Parameter<number> {
+export function sin(period: types.NumberArg): Parameter<number> {
     if (DEBUG) console.log("sin: new");
     return new Parameter(
         () => {
@@ -289,7 +307,7 @@ export function sin(period: number | Parameter<number>): Parameter<number> {
         }
     );
 }
-export function cos(period: number | Parameter<number>): Parameter<number> {
+export function cos(period: types.NumberArg): Parameter<number> {
     if (DEBUG) console.log("cos: new");
     return new Parameter(
         () => {

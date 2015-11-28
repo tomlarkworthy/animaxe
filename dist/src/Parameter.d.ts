@@ -1,9 +1,11 @@
 /// <reference path="../../node_modules/rx/ts/rx.all.d.ts" />
 /// <reference path="../../types/node.d.ts" />
+/// <reference path="../../types/seedrandom.d.ts" />
 import * as Rx from "rx";
 export declare var DEBUG: boolean;
 import * as types from "./types";
 export * from "./types";
+export declare var rndGenerator: prng;
 /**
  * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
  * every time and event is received from the Rx source
@@ -57,13 +59,14 @@ export declare class Parameter<Value> {
     first(): Parameter<Value>;
 }
 export declare function from<T>(source: T | Parameter<T>): Parameter<T>;
-export declare function point(x: number | Parameter<number>, y: number | Parameter<number>): Parameter<types.Point>;
-export declare function displaceT<T>(displacement: number | Parameter<number>, value: T | Parameter<T>): Parameter<T>;
-export declare function rgba(r: number | Parameter<number>, g: number | Parameter<number>, b: number | Parameter<number>, a: number | Parameter<number>): Parameter<types.Color>;
-export declare function hsl(h: number | Parameter<number>, s: number | Parameter<number>, l: number | Parameter<number>): Parameter<types.Color>;
+export declare function point(x: types.NumberArg, y: types.NumberArg): Parameter<types.Point>;
+export declare function displaceT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T>;
+export declare function rgba(r: types.NumberArg, g: types.NumberArg, b: types.NumberArg, a: types.NumberArg): Parameter<types.Color>;
+export declare function hsl(h: types.NumberArg, s: types.NumberArg, l: types.NumberArg): Parameter<types.Color>;
+export declare function seedrnd(seed: types.StringArg): Parameter<void>;
 export declare function t(): Parameter<number>;
 export declare function rnd(): Parameter<number>;
 export declare function constant<T>(val: T): Parameter<T>;
 export declare function rndNormal(scale?: Parameter<number> | number): Parameter<types.Point>;
-export declare function sin(period: number | Parameter<number>): Parameter<number>;
-export declare function cos(period: number | Parameter<number>): Parameter<number>;
+export declare function sin(period: types.NumberArg): Parameter<number>;
+export declare function cos(period: types.NumberArg): Parameter<number>;

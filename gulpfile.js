@@ -48,9 +48,6 @@ var TS_SETTINGS = {
 };
 
 gulp.task('compile', function() {
-  console.error("****************************************************TODO**************************************************");
-  console.error("I know about 'src/ctx-get-transform.ts(27,23): error TS2307: Cannot find module 'gl-mat3'', just ignore it");
-  console.error("**********************************************************************************************************");
     var tsResult = gulp.src(['./src/*.ts', './examples/example1*.ts'])
                     .pipe(sourcemaps.init())
                     .pipe(ts(ts.createProject(TS_SETTINGS)));
@@ -68,12 +65,13 @@ function createExampleTasksFor(exampleName) {
     var exampleNameJS = exampleName + '.js';
     var exampleNameTS = exampleName + '.ts';
 
+    /*
     gulp.task('compile-' + exampleName, ["compile"], function() {
         var tsResult = gulp.src("examples/" + exampleNameTS)
                         .pipe(sourcemaps.init())
                         .pipe(ts(projects[exampleName]));
         return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('dist'));
-    });
+    });*/
 
     gulp.task('html-' + exampleName, function() {
         gulp.src('html/example.template.html')
@@ -100,13 +98,17 @@ function createExampleTasksFor(exampleName) {
     });
 }
 
+// run all the tests (populating the dist/test directory with source)
+gulp.task("tests", examples.map(function(name) { return "test-" + name}) )
+gulp.task("htmls", examples.map(function(name) { return "html-" + name}) )
+
 // create various tasks on a per example basis
 for (var i = 0; i < examples.length; i++ ) { // (counting from 1)
     createExampleTasksFor(examples[i]);
 }
 
 
-gulp.task("typedoc", function() {
+gulp.task("doc", function() {
     return gulp
         .src(["src/*.ts"])
         .pipe(typedoc({
@@ -120,15 +122,17 @@ gulp.task("typedoc", function() {
 
 
 
-gulp.task("deploy", [], function() {
+gulp.task("deploy", ["tests", "htmls", "doc"], function() {
   console.log("deploying");
   console.log(npm_info);
   var imgs     = gulp.src('./images/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/master/images"));
   var lib_dist = gulp.src('./dist/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/libs"));
-  var src_dist = gulp.src('./src/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/src"));
+  var src      = gulp.src('./src/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/src"));
+  var examples = gulp.src('./examples/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/examples"));
+  var html     = gulp.src('./html/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/html"));
   var docs     = gulp.src('./docs/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site"));
 
-  return merge([imgs, src_dist, lib_dist, docs]);
+  return merge([imgs, lib_dist, src, examples, html, docs]);
 });
 
 

@@ -16,6 +16,8 @@ function permDot(size: number, css_color: Ax.ColorArg): Ax.Animation {
     return Ax.create().fillStyle(css_color).fillRect([-size/2, -size/2], [size, size]);
 }
 
+Parameter.seedrnd("seed").init()(0);
+
 // each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));
 // a ring of exploding particles that fade our

@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+// the reference file just declares var mat3 with any type to avoid typing this module
+/// <reference path="../types/gl-mat3.d.ts" />
 import mat3 = require('gl-mat3');
 
 export function monkeyPatchCtxToAddGetTransform(ctx) {
