@@ -1,4 +1,4 @@
-import * as Parameter from "./parameter"
+import * as Parameter from "../src/Parameter";
 import * as events from "./events"
 import * as OT from "./ObservableTransformer"
 import * as types from "./types"

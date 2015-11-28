@@ -131,8 +131,9 @@ gulp.task("deploy", ["tests", "htmls", "doc"], function() {
   var examples = gulp.src('./examples/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/examples"));
   var html     = gulp.src('./html/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/html"));
   var docs     = gulp.src('./docs/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site"));
+  var modules  = gulp.src('./node_modules/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/node_modules"));
 
-  return merge([imgs, lib_dist, src, examples, html, docs]);
+  return merge([imgs, lib_dist, src, examples, html, docs, modules]);
 });
 
 

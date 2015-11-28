@@ -2,7 +2,7 @@ import * as Rx from "rx";
 import * as Ax from "../src/animaxe";
 import * as helper from "../src/helper";
 import * as events from "../src/events";
-import * as Parameter from "../src/parameter";
+import * as Parameter from "../src/Parameter";
 
 var animator: Ax.Animator = helper.getExampleAnimator();
 

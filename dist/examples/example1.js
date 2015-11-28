@@ -1,6 +1,6 @@
 var Ax = require("../src/animaxe");
 var helper = require("../src/helper");
-var Parameter = require("../src/parameter");
+var Parameter = require("../src/Parameter");
 var animator = helper.getExampleAnimator();
 //2 frame animated glow
 function spark(color) {

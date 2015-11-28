@@ -2,7 +2,7 @@
 /// <reference path="../types/node.d.ts" />
 import * as Rx from "rx";
 import * as events from "./events";
-import * as Parameter from "./parameter";
+import * as Parameter from "../src/Parameter";
 import * as canvas from "./CanvasAnimation";
 import * as types from "./types";
 import * as OT from "./CanvasAnimation";
