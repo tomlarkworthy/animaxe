@@ -2,7 +2,7 @@
 /// <reference path="../types/node.d.ts" />
 import * as Rx from "rx";
 import * as events from "./events";
-import * as Parameter from "../src/Parameter";
+import * as Parameter from "./Parameter";
 import * as canvas from "./CanvasAnimation";
 import * as types from "./types";
 import * as OT from "./CanvasAnimation";
@@ -14,8 +14,8 @@ export * from "./CanvasAnimation";
 
 console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 
-export var DEBUG = false;
-export var DEBUG_EVENTS = false;
+export var DEBUG = true;
+export var DEBUG_EVENTS = true;
 
 
 
@@ -32,9 +32,6 @@ export var DEBUG_EVENTS = false;
  * When an animation is sequenced into the animation pipeline. Its attach method is called which atcually builds the
  * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
  */
-
-
-
 export class Animator{
     root: Rx.Subject<canvas.CanvasTick>;
     t: number = 0;

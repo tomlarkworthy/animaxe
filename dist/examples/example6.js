@@ -7,7 +7,7 @@ var Rx = require("rx");
 var Ax = require("../src/animaxe");
 var helper = require("../src/helper");
 var events = require("../src/events");
-var Parameter = require("../src/parameter");
+var Parameter = require("../src/Parameter");
 var animator = helper.getExampleAnimator(100, 100);
 // todo
 // make add a max and min value

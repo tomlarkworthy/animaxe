@@ -3,8 +3,9 @@
 /// <reference path="../types/seedrandom.d.ts" />
 import * as Rx from "rx";
 import * as seedrandom from "seedrandom";
+import * as OT from "./ObservableTransformer"
 
-export var DEBUG = false;
+export var DEBUG = true;
 
 import * as types from "./types"
 export * from "./types"
@@ -14,6 +15,8 @@ if (DEBUG) console.log("Parameter: module loading...");
 
 //console.log("seed random", seedrandom)
 export var rndGenerator = seedrandom.xor4096();
+
+// Parameter is a transformer from (clock signals -> Value)
 
 /**
  * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
@@ -74,40 +77,11 @@ function moveTo(
 }
 ```
  */
-export class Parameter<Value> {
-    /**
-     * Before a parameter is used, the enclosing animation must call init. This returns a function which
-     * can be used to find the value of the function for specific values of time.
-     */
-    constructor(init: () => ((clock: number) => Value)) {
-        this.init = init;
-    }
 
-    /**
-     * Before a parameter is used, the enclosing animation must call init. This returns a function which
-     * can be used to find the value of the function for specific values of time.
-     */
-    init(): (clock: number) => Value {throw new Error('This method is abstract');}
+export type Parameter<Value> = OT.ObservableTransformer<OT.BaseTick, Value>;
 
-    /**
-     * map the value of 'this' to a new parameter
-     */
-    map<V>(fn: (Value) => V): Parameter<V> {
-        var base = this;
-        return new Parameter(
-            () => {
-                var base_next = base.init();
-                return function(t) {
-                    return fn(base_next(t));
-                }
-            }
-        );
-    }
-    /**
-     * Returns a parameter whose value is forever the first value next picked from this.
-     * @returns {Parameter<T>}
-     */
-    first(): Parameter<Value> {
+/*
+first(): Parameter<Value> {
         var self = this;
         return new Parameter<Value>(
             () => {
@@ -125,14 +99,13 @@ export class Parameter<Value> {
             }
         );
     }
-
-}
+    */
 
 
 export function from<T>(source: T | Parameter<T>): Parameter<T> {
     types.assert (source != undefined, "source is not defined");
     if (DEBUG) console.log("from: build");
-    if (typeof (<any>source).init == 'function') return <Parameter<T>>source;
+    if (typeof (<any>source).attach == 'function') return <Parameter<T>>source;
     else return constant(<T> source)
 }
 
@@ -143,21 +116,34 @@ export function point(
 ): Parameter<types.Point>
 {
     if (DEBUG) console.log("point: build");
-    return new Parameter(
+    return OT.ObservableTransformer.merge2(
+        from(x), 
+        from(y), 
         () => {
-            var x_next = from(x).init();
-            var y_next = from(y).init();
-            return function(t: number) {
-                var result: [number, number] = [x_next(t), y_next(t)];
-                // console.log("point: next", result);
-                return result;
-            }
+            if (DEBUG) console.log("point: init");
+            return (x: number, y: number) => <types.Point>[x, y]   
         }
-    );
+    )
 }
 
 
 export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T> {
+    if (DEBUG) console.log("point: build");
+    
+    return new OT.ObservableTransformer<OT.BaseTick, T>(
+        (upstream: Rx.Observable<OT.BaseTick>) => {
+            var clockSkew = Rx.Observable.zip(
+                upstream,
+                from(displacement).attach(upstream),
+                (tick: OT.BaseTick, dt: number) => {
+                    return new OT.BaseTick(tick.clock + dt, tick.dt, tick.ctx)    
+                }
+            )
+            
+            return from(value).attach(clockSkew)
+        }
+    )
+    /*
     if (DEBUG) console.log("displace: build");
     return new Parameter<T> (
         () => {
@@ -169,7 +155,7 @@ export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter
                 return value_next(t + dt)
             }
         }
-    )
+    )*/
 }
 
 /*
@@ -184,23 +170,20 @@ export function rgba(
 ): Parameter<types.Color>
 {
     if (DEBUG) console.log("rgba: build");
-    return new Parameter(
+    return OT.ObservableTransformer.merge4(
+        from(r),
+        from(g),
+        from(b),
+        from(a),
         () => {
-            var r_next = from(r).init();
-            var g_next = from(g).init();
-            var b_next = from(b).init();
-            var a_next = from(a).init();
-            return function(t: number) {
-                var r_val = Math.floor(r_next(t));
-                var g_val = Math.floor(g_next(t));
-                var b_val = Math.floor(b_next(t));
-                var a_val = a_next(t);
-                var val = "rgba(" + r_val + "," + g_val + "," + b_val + "," + a_val + ")";
-                if (DEBUG) console.log("color: ", val);
-                return val;
+            if (DEBUG) console.log("rgba: init");
+            return (r,b,g,a) => {
+                var val = "rgba(" + r + "," + g + "," + b + "," + a + ")";
+                if (DEBUG) console.log("rgba: ", val);
+                return val; 
             }
         }
-    );
+    )
 }
 
 export function hsl(
@@ -260,10 +243,8 @@ export function rnd(): Parameter<number> {
 
 export function constant<T>(val: T): Parameter<T> {
     if (DEBUG) console.log("constant: build");
-    return new Parameter(
-        () => function (t) {
-            return val;
-        }
+    return new OT.ObservableTransformer<OT.BaseTick, T> (
+        upstream => upstream.map(x => val)
     );
 }
 
@@ -294,31 +275,29 @@ export function rndNormal(scale : Parameter<number> | number = 1): Parameter<typ
 
 
 //todo: should be t as a parameter to a non tempor
-export function sin(period: types.NumberArg): Parameter<number> {
-    if (DEBUG) console.log("sin: new");
-    return new Parameter(
-        () => {
-            var period_next = from(period).init();
-            return function (t: number) {
-                var value = Math.sin(t * (Math.PI * 2) / period_next(t));
-                if (DEBUG) console.log("sin: tick", t, value);
-                return value;
-            }
+export function sin<Tick extends OT.BaseTick>(period: types.NumberArg): Parameter<number> {   
+    if (DEBUG) console.log("sin: build");
+    return new OT.ObservableTransformer<Tick, Tick>(x => x).combine1(from(period), () => {
+        if (DEBUG) console.log("sin: init");
+        return (tick: Tick, period: number) => {
+            var t = tick.clock;
+            var value: number = Math.sin(t * (Math.PI * 2) / period);
+            if (DEBUG) console.log("sin: tick", t, value);
+            return value;
         }
-    );
+    })
 }
-export function cos(period: types.NumberArg): Parameter<number> {
-    if (DEBUG) console.log("cos: new");
-    return new Parameter(
-        () => {
-            var period_next = from(period).init();
-            return function (t: number) {
-                var value = Math.cos(t * (Math.PI * 2) / period_next(t));
-                if (DEBUG) console.log("cos: tick", t, value);
-                return value;
-            }
+export function cos<Tick extends OT.BaseTick>(period: types.NumberArg): Parameter<number> {   
+    if (DEBUG) console.log("cos: build");
+    return new OT.ObservableTransformer<Tick, Tick>(x => x).combine1(from(period), () => {
+        if (DEBUG) console.log("cos: init");
+        return (tick: Tick, period: number) => {
+            var t = tick.clock;
+            var value: number = Math.cos(t * (Math.PI * 2) / period);
+            if (DEBUG) console.log("cos: tick", t, value);
+            return value;
         }
-    );
+    })
 }
 
 

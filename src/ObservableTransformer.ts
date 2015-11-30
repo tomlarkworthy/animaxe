@@ -4,13 +4,13 @@ import * as types from "./types"
 import * as Parameter from "./Parameter"
 export * from "./types"
 
-export var DEBUG_LOOP = false;
-export var DEBUG_THEN = false;
+export var DEBUG_LOOP = true;
+export var DEBUG_THEN = true;
 export var DEBUG_IF = false;
 export var DEBUG_EMIT = false;
 export var DEBUG_PARALLEL = false;
 export var DEBUG_EVENTS = false;
-export var DEBUG = false;
+export var DEBUG = true;
 
 export class BaseTick {
     constructor (
@@ -21,9 +21,177 @@ export class BaseTick {
     }
 }
 
-export class ObservableTransformer<Tick extends BaseTick> {
+export class ObservableTransformer<In extends BaseTick, Out> {
+    constructor(public attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>) {
+    }
+    
+    /**
+     * subclasses should override this to create another animation of the same type
+     * @param attach
+     */
+    create(attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>): this {
+        return <this> new ObservableTransformer<In, Out>(attach);
+    }
+    
+    /**
+     * map the value of 'this' to a new parameter
+     */
+    map<V>(fn: (Out) => V): ObservableTransformer<In, V> {
+        var self = this;
+        return new ObservableTransformer<In, V>(
+            (upstream: Rx.Observable<In>) => self.attach(upstream).map(fn)
+        );
+    }
+    
+    /**
+     *  with another transformer with the same type of input. 
+     * Both are given the same input, and their simulataneous outputs are passed to a 
+     * combiner function, which compute the final output.
+     */
+    combine1<Arg1, CombinedOut> (
+        other1: ObservableTransformer<In, Arg1>, 
+        combinerBuilder: () => (tick: Out, arg1: Arg1) => CombinedOut)
+            : ObservableTransformer<In, CombinedOut> {
+        return new ObservableTransformer<In, CombinedOut>((upstream) => {
+            // join upstream with parameter
+            return Rx.Observable.zip<Out, Arg1, CombinedOut>(
+               this.attach(upstream),
+               other1.attach(upstream),
+               combinerBuilder() 
+            );
+        });
+    }
+   
+    /**
+     * Combine with another transformer with the same type of input. 
+     * Both are given the same input, and their simulataneous outputs are passed to a 
+     * combiner function, which compute the final output.
+     */
+    combine2<Arg1, Arg2, Combined> (
+            other1: ObservableTransformer<In, Arg1>, 
+            other2: ObservableTransformer<In, Arg2>, 
+            combinerBuilder: () => 
+                (tick: Out, arg1: Arg1, arg2: Arg2) => Combined
+        ) : ObservableTransformer<In, Combined> {
+        if (DEBUG) console.log("combine2: build");
+        return new ObservableTransformer<In, Combined>(
+            (upstream: Rx.Observable<In>) => {
+                // TODO ALL THE ISSUES ARE HERE, COMBINE DOES NTO DELIVER onCompleted fast
+                // Should the onComplete call during the thread of execution of a dirrernt on Next
+                if (DEBUG) console.log("combine2: attach");
+                
+                var upstream = upstream.tap(
+                    next => console.log("combine2: upstream next"),
+                    error => console.log("combine2: upstream error"),
+                    () => console.log("combine2: upstream onCompleted")
+                )
+                // todo shitty version until https://github.com/Reactive-Extensions/RxJS/issues/958 gets fixed
+                
+                /*
+                // join upstream with parameter
+                return Rx.Observable.zip(
+                    this.attach(upstream).tapOnCompleted(() => console.log("combine2: inner this completed")),
+                    other1.attach(upstream).tapOnCompleted(() => console.log("combine2: inner other1 completed")),
+                    other2.attach(upstream).tapOnCompleted(() => console.log("combine2: inner other2 completed")),
+                    combinerBuilder()
+                )*/
+                
+                var zipArgs =  Rx.Observable.zip(
+                    other1.attach(upstream).tapOnCompleted(() => console.log("combine2: inner other1 completed")),
+                    other2.attach(upstream).tapOnCompleted(() => console.log("combine2: inner other2 completed")),
+                    (arg1: Arg1, arg2: Arg2) => { return {arg1: arg1, arg2: arg2}}
+                ).tap(
+                    next => console.log("combine2: zipArgs next"),
+                    error => console.log("combine2: zipArgs error"),
+                    () => console.log("combine2: zipArgs onCompleted")
+                )
+                
+                var combiner = combinerBuilder();
+                return Rx.Observable.zip(
+                    this.attach(upstream).tapOnCompleted(() => console.log("combine2: inner this completed")),
+                    zipArgs.tapOnCompleted(() => console.log("combine2: inner zips completed")),
+                    (tick: Out, args: {arg1: Arg1, arg2: Arg2}) => {
+                        return combiner(tick, args.arg1, args.arg2)
+                    }
+                ).tap(
+                    next => console.log("combine2: downstream next"),
+                    error => console.log("combine2: downstream error"),
+                    () => console.log("combine2: downstream onCompleted")
+                )
+            }
+        );
+    }
+    
+    /**
+     * Combine with another transformer with the same type of input. 
+     * Both are given the same input, and their simulataneous outputs are passed to a 
+     * combiner function, which compute the final output.
+     */
+    combine3<Arg1, Arg2, Arg3, Combined> (
+            other1: ObservableTransformer<In, Arg1>, 
+            other2: ObservableTransformer<In, Arg2>, 
+            other3: ObservableTransformer<In, Arg3>, 
+            combinerBuilder: () => 
+                (tick: Out, arg1: Arg1, arg2: Arg2, arg3: Arg3) => Combined
+        ) : ObservableTransformer<In, Combined> {
+        return new ObservableTransformer<In, Combined>(
+            (upstream: Rx.Observable<In>) => {
+                // join upstream with parameter
+                return Rx.Observable.zip(
+                    this.attach(upstream),
+                    other1.attach(upstream),
+                    other2.attach(upstream),
+                    other3.attach(upstream),
+                    combinerBuilder()
+                );
+            }
+        );
+    }
+    
+    static merge2<In extends BaseTick, Arg1, Arg2, Out> (
+            other1: ObservableTransformer<In, Arg1>, 
+            other2: ObservableTransformer<In, Arg2>, 
+            combinerBuilder: () => 
+                (arg1: Arg1, arg2: Arg2) => Out
+        ): ObservableTransformer<In, Out> {
+        return new ObservableTransformer<In, Out>(
+            (upstream: Rx.Observable<In>) => {
+                return Rx.Observable.zip<Arg1, Arg2, Out>(
+                    other1.attach(upstream),
+                    other2.attach(upstream), 
+                    combinerBuilder());
+            }
+        );
+    }
+    
+    static merge4<In extends BaseTick, Arg1, Arg2, Arg3, Arg4, Out> (
+            other1: ObservableTransformer<In, Arg1>, 
+            other2: ObservableTransformer<In, Arg2>, 
+            other3: ObservableTransformer<In, Arg3>, 
+            other4: ObservableTransformer<In, Arg4>, 
+            combinerBuilder: () => 
+                (arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4) => Out
+        ): ObservableTransformer<In, Out> {
+        return new ObservableTransformer<In, Out>(
+            (upstream: Rx.Observable<In>) => {
+                return Rx.Observable.zip<Arg1, Arg2, Arg3, Arg4, Out>(
+                    other1.attach(upstream),
+                    other2.attach(upstream),
+                    other3.attach(upstream), 
+                    other4.attach(upstream),  
+                    combinerBuilder());
+            }
+        );
+    }
+    
+    
+    init(): (clock: number) => Out{throw new Error("depricated: remove this")}
+}
 
-    constructor(public attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>) {
+export class ChainableTransformer<Tick extends BaseTick> extends ObservableTransformer<Tick, Tick>{
+
+    constructor(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>) {
+        super(attach)
     }
 
     /**
@@ -31,7 +199,7 @@ export class ObservableTransformer<Tick extends BaseTick> {
      * @param attach
      */
     create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick> = nop => nop): this {
-        return <this> new ObservableTransformer<Tick>(attach);
+        return <this> new ChainableTransformer<Tick>(attach);
     }
 
     /**
@@ -41,8 +209,8 @@ export class ObservableTransformer<Tick extends BaseTick> {
      *
      * ```Ax.move(...).pipe(myOT_API());```
      */
-    pipe<OT_API extends ObservableTransformer<Tick>>(downstream: OT_API): OT_API {
-        return combine<Tick, ObservableTransformer<Tick>, OT_API>(this, downstream);
+    pipe<OT_API extends ChainableTransformer<Tick>>(downstream: OT_API): OT_API {
+        return combine<Tick, ChainableTransformer<Tick>, OT_API>(this, downstream);
     }
 
     /**
@@ -52,10 +220,82 @@ export class ObservableTransformer<Tick extends BaseTick> {
      * This allows you to sequence animations temporally.
      * frame1OT_API().then(frame2OT_API).then(frame3OT_API)
      */
-    then(follower: ObservableTransformer<Tick>): this {
+    
+    then(follower: ChainableTransformer<Tick>): this {
         var self = this;
 
-        return this.create(function (prev: Rx.Observable<Tick>) : Rx.Observable<Tick> {
+        return this.create((upstream: Rx.Observable<Tick>) => {
+            return Rx.Observable.create<Tick>(observer => {
+                if (DEBUG_THEN) console.log("then: attach");
+
+                var firstTurn = true;
+                var first  = new Rx.Subject<Tick>();
+                var second = new Rx.Subject<Tick>();
+
+                var firstAttach = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                    next => {
+                        if (DEBUG_THEN) console.log("then: first to downstream");
+                        observer.onNext(next);
+                    },
+                    error => {
+                        if (DEBUG_THEN) console.log("then: first error");
+                        observer.onError(error);    
+                    },
+                    () => {
+                        if (DEBUG_THEN) console.log("then: first complete");
+                        firstTurn = false; // note overall sequences is not notified
+                    }
+                );
+                
+                var secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                    next => {
+                        if (DEBUG_THEN) console.log("then: second to downstream");
+                        observer.onNext(next);
+                    },
+                    error => {
+                        if (DEBUG_THEN) console.log("then: second error");
+                        observer.onError(error);    
+                    },
+                    function(){
+                        if (DEBUG_THEN) console.log("then: second complete");
+                        observer.onCompleted() // note overall sequences finished
+                    }
+                );
+
+                var upstreamSubscription = upstream.subscribeOn(Rx.Scheduler.immediate).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                    next => {
+                        if (firstTurn) {
+                            if (DEBUG_THEN) console.log("then: upstream to first");
+                            first.onNext(next);
+                        } else { // note this gets called if first completes and flips
+                            if (DEBUG_THEN) console.log("then: upstream to second");
+                            second.onNext(next);
+                        }
+                    },
+                    error => {
+                        if (DEBUG_THEN) console.log("then: upstream error");
+                        observer.onError(error);    
+                    },
+                    () => {
+                        if (DEBUG_THEN) console.log("then: upstream complete");
+                        observer.onCompleted();
+                    }
+                );
+                // on dispose
+                return () => {
+                    if (DEBUG_THEN) console.log("then: dispose");
+                    upstreamSubscription.dispose();
+                    firstAttach.dispose();
+                    secondAttach.dispose();
+                };
+            }); 
+        });
+    }
+    /*
+    then(follower: ChainableTransformer<Tick>): this {
+        var self = this;
+
+        return this.create((prev: Rx.Observable<Tick>) => {
             return Rx.Observable.create<Tick>(function (observer) {
                 var first  = new Rx.Subject<Tick>();
                 var second = new Rx.Subject<Tick>();
@@ -67,49 +307,58 @@ export class ObservableTransformer<Tick extends BaseTick> {
 
                 var secondAttach = null;
 
-                var firstAttach  = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
-                    function(next) {
+                var firstAttach = self.attach(first).subscribe(
+                    next => {
                         if (DEBUG_THEN) console.log("then: first to downstream");
                         observer.onNext(next);
                     },
-                    observer.onError.bind(observer),
-                    function(){
+                    error => {
+                        if (DEBUG_THEN) console.log("then: first error");
+                        observer.onError(error);    
+                    },
+                    () => {
                         if (DEBUG_THEN) console.log("then: first complete");
                         firstTurn = false;
 
-                        secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                        secondAttach = follower.attach(second).subscribe(
                             function(next) {
                                 if (DEBUG_THEN) console.log("then: second to downstream");
                                 observer.onNext(next);
                             },
-                            observer.onError.bind(observer),
+                            error => {
+                                if (DEBUG_THEN) console.log("then: second error");
+                                observer.onError(error);    
+                            },
                             function(){
                                 if (DEBUG_THEN) console.log("then: second complete");
                                 observer.onCompleted()
                             }
-
                         );
                     }
                 );
 
                 var prevSubscription = prev.subscribeOn(Rx.Scheduler.immediate).subscribe(
-                    function(next) {
-                        if (DEBUG_THEN) console.log("then: upstream to first OR second");
+                    next => {
                         if (firstTurn) {
+                            if (DEBUG_THEN) console.log("then: upstream to first");
                             first.onNext(next);
                         } else {
+                            if (DEBUG_THEN) console.log("then: upstream to second");
                             second.onNext(next);
                         }
                     },
-                    observer.onError,
-                    function () {
+                    error => {
+                        if (DEBUG_THEN) console.log("then: upstream error");
+                        observer.onError(error);    
+                    },
+                    () => {
                         if (DEBUG_THEN) console.log("then: upstream complete");
                         observer.onCompleted();
                     }
                 );
                 // on dispose
-                return function () {
-                    if (DEBUG_THEN) console.log("then: disposer");
+                return () => {
+                    if (DEBUG_THEN) console.log("then: dispose");
                     prevSubscription.dispose();
                     firstAttach.dispose();
                     if (secondAttach)
@@ -117,14 +366,14 @@ export class ObservableTransformer<Tick extends BaseTick> {
                 };
             }).subscribeOn(Rx.Scheduler.immediate); //todo remove subscribeOns
         });
-    }
+    }*/
     /**
      * Creates an animation that replays the inner animation each time the inner animation completes.
      *
      * The resultant animation is always runs forever while upstream is live. Only a single inner animation
      * plays at a time (unlike emit())
      */
-    loop(animation: ObservableTransformer<Tick>): this {
+    loop(animation: ChainableTransformer<Tick>): this {
         return this.pipe(
             this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
                 if (DEBUG_LOOP) console.log("loop: initializing");
@@ -189,7 +438,7 @@ export class ObservableTransformer<Tick extends BaseTick> {
      * The resultant animation is always runs forever while upstream is live. Multiple inner animations
      * can be playing at the same time (unlike loop)
      */
-    emit(animation: ObservableTransformer<Tick>): this {
+    emit(animation: ChainableTransformer<Tick>): this {
         return this.pipe(this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
             if (DEBUG_EMIT) console.log("emit: initializing");
             var attachPoint = new Rx.Subject<Tick>();
@@ -209,7 +458,7 @@ export class ObservableTransformer<Tick extends BaseTick> {
      * The canvas states are restored before each fork, so styling and transforms of different child animations do not
      * interact (although obsviously the pixel buffer is affected by each animation)
      */
-    parallel(animations: ObservableTransformer<Tick>[]): this {
+    parallel(animations: ChainableTransformer<Tick>[]): this {
         return this.pipe(
             this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
                 if (DEBUG_PARALLEL) console.log("parallel: initializing");
@@ -223,7 +472,7 @@ export class ObservableTransformer<Tick extends BaseTick> {
                     activeOT_APIs --;
                 }
     
-                animations.forEach(function(animation: ObservableTransformer<Tick>) {
+                animations.forEach(function(animation: ChainableTransformer<Tick>) {
                     activeOT_APIs++;
                     animation.attach(attachPoint.tapOnNext(tick => tick.ctx.save())).subscribe(
                             tick => tick.ctx.restore(),
@@ -244,7 +493,7 @@ export class ObservableTransformer<Tick extends BaseTick> {
     /**
      * Sequences n copies of the inner animation. Clone completes when all inner animations are over.
      */
-    clone(n: number, animation: ObservableTransformer<Tick>): this {
+    clone(n: number, animation: ChainableTransformer<Tick>): this {
         let array = new Array(n);
         for (let i=0; i<n; i++) array[i] = animation;
         return this.parallel(array);
@@ -255,12 +504,20 @@ export class ObservableTransformer<Tick extends BaseTick> {
      * Creates an animation that is at most n frames from 'this'.
      */
     take(frames: number): this {
-        return this.pipe(
-            this.create((prev: Rx.Observable<Tick>) => {
+        var self = this;
+        if (DEBUG) console.log("take: build");
+        return this.create(
+            (upstream: Rx.Observable<Tick>) => {
                 if (DEBUG) console.log("take: attach");
-                return prev.take(frames);
-            })
+                return self.attach(upstream).take(frames)
+                    .tap(
+                        next => console.log("take: next"),
+                        error => console.log("take: error", error),
+                        () => console.log("take: completed")
+                    );
+            }
         );
+        
     }
 
     /**
@@ -270,8 +527,72 @@ export class ObservableTransformer<Tick extends BaseTick> {
     draw(drawFactory: () => ((tick: Tick) => void)): this {
         return this.create((upstream) => upstream.tapOnNext(drawFactory()));
     }
+    
+    affect(effectBuilder: () => ((tick: Tick) => void)): this {
+        return this.pipe(this.create((upstream) => upstream.tap(effectBuilder())));
+    }
+    
+    
+    affect1<Param1> (
+        param1: ObservableTransformer<Tick, Param1>, 
+        effectBuilder: () => (tick: Tick, param1: Param1) => void): this {
+        return this.create(
+                this.combine1(
+                    param1,
+                    () => {
+                        var effect = effectBuilder();
+                        return (tick: Tick, param1: Param1) => {
+                            effect(tick, param1) // apply side effect
+                            return tick;   // tick is returned again to make the return type chainable
+                        }
+                    }
+                ).attach
+            );
+    }
+    
+    affect2<Param1, Param2> (
+        param1: ObservableTransformer<Tick, Param1>, 
+        param2: ObservableTransformer<Tick, Param2>, 
+        effectBuilder: () => (tick: Tick, param1: Param1, param2: Param2) => void): this {
+        return this.create(
+                this.combine2(
+                    param1,
+                    param2,
+                    () => {
+                        if (DEBUG) console.log("affect2: attach");
+                        var effect = effectBuilder();
+                        return (tick: Tick, param1: Param1, param2: Param2) => {
+                            if (DEBUG) console.log("affect2: effect");
+                            effect(tick, param1, param2) // apply side effect
+                            return tick;   // tick is returned again to make the return type chainable
+                        }
+                    }
+                ).attach
+            );
+    }
+    
+    affect3<Param1, Param2, Param3> (
+        param1: ObservableTransformer<Tick, Param1>, 
+        param2: ObservableTransformer<Tick, Param2>,
+        param3: ObservableTransformer<Tick, Param3>,  
+        effectBuilder: () => (tick: Tick, param1: Param1, param2: Param2, param3: Param3) => void): this {
+        return this.create(
+                this.combine3(
+                    param1,
+                    param2,
+                    param3,
+                    () => {
+                        var effect = effectBuilder();
+                        return (tick: Tick, param1: Param1, param2: Param2, param3: Param3) => {
+                            effect(tick, param1, param2, param3) // apply side effect
+                            return tick;   // tick is returned again to make the return type chainable
+                        }
+                    }
+                ).attach
+            );
+    }
 
-    if(condition: types.BooleanArg, animation: ObservableTransformer<Tick>): If<Tick, this>{
+    if(condition: types.BooleanArg, animation: ChainableTransformer<Tick>): If<Tick, this>{
         return new If<Tick, this>([new ConditionActionPair(condition, animation)], this);
     }
 }
@@ -281,18 +602,15 @@ export class ObservableTransformer<Tick extends BaseTick> {
  * Creates a new OT_API by piping the animation flow of A into B
  */
 //export function combine<Tick, A extends ObservableTransformer<Tick>, B extends ObservableTransformer<Tick>>(a: A, b: B): B {
-export function combine<Tick, A extends ObservableTransformer<any>, B extends ObservableTransformer<any>>(a: A, b: B): B {
-    var b_prev_attach = b.attach;
-    b.attach =
-        (upstream: Rx.Observable<Tick>) => {
-            return b_prev_attach(a.attach(upstream));
-        };
-    return b;
+export function combine<Tick, A extends ChainableTransformer<any>, B extends ChainableTransformer<any>>(a: A, b: B): B {
+    return b.create(
+        upstream => b.attach(a.attach(upstream))
+    )
 }
 
 
 export class ConditionActionPair<Tick extends BaseTick> {
-    constructor(public condition: types.BooleanArg, public action: ObservableTransformer<Tick>){}
+    constructor(public condition: types.BooleanArg, public action: ChainableTransformer<Tick>){}
 };
 
 
@@ -304,13 +622,13 @@ export class ConditionActionPair<Tick extends BaseTick> {
  * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
  * Whenever the active clause changes, the new active animation is reinitialised.
  */
-export class If<Tick extends BaseTick, OT_API extends ObservableTransformer<any>> {
+export class If<Tick extends BaseTick, OT_API extends ChainableTransformer<any>> {
     constructor(
         public conditions: ConditionActionPair<Tick>[],
         public preceeding: OT_API) {
     }
 
-    elif(clause: types.BooleanArg, action: ObservableTransformer<Tick>): this {
+    elif(clause: types.BooleanArg, action: ChainableTransformer<Tick>): this {
         types.assert(clause != undefined && action != undefined)
         this.conditions.push(new ConditionActionPair<Tick>(clause, action));
         return this;
@@ -320,7 +638,7 @@ export class If<Tick extends BaseTick, OT_API extends ObservableTransformer<any>
         return this.preceeding.pipe(this.else(this.preceeding.create()));
     }
 
-    else(otherwise: ObservableTransformer<Tick>): OT_API {
+    else(otherwise: ChainableTransformer<Tick>): OT_API {
         return this.preceeding.pipe(this.preceeding.create(
             (upstream: Rx.Observable<Tick>) => {
                 if (DEBUG_IF) console.log("If: attach");

@@ -193,10 +193,9 @@ Refactors
 ----------
 - move canvas API into own module
   - Key issue, its a subclass/implementor of tranformer functionality, but return types must keep the CanvasAPI
-- implement Ax as a mixin of all specialised modules
 - add AFRP typing modulue
   - make parameters a special case of an ObservableTransformer
-  - Maybe we can make Parameter and Rx.JS, in the init, we pass a clock Behaviour, and use combineLatest within the animations to merge
+    - combine is broken coz zip is broken, this breaks affect and other things
   - Move the .pipe inside the .draw (rename draw), and remove lots of redundant pipes
 - change order of playExample parameters
 

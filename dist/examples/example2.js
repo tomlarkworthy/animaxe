@@ -1,6 +1,6 @@
 var Ax = require("../src/animaxe");
 var helper = require("../src/helper");
-var Parameter = require("../src/parameter");
+var Parameter = require("../src/Parameter");
 var animator = helper.getExampleAnimator();
 //a line between two points of a specified thickness and color (which are temporally varying parameters)
 function thickLine1tick(thickness, start, end, css_color) {

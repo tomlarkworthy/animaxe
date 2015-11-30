@@ -48,3 +48,5 @@ export function stackTrace() {
     var err = new Error();
     return (<any>err).stack;
 }
+
+

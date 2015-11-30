@@ -5,7 +5,7 @@ import * as types from "./types"
 import * as glow from "./glow"
 export * from "./types"
 
-var DEBUG = false;
+var DEBUG = true;
 
 /**
  * Each frame an animation is provided a CanvasTick. The tick exposes access to the local animation time, the
@@ -24,7 +24,7 @@ export class CanvasTick extends OT.BaseTick{
 }
 
 
-export class Animation extends OT.ObservableTransformer<CanvasTick>{
+export class Animation extends OT.ChainableTransformer<CanvasTick>{
     
     constructor(public attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>) {
         super(attach);
@@ -43,20 +43,19 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
     velocity(
         velocity: types.PointArg
     ): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("velocity: attached");
-                    var pos: types.Point = [0.0,0.0];
-                    var velocity_next = Parameter.from(velocity).init();
-                    return function(tick) {
-                        tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
-                        var velocity = velocity_next(tick.clock);
-                        pos[0] += velocity[0] * tick.dt;
-                        pos[1] += velocity[1] * tick.dt;
-                    }
+        if (DEBUG) console.log("velocity: build");
+        return this.affect1(
+            Parameter.from(velocity), 
+            () => {
+                if (DEBUG) console.log("velocity: attach");
+                var pos: types.Point = [0.0,0.0];
+                return (tick: OT.BaseTick, velocity: types.Point) => {
+                    tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
+                    pos[0] += velocity[0] * tick.dt;
+                    pos[1] += velocity[1] * tick.dt;
+                    if (DEBUG) console.log("velocity: tick", velocity, pos);
                 }
-            )
+            }
         );
     }
     
@@ -66,29 +65,24 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
         time: types.NumberArg
     ): Animation
     {
-        return this.pipe(
-            create(
-                function(prev: Rx.Observable<CanvasTick>): Rx.Observable<CanvasTick> {
-                    var t = 0;
-                    var from_next = Parameter.from(from).init();
-                    var to_next   = Parameter.from(to).init();
-                    var time_next   = Parameter.from(time).init();
-                    return prev.map(function(tick: CanvasTick) {
-                        if (DEBUG) console.log("tween: inner");
-                        var from = from_next(tick.clock);
-                        var to   = to_next(tick.clock);
-                        var time = time_next(tick.clock);
-        
-                        t = t + tick.dt;
-                        if (t > time) t = time;
-                        var x = from[0] + (to[0] - from[0]) * t / time;
-                        var y = from[1] + (to[1] - from[1]) * t / time;
-                        tick.ctx.transform(1, 0, 0, 1, x, y);
-                        return tick;
-                    }).takeWhile(function(tick) {return t < time;})
+        return this.affect3(
+            Parameter.from(from),
+            Parameter.from(to),
+            Parameter.from(time),
+            () => {
+                var t = 0;
+                if (DEBUG) console.log("tween: init");
+                return (tick, from, to, time) => {
+                    t = t + tick.dt;
+                    if (t > time) t = time;
+                    var x = from[0] + (to[0] - from[0]) * t / time;
+                    var y = from[1] + (to[1] - from[1]) * t / time;
+                    
+                    if (DEBUG) console.log("tween: tick", x, y, t);
+                    tick.ctx.transform(1, 0, 0, 1, x, y);
                 }
-            )
-        );
+            }
+        ) 
     }
     
     glow(
@@ -122,18 +116,16 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for fillStyle in the canvas API.
      */
     fillStyle(color: types.ColorArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("fillStyle: attach");
-                    var color_next = Parameter.from(color).init();
-                    return function (tick: CanvasTick) {
-                        var color = color_next(tick.clock);
-                        if (DEBUG) console.log("fillStyle: fillStyle", color);
-                        tick.ctx.fillStyle = color;
-                    }
+        if (DEBUG) console.log("fillStyle: build");
+        return this.affect1(
+            Parameter.from(color), 
+            () => {
+                if (DEBUG) console.log("fillStyle: attach");
+                return (tick: OT.BaseTick, color: types.Color) => {
+                    if (DEBUG) console.log("fillStyle: color", color);
+                    tick.ctx.fillStyle = color
                 }
-            )
+            }
         );
     }
     /**
@@ -288,21 +280,17 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for fillRect in the canvas API.
      */
     fillRect(xy: types.PointArg, width_height: types.PointArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("fillRect: attach");
-                    var xy_next = Parameter.from(xy).init();
-                    var width_height_next = Parameter.from(width_height).init();
-        
-                    return function (tick: CanvasTick) {
-                        var xy: types.Point = xy_next(tick.clock);
-                        var width_height: types.Point = width_height_next(tick.clock);
-                        if (DEBUG) console.log("fillRect: fillRect", xy, width_height);
-                        tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
-                    }
+        if (DEBUG) console.log("fillRect: build");
+        return this.affect2(
+            Parameter.from(xy), 
+            Parameter.from(width_height), 
+            () => {
+                if (DEBUG) console.log("fillRect: attach");
+                return (tick: OT.BaseTick, xy: types.Point, width_height: types.Point) => {
+                    if (DEBUG) console.log("fillRect: tick", xy, width_height);
+                    tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
                 }
-            )
+            }
         );
     }
     /**
@@ -556,19 +544,16 @@ export class Animation extends OT.ObservableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for translate in the canvas API.
      */
     translate(xy: types.PointArg): this {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("translate: attach");
-                    var point_next = Parameter.from(xy).init();
-                    return function(tick) {
-                        var point = point_next(tick.clock);
-                        if (DEBUG) console.log("translate:", point);
-                        tick.ctx.translate(point[0], point[1]);
-                        return tick;
-                    }
+        if (DEBUG) console.log("translate: build");
+        return this.affect1(
+            Parameter.from(xy), 
+            () => {
+                if (DEBUG) console.log("translate: attach");
+                return (tick: OT.BaseTick, xy: types.Point) => {
+                    if (DEBUG) console.log("translate:", xy);
+                    tick.ctx.translate(xy[0], xy[1]);
                 }
-            )
+            }
         );
     }
     /**

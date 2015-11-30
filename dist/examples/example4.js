@@ -1,6 +1,6 @@
 var Ax = require("../src/animaxe");
 var helper = require("../src/helper");
-var Parameter = require("../src/parameter");
+var Parameter = require("../src/Parameter");
 var animator = helper.getExampleAnimator(100, 100);
 var red = 255;
 var green = 50;

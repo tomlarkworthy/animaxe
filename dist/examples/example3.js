@@ -1,6 +1,6 @@
 var Ax = require("../src/animaxe");
 var helper = require("../src/helper");
-var Parameter = require("../src/parameter");
+var Parameter = require("../src/Parameter");
 var animator = helper.getExampleAnimator();
 // fixed base color for particles
 var red = 255, green = 50, blue = 50;
@@ -10,6 +10,7 @@ var alpha = Parameter.t().map(function (t) { return 0.1 / (t * 5 + 0.1); });
 function permDot(size, css_color) {
     return Ax.create().fillStyle(css_color).fillRect([-size / 2, -size / 2], [size, size]);
 }
+Parameter.seedrnd("seed").init()(0);
 // each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0, 0], [100, 100]));
 // a ring of exploding particles that fade our

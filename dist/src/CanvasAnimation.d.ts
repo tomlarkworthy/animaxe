@@ -14,7 +14,7 @@ export declare class CanvasTick extends OT.BaseTick {
     events: events.Events;
     constructor(clock: number, dt: number, ctx: CanvasRenderingContext2D, events: events.Events);
 }
-export declare class Animation extends OT.ObservableTransformer<CanvasTick> {
+export declare class Animation extends OT.ChainableTransformer<CanvasTick> {
     attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>;
     constructor(attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>);
     /**

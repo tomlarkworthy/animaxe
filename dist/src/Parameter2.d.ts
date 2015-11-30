@@ -38,7 +38,27 @@ function moveTo(
 }
 ```
  */
-export declare type Parameter<Value> = OT.ObservableTransformer<OT.BaseTick, Value>;
+export declare class Parameter<Value> extends OT.ObservableTransformer<OT.BaseTick, Value> {
+    /**
+     * Before a parameter is used, the enclosing animation must call init. This returns a function which
+     * can be used to find the value of the function for specific values of time.
+     */
+    constructor(init: () => ((clock: number) => Value));
+    /**
+     * Before a parameter is used, the enclosing animation must call init. This returns a function which
+     * can be used to find the value of the function for specific values of time.
+     */
+    init(): (clock: number) => Value;
+    /**
+     * map the value of 'this' to a new parameter
+     */
+    map<V>(fn: (Value) => V): Parameter<V>;
+    /**
+     * Returns a parameter whose value is forever the first value next picked from this.
+     * @returns {Parameter<T>}
+     */
+    first(): Parameter<Value>;
+}
 export declare function from<T>(source: T | Parameter<T>): Parameter<T>;
 export declare function point(x: types.NumberArg, y: types.NumberArg): Parameter<types.Point>;
 export declare function displaceT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T>;
@@ -49,5 +69,5 @@ export declare function t(): Parameter<number>;
 export declare function rnd(): Parameter<number>;
 export declare function constant<T>(val: T): Parameter<T>;
 export declare function rndNormal(scale?: Parameter<number> | number): Parameter<types.Point>;
-export declare function sin<Tick extends OT.BaseTick>(period: types.NumberArg): Parameter<number>;
-export declare function cos<Tick extends OT.BaseTick>(period: types.NumberArg): Parameter<number>;
+export declare function sin(period: types.NumberArg): Parameter<number>;
+export declare function cos(period: types.NumberArg): Parameter<number>;
