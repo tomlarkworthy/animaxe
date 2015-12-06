@@ -5,6 +5,7 @@
         "outDir": "dist"
     },
     "files": [
+        "./src/zip.ts",
         "./src/animaxe.ts",
         "./src/CanvasAnimation",
         "./src/ctx-get-transform.ts",

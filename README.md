@@ -195,7 +195,7 @@ Refactors
   - Key issue, its a subclass/implementor of tranformer functionality, but return types must keep the CanvasAPI
 - add AFRP typing modulue
   - make parameters a special case of an ObservableTransformer
-    - combine is broken coz zip is broken, this breaks affect and other things
+    - combine2 is broken coz zip is broken, this breaks affect2 and other things
   - Move the .pipe inside the .draw (rename draw), and remove lots of redundant pipes
 - change order of playExample parameters
 

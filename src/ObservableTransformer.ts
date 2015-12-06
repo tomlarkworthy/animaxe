@@ -62,6 +62,32 @@ export class ObservableTransformer<In extends BaseTick, Out> {
         });
     }
    
+    // todo scan merge, somehow 
+    // we could use combineLatest with tagging
+    // 
+    // subject
+    // zip (subject, subject.take(1))
+    // subject.onNext() //would expect onComplete to call
+    // subject.onNext() //does here instead (and no onNext())
+    
+    static combineN<Input extends BaseTick, Output> (
+        sources: Rx.Observable<any>[], 
+        combinerBuilder: () => (args: any[]) => Output)
+        :  Rx.Observable<Output> {
+            
+        // assign and link a subject for each source
+        var subscriptions= 
+            sources.map(source => {
+                    return source.subscribe(
+                        next
+                    );
+                }
+            )
+        
+        sources.map(x => new Rx.Subject<any>())
+                   
+        return null;
+    }
     /**
      * Combine with another transformer with the same type of input. 
      * Both are given the same input, and their simulataneous outputs are passed to a 
@@ -77,7 +103,12 @@ export class ObservableTransformer<In extends BaseTick, Out> {
         return new ObservableTransformer<In, Combined>(
             (upstream: Rx.Observable<In>) => {
                 // TODO ALL THE ISSUES ARE HERE, COMBINE DOES NTO DELIVER onCompleted fast
-                // Should the onComplete call during the thread of execution of a dirrernt on Next
+                // Should the onComplete call during the thread of execution of a dirrernt on Next?
+                // Is there a better way of arranging the merge, so that the onComplete 
+                // merges faster
+                // we need to push all the ticks through each pipe, collect the results
+                // and defer resolving onCompleted until immediately after
+                // this requires a new type of combinator
                 if (DEBUG) console.log("combine2: attach");
                 
                 var upstream = upstream.tap(

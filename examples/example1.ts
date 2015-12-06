@@ -11,7 +11,8 @@ Ax.DEBUG = true;
 function spark(color: Ax.ColorArg): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
     return Ax.create()
         .take(1)
-        .fillRect([-2, -2], [10,10])
+        .fillRect([-5, -5], [10,10])
+        .then(Ax.create().take(1).fillRect([-2, -2], [5, 5]))
 }
 
 // move the drawing context frame of reference to the center (50,50) and then move it by a +ve x velocity,
