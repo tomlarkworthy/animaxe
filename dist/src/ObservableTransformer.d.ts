@@ -32,7 +32,6 @@ export declare class ObservableTransformer<In extends BaseTick, Out> {
      * combiner function, which compute the final output.
      */
     combine1<Arg1, CombinedOut>(other1: ObservableTransformer<In, Arg1>, combinerBuilder: () => (tick: Out, arg1: Arg1) => CombinedOut): ObservableTransformer<In, CombinedOut>;
-    static combineN<Input extends BaseTick, Output>(sources: Rx.Observable<any>[], combinerBuilder: () => (args: any[]) => Output): Rx.Observable<Output>;
     /**
      * Combine with another transformer with the same type of input.
      * Both are given the same input, and their simulataneous outputs are passed to a

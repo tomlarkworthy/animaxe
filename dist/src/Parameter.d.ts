@@ -45,9 +45,9 @@ export declare function displaceT<T>(displacement: types.NumberArg, value: T | P
 export declare function rgba(r: types.NumberArg, g: types.NumberArg, b: types.NumberArg, a: types.NumberArg): Parameter<types.Color>;
 export declare function hsl(h: types.NumberArg, s: types.NumberArg, l: types.NumberArg): Parameter<types.Color>;
 export declare function seedrnd(seed: types.StringArg): Parameter<void>;
-export declare function t(): Parameter<number>;
 export declare function rnd(): Parameter<number>;
 export declare function constant<T>(val: T): Parameter<T>;
 export declare function rndNormal(scale?: Parameter<number> | number): Parameter<types.Point>;
-export declare function sin<Tick extends OT.BaseTick>(period: types.NumberArg): Parameter<number>;
-export declare function cos<Tick extends OT.BaseTick>(period: types.NumberArg): Parameter<number>;
+export declare function sin(x: types.NumberArg): Parameter<number>;
+export declare function cos(x: types.NumberArg): Parameter<number>;
+export declare function t(): Parameter<number>;

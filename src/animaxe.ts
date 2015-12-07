@@ -41,6 +41,7 @@ export class Animator{
         this.root = new Rx.Subject<canvas.CanvasTick>()
     }
     tick(dt: number) {
+        if (DEBUG) console.log("animator: tick", dt);
         var tick = new canvas.CanvasTick(this.t, dt, this.ctx, this.events);
         this.t += dt;
         this.root.onNext(tick);
@@ -48,27 +49,35 @@ export class Animator{
     }
     ticker(dts: Rx.Observable<number>): void {
         // todo this is a bit yuck
-        dts.subscribe(this.tick.bind(this), this.root.onError.bind(this.root), this.root.onCompleted.bind(this.root));
+        dts.subscribe(
+            this.tick.bind(this), 
+            this.root.onError.bind(this.root), 
+            this.root.onCompleted.bind(this.root)
+        );
     }
     play(animation: canvas.Animation): Rx.IDisposable {
         var self = this;
-        if (DEBUG) console.log("animator: play");
-        var saveBeforeFrame = this.root.tapOnNext(function(tick){
-            if (DEBUG) console.log("animator: ctx save");
-            tick.ctx.save();
-        });
+        var saved: boolean = false;
+        if (DEBUG) console.log("animator: play animation");
+        var saveBeforeFrame = this.root.tapOnNext(
+            (tick: canvas.CanvasTick) => {
+                if (DEBUG) console.log("animator: ctx save");
+                tick.ctx.save();
+                saved = true;
+            }
+        );
         return animation
             .attach(saveBeforeFrame) // todo, it be nicer if we could chain attach
             .tap(
             function(tick){
                 if (DEBUG) console.log("animator: ctx next restore");
-                tick.ctx.restore();
+                if (saved) {self.ctx.restore(); saved = false;}
             },function(err){
                 if (DEBUG) console.log("animator: ctx err restore", err);
-                self.ctx.restore();
+                if (saved) {self.ctx.restore(); saved = false;}
             },function(){
                 if (DEBUG) console.log("animator: ctx complete restore");
-                self.ctx.restore();
+                if (saved) {self.ctx.restore(); saved = false;}
             }).subscribe();
     }
 

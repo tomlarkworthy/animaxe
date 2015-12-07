@@ -43,17 +43,31 @@ function sparkLine(start: Ax.PointArg, end: Ax.PointArg, css_color: Ax.ColorArg)
 }
 
 //large circle funcitons
-var bigSin = Parameter.sin(1).map(x => x * 40 + 50);
-var bigCos = Parameter.cos(1).map(x => x * 40 + 50);
+var bigSin = Parameter.sin(Parameter.t()).map(x => x * 40 + 50);
+var bigCos = Parameter.cos(Parameter.t()).map(x => x * 40 + 50);
 
 //periodic color
 var red   = 255;
-var green = Parameter.sin(2).map(x => x * 100 + 55);
+var green = Parameter.sin(Parameter.t().map(x => x*2)).map(x => x * 100 + 55);
 var blue = 50;
 
 //each frame, first draw black background to erase the previous contents
-animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));
+// animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));
 
+// TEST:
+animator.play(
+    Ax.create()
+    .withinPath(Ax.create()
+        .moveTo(
+            Parameter.point(
+                bigSin,  
+                Parameter.displaceT(-0.1, bigSin)
+            )
+        )
+    )
+)
+// TO DEBUG:
+/*
 animator.play(
     Ax.create().emit(
         sparkLine(
@@ -63,5 +77,6 @@ animator.play(
         )
     )
 );
+*/
 
 helper.playExample("example2", 20, animator, 100, 100);

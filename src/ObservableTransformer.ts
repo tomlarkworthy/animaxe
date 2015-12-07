@@ -1,6 +1,7 @@
 import * as Ax from "./animaxe"
 import * as Rx from "rx"
 import * as types from "./types"
+import * as zip from "./zip"
 import * as Parameter from "./Parameter"
 export * from "./types"
 
@@ -52,42 +53,19 @@ export class ObservableTransformer<In extends BaseTick, Out> {
         other1: ObservableTransformer<In, Arg1>, 
         combinerBuilder: () => (tick: Out, arg1: Arg1) => CombinedOut)
             : ObservableTransformer<In, CombinedOut> {
-        return new ObservableTransformer<In, CombinedOut>((upstream) => {
+        return new ObservableTransformer<In, CombinedOut>((upstream: Rx.Observable<In>) => {
             // join upstream with parameter
-            return Rx.Observable.zip<Out, Arg1, CombinedOut>(
-               this.attach(upstream),
-               other1.attach(upstream),
-               combinerBuilder() 
-            );
+            console.log("combine1: attach")
+            var fork = new Rx.Subject<In>()
+            upstream.subscribe(fork);
+            return zip.zip(
+                combinerBuilder(),
+                this.attach(fork).tapOnCompleted(() => console.log("combine1: inner this completed")),
+                other1.attach(fork).tapOnCompleted(() => console.log("combine1: inner other1 completed"))
+            )
         });
     }
    
-    // todo scan merge, somehow 
-    // we could use combineLatest with tagging
-    // 
-    // subject
-    // zip (subject, subject.take(1))
-    // subject.onNext() //would expect onComplete to call
-    // subject.onNext() //does here instead (and no onNext())
-    
-    static combineN<Input extends BaseTick, Output> (
-        sources: Rx.Observable<any>[], 
-        combinerBuilder: () => (args: any[]) => Output)
-        :  Rx.Observable<Output> {
-            
-        // assign and link a subject for each source
-        var subscriptions= 
-            sources.map(source => {
-                    return source.subscribe(
-                        next
-                    );
-                }
-            )
-        
-        sources.map(x => new Rx.Subject<any>())
-                   
-        return null;
-    }
     /**
      * Combine with another transformer with the same type of input. 
      * Both are given the same input, and their simulataneous outputs are passed to a 
@@ -110,44 +88,14 @@ export class ObservableTransformer<In extends BaseTick, Out> {
                 // and defer resolving onCompleted until immediately after
                 // this requires a new type of combinator
                 if (DEBUG) console.log("combine2: attach");
-                
-                var upstream = upstream.tap(
-                    next => console.log("combine2: upstream next"),
-                    error => console.log("combine2: upstream error"),
-                    () => console.log("combine2: upstream onCompleted")
-                )
-                // todo shitty version until https://github.com/Reactive-Extensions/RxJS/issues/958 gets fixed
-                
-                /*
+                var fork = new Rx.Subject<In>()
+                upstream.subscribe(fork);
                 // join upstream with parameter
-                return Rx.Observable.zip(
-                    this.attach(upstream).tapOnCompleted(() => console.log("combine2: inner this completed")),
-                    other1.attach(upstream).tapOnCompleted(() => console.log("combine2: inner other1 completed")),
-                    other2.attach(upstream).tapOnCompleted(() => console.log("combine2: inner other2 completed")),
-                    combinerBuilder()
-                )*/
-                
-                var zipArgs =  Rx.Observable.zip(
-                    other1.attach(upstream).tapOnCompleted(() => console.log("combine2: inner other1 completed")),
-                    other2.attach(upstream).tapOnCompleted(() => console.log("combine2: inner other2 completed")),
-                    (arg1: Arg1, arg2: Arg2) => { return {arg1: arg1, arg2: arg2}}
-                ).tap(
-                    next => console.log("combine2: zipArgs next"),
-                    error => console.log("combine2: zipArgs error"),
-                    () => console.log("combine2: zipArgs onCompleted")
-                )
-                
-                var combiner = combinerBuilder();
-                return Rx.Observable.zip(
-                    this.attach(upstream).tapOnCompleted(() => console.log("combine2: inner this completed")),
-                    zipArgs.tapOnCompleted(() => console.log("combine2: inner zips completed")),
-                    (tick: Out, args: {arg1: Arg1, arg2: Arg2}) => {
-                        return combiner(tick, args.arg1, args.arg2)
-                    }
-                ).tap(
-                    next => console.log("combine2: downstream next"),
-                    error => console.log("combine2: downstream error"),
-                    () => console.log("combine2: downstream onCompleted")
+                return zip.zip(
+                    combinerBuilder(),
+                    this.attach(fork).tapOnCompleted(() => console.log("combine2: inner this completed")),
+                    other1.attach(fork).tapOnCompleted(() => console.log("combine2: inner other1 completed")),
+                    other2.attach(fork).tapOnCompleted(() => console.log("combine2: inner other2 completed"))
                 )
             }
         );
@@ -168,13 +116,17 @@ export class ObservableTransformer<In extends BaseTick, Out> {
         return new ObservableTransformer<In, Combined>(
             (upstream: Rx.Observable<In>) => {
                 // join upstream with parameter
-                return Rx.Observable.zip(
-                    this.attach(upstream),
-                    other1.attach(upstream),
-                    other2.attach(upstream),
-                    other3.attach(upstream),
-                    combinerBuilder()
-                );
+                if (DEBUG) console.log("combine3: attach");
+                var fork = new Rx.Subject<In>()
+                upstream.subscribe(fork);
+                // join upstream with parameter
+                return zip.zip(
+                    combinerBuilder(),
+                    this.attach(fork),
+                    other1.attach(fork),
+                    other2.attach(fork),
+                    other3.attach(fork)
+                )
             }
         );
     }
@@ -567,12 +519,15 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
     affect1<Param1> (
         param1: ObservableTransformer<Tick, Param1>, 
         effectBuilder: () => (tick: Tick, param1: Param1) => void): this {
+        if (DEBUG) console.log("affect1: build");
         return this.create(
                 this.combine1(
                     param1,
                     () => {
+                        if (DEBUG) console.log("affect1: attach");
                         var effect = effectBuilder();
                         return (tick: Tick, param1: Param1) => {
+                            if (DEBUG) console.log("affect1: effect, tick + ", param1);
                             effect(tick, param1) // apply side effect
                             return tick;   // tick is returned again to make the return type chainable
                         }
@@ -585,6 +540,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
         param1: ObservableTransformer<Tick, Param1>, 
         param2: ObservableTransformer<Tick, Param2>, 
         effectBuilder: () => (tick: Tick, param1: Param1, param2: Param2) => void): this {
+        if (DEBUG) console.log("affect2: build");
         return this.create(
                 this.combine2(
                     param1,
@@ -593,7 +549,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
                         if (DEBUG) console.log("affect2: attach");
                         var effect = effectBuilder();
                         return (tick: Tick, param1: Param1, param2: Param2) => {
-                            if (DEBUG) console.log("affect2: effect");
+                            if (DEBUG) console.log("affect2: effect, tick + ", param1, param2);
                             effect(tick, param1, param2) // apply side effect
                             return tick;   // tick is returned again to make the return type chainable
                         }

@@ -49,11 +49,11 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
             () => {
                 if (DEBUG) console.log("velocity: attach");
                 var pos: types.Point = [0.0,0.0];
-                return (tick: OT.BaseTick, velocity: types.Point) => {
+                return (tick: CanvasTick, velocity: types.Point) => {
+                    if (DEBUG) console.log("velocity: tick", pos);
                     tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
                     pos[0] += velocity[0] * tick.dt;
                     pos[1] += velocity[1] * tick.dt;
-                    if (DEBUG) console.log("velocity: tick", velocity, pos);
                 }
             }
         );
@@ -72,7 +72,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
             () => {
                 var t = 0;
                 if (DEBUG) console.log("tween: init");
-                return (tick, from, to, time) => {
+                return (tick: CanvasTick, from, to, time) => {
                     t = t + tick.dt;
                     if (t > time) t = time;
                     var x = from[0] + (to[0] - from[0]) * t / time;
@@ -98,18 +98,16 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for strokeStyle in the canvas API.
      */
     strokeStyle(color: types.ColorArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("strokeStyle: attach");
-                    var color_next = Parameter.from(color).init();
-                    return function (tick: CanvasTick) {
-                        var color = color_next(tick.clock);
-                        if (DEBUG) console.log("strokeStyle: strokeStyle", color);
-                        tick.ctx.strokeStyle = color;
-                    }
+        if (DEBUG) console.log("strokeStyle: build");
+        return this.affect1(
+            Parameter.from(color), 
+            () => {
+                if (DEBUG) console.log("strokeStyle: attach");
+                return function (tick: CanvasTick, color: types.Color) {
+                    if (DEBUG) console.log("strokeStyle: strokeStyle", color);
+                    tick.ctx.strokeStyle = color;
                 }
-            )
+            }
         );
     }
     /**
@@ -121,7 +119,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
             Parameter.from(color), 
             () => {
                 if (DEBUG) console.log("fillStyle: attach");
-                return (tick: OT.BaseTick, color: types.Color) => {
+                return (tick: CanvasTick, color: types.Color) => {
                     if (DEBUG) console.log("fillStyle: color", color);
                     tick.ctx.fillStyle = color
                 }
@@ -223,18 +221,15 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for lineWidth in the canvas API.
      */
     lineWidth(width: types.NumberArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("lineWidth: attach");
-                    var width_next = Parameter.from(width).init();
-                    return function (tick: CanvasTick) {
-                        var width = width_next(tick.clock);
-                        if (DEBUG) console.log("lineWidth: lineWidth", width);
-                        tick.ctx.lineWidth = width;
-                    }
+        return this.affect1(
+            Parameter.from(width),
+            () => { 
+                if (DEBUG) console.log("lineWidth: attach");
+                return (tick: CanvasTick, width: number) => {
+                    if (DEBUG) console.log("lineWidth: lineWidth", width);
+                    tick.ctx.lineWidth = width;
                 }
-            )
+            }
         );
     }
     /**
@@ -286,7 +281,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
             Parameter.from(width_height), 
             () => {
                 if (DEBUG) console.log("fillRect: attach");
-                return (tick: OT.BaseTick, xy: types.Point, width_height: types.Point) => {
+                return (tick: CanvasTick, xy: types.Point, width_height: types.Point) => {
                     if (DEBUG) console.log("fillRect: tick", xy, width_height);
                     tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);
                 }
@@ -346,10 +341,10 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                 (upstream: Rx.Observable<CanvasTick>) => {
                     if (DEBUG) console.log("withinPath: attach");
                     var beginPathBeforeInner = upstream.tapOnNext(
-                        function (tick: CanvasTick) {tick.ctx.beginPath();}
+                        (tick: CanvasTick) => tick.ctx.beginPath()
                     );
                     return inner.attach(beginPathBeforeInner).tapOnNext(
-                        function (tick: CanvasTick) {tick.ctx.closePath();}
+                        (tick: CanvasTick) => tick.ctx.closePath()
                     )
                 }
             )
@@ -391,36 +386,30 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for moveTo in the canvas API. Use with withinPath.
      */
     moveTo(xy: types.PointArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("moveTo: attach");
-                    var xy_next = Parameter.from(xy).init();
-                    return function (tick: CanvasTick) {
-                        var xy = xy_next(tick.clock);
-                        if (DEBUG) console.log("moveTo: moveTo", xy);
-                        tick.ctx.moveTo(xy[0], xy[1]);
-                    }
+        return this.affect1(
+            Parameter.from(xy),
+            () => { 
+                if (DEBUG) console.log("moveTo: attach");
+                return function (tick: CanvasTick, xy: types.Point) {
+                    if (DEBUG) console.log("moveTo: moveTo", xy);
+                    tick.ctx.moveTo(xy[0], xy[1]);
                 }
-            )
+            }
         );
     }
     /**
      * Dynamic chainable wrapper for lineTo in the canvas API. Use with withinPath.
      */
     lineTo(xy: types.PointArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("lineTo: attach");
-                    var xy_next = Parameter.from(xy).init();
-                    return function (tick: CanvasTick) {
-                        var xy = xy_next(tick.clock);
-                        if (DEBUG) console.log("lineTo: lineTo", xy);
-                        tick.ctx.lineTo(xy[0], xy[1]);
-                    }
+        return this.affect1(
+            Parameter.from(xy),
+            () => {
+                if (DEBUG) console.log("lineTo: attach");
+                return function (tick: CanvasTick, xy: types.Point) {
+                    if (DEBUG) console.log("lineTo: lineTo", xy);
+                    tick.ctx.lineTo(xy[0], xy[1]);
                 }
-            )
+            }
         );
     }
     /**
@@ -549,7 +538,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
             Parameter.from(xy), 
             () => {
                 if (DEBUG) console.log("translate: attach");
-                return (tick: OT.BaseTick, xy: types.Point) => {
+                return (tick: CanvasTick, xy: types.Point) => {
                     if (DEBUG) console.log("translate:", xy);
                     tick.ctx.translate(xy[0], xy[1]);
                 }

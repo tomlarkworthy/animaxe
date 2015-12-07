@@ -20,33 +20,40 @@ function zipArrays(arrays) {
     
 
 class ZipObservable {
-  constructor(public observer, public sources, public resultSelector) {  
-    var n = this.sources.length,
-        subscriptions = new Array(n),
-        done = utils.arrayInitialize(n, falseFactory),
-        q = utils.arrayInitialize(n, emptyArrayFactory);
-
+  subscriptions: Rx.IDisposable[];
+  constructor(public observer, public sources, public resultSelector) {     
+    // console.log("ZipObservable"); 
+    var n = this.sources.length;
+    var done = utils.arrayInitialize(n, falseFactory);
+    var q = utils.arrayInitialize(n, emptyArrayFactory);
+    this.subscriptions = new Array(n);
+    
     for (var i = 0; i < n; i++) {
       var source = this.sources[i]
-      subscriptions[i] = source.subscribe(new ZipObserver(observer, i, this, q, done))
+      var subscriber = new ZipObserver(observer, i, this, q, done);
+      this.subscriptions[i] = source.subscribe(
+        subscriber.next.bind(subscriber),
+        subscriber.error.bind(subscriber),
+        subscriber.completed.bind(subscriber)
+      )
     }
   }
   
   
   dispose() {
     for (var i = 0; i < this.sources.length; i++) {
-      subscriptions[i].dispose();
+      this.subscriptions[i].dispose();
     }
   }   
 }
 
 class ZipObserver {
-  _o;
-  _i;
-  _p;
-  _q;
-  _d;
-  constructor(o, i, p, q, d) {
+    _o;
+    _i;
+    _p;
+    _q;
+    _d;
+    constructor(o, i, p, q, d) {
       this._o = o;
       this._i = i;
       this._p = p;
@@ -55,11 +62,12 @@ class ZipObserver {
     }
     
     next(x) {
+      //console.log("ZipObserver: next", this);
       this._q[this._i].push(x);
       if (this._q.every(notEmpty)) {
         var queuedValues = this._q.map(shiftEach);
         try {
-          var res = this._p.resultSelector(queuedValues);
+          var res = this._p.resultSelector.apply(null, queuedValues);
           this._o.onNext(res);
         
           // Any done and empty => zip completed.
@@ -167,8 +175,13 @@ class ZipObserver {
    * The last element in the arguments must be a function to invoke for each series of elements at corresponding indexes in the args.
    * @returns {Observable} An observable sequence containing the result of combining elements of the args using the specified result selector function.
    */
-export function zip<T>(sources: Rx.Observable<any>[], resultSelector: (sourcesValues: any[]) => T): Rx.Observable<T> {
+export function zip<T>(
+  resultSelector: (...sourcesValues: any[]) => T,
+  ...sources: Rx.Observable<any>[]): Rx.Observable<T> {
   return <Rx.Observable<T>>Rx.Observable.create(
-    observer => (new ZipObservable(observer, sources, resultSelector)).dispose
+    observer => {
+      var zipper = new ZipObservable(observer, sources, resultSelector)
+      return zipper.dispose.bind(zipper);
+    }
   );
 };

@@ -4,6 +4,7 @@
 import * as Rx from "rx";
 import * as seedrandom from "seedrandom";
 import * as OT from "./ObservableTransformer"
+import * as zip from "./zip"
 
 export var DEBUG = true;
 
@@ -128,34 +129,22 @@ export function point(
 
 
 export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T> {
-    if (DEBUG) console.log("point: build");
+    if (DEBUG) console.log("displaceT: build");
     
     return new OT.ObservableTransformer<OT.BaseTick, T>(
         (upstream: Rx.Observable<OT.BaseTick>) => {
-            var clockSkew = Rx.Observable.zip(
-                upstream,
-                from(displacement).attach(upstream),
+            var clockSkew = zip.zip(
                 (tick: OT.BaseTick, dt: number) => {
+                    console.log("displaceT", tick.clock, dt)
                     return new OT.BaseTick(tick.clock + dt, tick.dt, tick.ctx)    
-                }
+                },
+                upstream,
+                from(displacement).attach(upstream)
             )
             
             return from(value).attach(clockSkew)
         }
     )
-    /*
-    if (DEBUG) console.log("displace: build");
-    return new Parameter<T> (
-        () => {
-            var dt_next    = from(displacement).init(); //todo remove <number>
-            var value_next = from(value).init();
-            return function (t) {
-                var dt: number = dt_next(t);
-                if (DEBUG) console.log("displaceT: ", dt);
-                return value_next(t + dt)
-            }
-        }
-    )*/
 }
 
 /*
@@ -177,8 +166,8 @@ export function rgba(
         from(a),
         () => {
             if (DEBUG) console.log("rgba: init");
-            return (r,b,g,a) => {
-                var val = "rgba(" + r + "," + g + "," + b + "," + a + ")";
+            return (r,g,b,a) => {
+                var val = "rgba(" + Math.floor(r) + "," + Math.floor(g) + "," + Math.floor(b) + "," + a + ")";
                 if (DEBUG) console.log("rgba: ", val);
                 return val; 
             }
@@ -219,15 +208,6 @@ export function seedrnd(seed: types.StringArg): Parameter<void> {
                 rndGenerator = seedrandom.xor4096(seed_next(t));
                 return;
             }
-        }
-    );
-}
-
-export function t(): Parameter<number> {
-    if (DEBUG) console.log("t: build");
-    return new Parameter(
-        () => function (t) {
-            return t;
         }
     );
 }
@@ -275,29 +255,20 @@ export function rndNormal(scale : Parameter<number> | number = 1): Parameter<typ
 
 
 //todo: should be t as a parameter to a non tempor
-export function sin<Tick extends OT.BaseTick>(period: types.NumberArg): Parameter<number> {   
+export function sin(x: types.NumberArg): Parameter<number> {   
     if (DEBUG) console.log("sin: build");
-    return new OT.ObservableTransformer<Tick, Tick>(x => x).combine1(from(period), () => {
-        if (DEBUG) console.log("sin: init");
-        return (tick: Tick, period: number) => {
-            var t = tick.clock;
-            var value: number = Math.sin(t * (Math.PI * 2) / period);
-            if (DEBUG) console.log("sin: tick", t, value);
-            return value;
-        }
-    })
+    return from(x).map(x => Math.sin(x))
 }
-export function cos<Tick extends OT.BaseTick>(period: types.NumberArg): Parameter<number> {   
+export function cos(x: types.NumberArg): Parameter<number> {   
     if (DEBUG) console.log("cos: build");
-    return new OT.ObservableTransformer<Tick, Tick>(x => x).combine1(from(period), () => {
-        if (DEBUG) console.log("cos: init");
-        return (tick: Tick, period: number) => {
-            var t = tick.clock;
-            var value: number = Math.cos(t * (Math.PI * 2) / period);
-            if (DEBUG) console.log("cos: tick", t, value);
-            return value;
-        }
-    })
+    return from(x).map(x => Math.cos(x))
+}
+
+export function t(): Parameter<number> {   
+    if (DEBUG) console.log("t: build");
+    return new OT.ObservableTransformer(
+        (upstream: Rx.Observable<OT.BaseTick>) => upstream.map(tick => tick.clock)
+    )
 }
 
 
