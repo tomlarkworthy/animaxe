@@ -15,7 +15,7 @@ if (DEBUG) console.log("Parameter: module loading...");
 
 
 //console.log("seed random", seedrandom)
-export var rndGenerator = seedrandom.xor4096();
+export var rndGenerator = seedrandom.xor4096(Math.random());
 
 // Parameter is a transformer from (clock signals -> Value)
 
@@ -147,6 +147,27 @@ export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter
     )
 }
 
+export function first<T>(value: Parameter<T>): Parameter<T> {   
+    if (DEBUG) console.log("first: build");
+    return value.combine1(
+        value,
+        () => {
+            if (DEBUG) console.log("first: init");
+            var first = true;
+            var firstValue: T = null;
+            
+            return (tick, value: T) => {
+                if (first) {
+                    first = false;
+                    firstValue = value;
+                    if (DEBUG) console.log("first: firstValue", firstValue);
+                }
+                return firstValue;
+            }
+        }
+    )
+}
+
 /*
     RGB between 0 and 255
     a between 0 - 1 (1 is opaque, 0 is transparent)
@@ -201,15 +222,10 @@ export function hsl(
 
 export function seedrnd(seed: types.StringArg): Parameter<void> {
     if (DEBUG) console.log("seedrnd: build");
-    return new Parameter(
-        () => {
-            let seed_next = from(seed).init();
-            return t => {
-                rndGenerator = seedrandom.xor4096(seed_next(t));
-                return;
-            }
-        }
-    );
+    return from(seed).mapValue(seed => {
+        seedrandom.xor4096(seed);
+        return;
+    });
 }
 
 export function rnd(): Parameter<number> {
@@ -224,31 +240,25 @@ export function rnd(): Parameter<number> {
 export function constant<T>(val: T): Parameter<T> {
     if (DEBUG) console.log("constant: build");
     return new OT.ObservableTransformer<OT.BaseTick, T> (
-        upstream => upstream.map(x => val)
+        upstream => upstream.map(_ => val)
     );
 }
 
 export function rndNormal(scale : Parameter<number> | number = 1): Parameter<types.Point> {
     if (DEBUG) console.log("rndNormal: build");
-    return new Parameter<types.Point>(
-        () => {
-            if (DEBUG) console.log("rndNormal: init");
-            var scale_next = from(scale).init();
-            return function (t: number): types.Point {
-                var scale = scale_next(t);
-                // generate random numbers
-                var norm2 = 100;
-                while (norm2 > 1) { //reject those outside the unit circle
-                    var x = (rndGenerator() - 0.5) * 2;
-                    var y = (rndGenerator() - 0.5) * 2;
-                    norm2 = x * x + y * y;
-                }
-
-                var norm = Math.sqrt(norm2);
-                var val: [number, number] = [scale * x / norm , scale * y / norm];
-                if (DEBUG) console.log("rndNormal: val", val);
-                return val;
+    return from(scale).mapValue(
+        scale => {
+            // generate random numbers
+            var norm2 = 1; // arbitary value to beat loop condition
+            while (norm2 >= 1) { //reject those outside the unit circle
+                var x = (rndGenerator() - 0.5) * 2;
+                var y = (rndGenerator() - 0.5) * 2;
+                norm2 = x * x + y * y;
             }
+            var norm = Math.sqrt(norm2);
+            var val: [number, number] = [scale * x / norm , scale * y / norm];
+            if (DEBUG) console.log("rndNormal: val", val);
+            return val;
         }
     );
 }
@@ -257,11 +267,11 @@ export function rndNormal(scale : Parameter<number> | number = 1): Parameter<typ
 //todo: should be t as a parameter to a non tempor
 export function sin(x: types.NumberArg): Parameter<number> {   
     if (DEBUG) console.log("sin: build");
-    return from(x).map(x => Math.sin(x))
+    return from(x).mapValue(x => Math.sin(x))
 }
 export function cos(x: types.NumberArg): Parameter<number> {   
     if (DEBUG) console.log("cos: build");
-    return from(x).map(x => Math.cos(x))
+    return from(x).mapValue(x => Math.cos(x))
 }
 
 export function t(): Parameter<number> {   

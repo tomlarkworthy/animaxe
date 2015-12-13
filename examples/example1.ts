@@ -20,11 +20,11 @@ function spark(color: Ax.ColorArg): Ax.Animation { //we could be clever and let 
         );
 }
 //large circle funcitons
-var bigSin = Parameter.sin(Parameter.t().map(x=>x * Math.PI * 2)).map(x => x * 40 + 50);
-var bigCos = Parameter.cos(Parameter.t().map(x=>x * Math.PI * 2)).map(x => x * 40 + 50);
+var bigSin = Parameter.sin(Parameter.t().mapValue(x=>x * Math.PI * 2)).mapValue(x => x * 40 + 50);
+var bigCos = Parameter.cos(Parameter.t().mapValue(x=>x * Math.PI * 2)).mapValue(x => x * 40 + 50);
 
-var red   = Parameter.sin(Parameter.t().map(x=>x * Math.PI)).map(x => x * 125 + 125);
-var green = Parameter.sin(Parameter.t().map(x=>x * Math.PI)).map(x => x * 55 + 200);
+var red   = Parameter.sin(Parameter.t().mapValue(x=>x * Math.PI)).mapValue(x => x * 125 + 125);
+var green = Parameter.sin(Parameter.t().mapValue(x=>x * Math.PI)).mapValue(x => x * 55 + 200);
 
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));

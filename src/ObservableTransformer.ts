@@ -33,15 +33,22 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     create(attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>): this {
         return <this> new ObservableTransformer<In, Out>(attach);
     }
+
+    /**
+     * map the stream of values to a new parameter
+     */
+    mapObservable<V>(fn: (out: Rx.Observable<Out>) => Rx.Observable<V>): ObservableTransformer<In, V> {
+        var self = this;
+        return new ObservableTransformer<In, V>(
+            (upstream: Rx.Observable<In>) => fn(self.attach(upstream))
+        );
+    }
     
     /**
      * map the value of 'this' to a new parameter
      */
-    map<V>(fn: (Out) => V): ObservableTransformer<In, V> {
-        var self = this;
-        return new ObservableTransformer<In, V>(
-            (upstream: Rx.Observable<In>) => self.attach(upstream).map(fn)
-        );
+    mapValue<V>(fn: (out: Out) => V): ObservableTransformer<In, V> {
+        return this.mapObservable(upstream => <Rx.Observable<V>>upstream.map(fn))
     }
     
     /**

@@ -103,7 +103,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
             Parameter.from(color), 
             () => {
                 if (DEBUG) console.log("strokeStyle: attach");
-                return function (tick: CanvasTick, color: types.Color) {
+                return (tick: CanvasTick, color: types.Color) => {
                     if (DEBUG) console.log("strokeStyle: strokeStyle", color);
                     tick.ctx.strokeStyle = color;
                 }

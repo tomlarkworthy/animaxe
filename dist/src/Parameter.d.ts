@@ -6,7 +6,7 @@ import * as OT from "./ObservableTransformer";
 export declare var DEBUG: boolean;
 import * as types from "./types";
 export * from "./types";
-export declare var rndGenerator: prng;
+export declare var rndGenerator: any;
 /**
  * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
  * every time and event is received from the Rx source
@@ -42,6 +42,7 @@ export declare type Parameter<Value> = OT.ObservableTransformer<OT.BaseTick, Val
 export declare function from<T>(source: T | Parameter<T>): Parameter<T>;
 export declare function point(x: types.NumberArg, y: types.NumberArg): Parameter<types.Point>;
 export declare function displaceT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T>;
+export declare function first<T>(value: Parameter<T>): Parameter<T>;
 export declare function rgba(r: types.NumberArg, g: types.NumberArg, b: types.NumberArg, a: types.NumberArg): Parameter<types.Color>;
 export declare function hsl(h: types.NumberArg, s: types.NumberArg, l: types.NumberArg): Parameter<types.Color>;
 export declare function seedrnd(seed: types.StringArg): Parameter<void>;

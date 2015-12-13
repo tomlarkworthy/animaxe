@@ -14,10 +14,10 @@ function foreverDot(size: number, css_color: Ax.ColorArg): Ax.Animation {
     return Ax.create().fillStyle(css_color).fillRect([-size/2, -size/2], [size, size]);
 }
 
-var bigSin  = Parameter.sin(2).map(x => Math.round(x * 40 + 50));
-var bigCos  = Parameter.cos(2).map(x => Math.round(x * 40 + 50));
-var fastCos = Parameter.cos(1).map(x => Math.round(x * 38 + 50));
-var fastSin = Parameter.sin(1).map(x => Math.round(x * 38 + 50));
+var bigSin  = Parameter.sin(2).mapValue(x => Math.round(x * 40 + 50));
+var bigCos  = Parameter.cos(2).mapValue(x => Math.round(x * 40 + 50));
+var fastCos = Parameter.cos(1).mapValue(x => Math.round(x * 38 + 50));
+var fastSin = Parameter.sin(1).mapValue(x => Math.round(x * 38 + 50));
 
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));

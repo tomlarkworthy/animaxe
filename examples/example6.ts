@@ -118,7 +118,7 @@ class Slider extends Ax.Animation {
 var value = new Rx.BehaviorSubject<number>(0);
 
 //each frame, first draw black background to erase the previous contents
-animator.play(Ax.create().fillStyle(Parameter.rgba(Parameter.updateFrom(0, value).map(x=>x*2.5), 0,0,1)).fillRect([0,0],[100,100]));
+animator.play(Ax.create().fillStyle(Parameter.rgba(Parameter.updateFrom(0, value).mapValue(x=>x*2.5), 0,0,1)).fillRect([0,0],[100,100]));
 
 animator.play(Ax.create()
     //.translate([40, 40])

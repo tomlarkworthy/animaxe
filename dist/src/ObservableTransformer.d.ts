@@ -23,9 +23,13 @@ export declare class ObservableTransformer<In extends BaseTick, Out> {
      */
     create(attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>): this;
     /**
+     * map the stream of values to a new parameter
+     */
+    mapObservable<V>(fn: (out: Rx.Observable<Out>) => Rx.Observable<V>): ObservableTransformer<In, V>;
+    /**
      * map the value of 'this' to a new parameter
      */
-    map<V>(fn: (Out) => V): ObservableTransformer<In, V>;
+    mapValue<V>(fn: (out: Out) => V): ObservableTransformer<In, V>;
     /**
      *  with another transformer with the same type of input.
      * Both are given the same input, and their simulataneous outputs are passed to a
