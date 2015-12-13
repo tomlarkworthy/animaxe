@@ -49,6 +49,7 @@ export declare class ObservableTransformer<In extends BaseTick, Out> {
      */
     combine3<Arg1, Arg2, Arg3, Combined>(other1: ObservableTransformer<In, Arg1>, other2: ObservableTransformer<In, Arg2>, other3: ObservableTransformer<In, Arg3>, combinerBuilder: () => (tick: Out, arg1: Arg1, arg2: Arg2, arg3: Arg3) => Combined): ObservableTransformer<In, Combined>;
     static merge2<In extends BaseTick, Arg1, Arg2, Out>(other1: ObservableTransformer<In, Arg1>, other2: ObservableTransformer<In, Arg2>, combinerBuilder: () => (arg1: Arg1, arg2: Arg2) => Out): ObservableTransformer<In, Out>;
+    static merge3<In extends BaseTick, Arg1, Arg2, Arg3, Out>(other1: ObservableTransformer<In, Arg1>, other2: ObservableTransformer<In, Arg2>, other3: ObservableTransformer<In, Arg3>, combinerBuilder: () => (arg1: Arg1, arg2: Arg2, arg3: Arg3) => Out): ObservableTransformer<In, Out>;
     static merge4<In extends BaseTick, Arg1, Arg2, Arg3, Arg4, Out>(other1: ObservableTransformer<In, Arg1>, other2: ObservableTransformer<In, Arg2>, other3: ObservableTransformer<In, Arg3>, other4: ObservableTransformer<In, Arg4>, combinerBuilder: () => (arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4) => Out): ObservableTransformer<In, Out>;
     init(): (clock: number) => Out;
 }

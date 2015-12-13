@@ -6,7 +6,7 @@ import * as OT from "./ObservableTransformer";
 export declare var DEBUG: boolean;
 import * as types from "./types";
 export * from "./types";
-export declare var rndGenerator: any;
+export declare var rndGenerator: prng;
 /**
  * convert an Rx.Observable into a Parameter by providing an initial value. The Parameter's value will update its value
  * every time and event is received from the Rx source

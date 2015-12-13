@@ -15,7 +15,7 @@ if (DEBUG) console.log("Parameter: module loading...");
 
 
 //console.log("seed random", seedrandom)
-export var rndGenerator = seedrandom.xor4096(Math.random());
+export var rndGenerator = seedrandom.xor4096(Math.random() + "");
 
 // Parameter is a transformer from (clock signals -> Value)
 
@@ -203,19 +203,14 @@ export function hsl(
 ): Parameter<types.Color>
 {
     if (DEBUG) console.log("hsl: build");
-    return new Parameter(
-        () => {
-            var h_next = from(h).init();
-            var s_next = from(s).init();
-            var l_next = from(l).init();
-            return function(t: number) {
-                var h_val = Math.floor(h_next(t));
-                var s_val = Math.floor(s_next(t));
-                var l_val = Math.floor(l_next(t));
-                var val = "hsl(" + h_val + "," + s_val + "%," + l_val + "%)";
-                // if (DEBUG) console.log("hsl: ", val);
-                return val;
-            }
+    return OT.ObservableTransformer.merge3(
+        from(h),
+        from(s),
+        from(l),
+        () => (h, s, l) => {
+            var val = "hsl(" + h + "," + s + "%," + l + "%)";
+            // if (DEBUG) console.log("hsl: ", val);
+            return val;
         }
     );
 }
