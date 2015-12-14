@@ -47,7 +47,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                 if (DEBUG) console.log("velocity: attach");
                 var pos: types.Point = [0.0,0.0];
                 return (tick: CanvasTick, velocity: types.Point) => {
-                    if (DEBUG) console.log("velocity: tick", pos);
+                    if (DEBUG) console.log("velocity: tick", velocity, pos);
                     tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
                     pos[0] += velocity[0] * tick.dt;
                     pos[1] += velocity[1] * tick.dt;

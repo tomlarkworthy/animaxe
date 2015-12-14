@@ -117,14 +117,13 @@ export function point(
 ): Parameter<types.Point>
 {
     if (DEBUG) console.log("point: build");
-    return OT.ObservableTransformer.merge2(
-        from(x), 
+    return from(x).combine1(
         from(y), 
         () => {
             if (DEBUG) console.log("point: init");
             return (x: number, y: number) => <types.Point>[x, y]   
         }
-    )
+    );
 }
 
 
@@ -180,8 +179,7 @@ export function rgba(
 ): Parameter<types.Color>
 {
     if (DEBUG) console.log("rgba: build");
-    return OT.ObservableTransformer.merge4(
-        from(r),
+    return from(r).combine3(
         from(g),
         from(b),
         from(a),
@@ -203,8 +201,7 @@ export function hsl(
 ): Parameter<types.Color>
 {
     if (DEBUG) console.log("hsl: build");
-    return OT.ObservableTransformer.merge3(
-        from(h),
+    return from(h).combine2(
         from(s),
         from(l),
         () => (h, s, l) => {
@@ -219,7 +216,7 @@ export function seedrnd(seed: types.StringArg): Parameter<void> {
     if (DEBUG) console.log("seedrnd: build");
     return from(seed).mapValue(seed => {
         if (DEBUG) console.log("seedrnd: seeding", seed);
-        seedrandom.xor4096(seed);
+        rndGenerator = seedrandom.xor4096(seed);
         return;
     });
 }

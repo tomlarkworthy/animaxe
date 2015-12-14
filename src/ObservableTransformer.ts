@@ -64,7 +64,7 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     }
     
     /**
-     *  with another transformer with the same type of input. 
+     * combine with another transformer with the same type of input. 
      * Both are given the same input, and their simulataneous outputs are passed to a 
      * combiner function, which compute the final output.
      */
@@ -149,61 +149,6 @@ export class ObservableTransformer<In extends BaseTick, Out> {
             }
         );
     }
-    
-    static merge2<In extends BaseTick, Arg1, Arg2, Out> (
-            other1: ObservableTransformer<In, Arg1>, 
-            other2: ObservableTransformer<In, Arg2>, 
-            combinerBuilder: () => 
-                (arg1: Arg1, arg2: Arg2) => Out
-        ): ObservableTransformer<In, Out> {
-        return new ObservableTransformer<In, Out>(
-            (upstream: Rx.Observable<In>) => {
-                return Rx.Observable.zip<Arg1, Arg2, Out>(
-                    other1.attach(upstream),
-                    other2.attach(upstream), 
-                    combinerBuilder());
-            }
-        );
-    }
-    
-    static merge3<In extends BaseTick, Arg1, Arg2, Arg3, Out> (
-            other1: ObservableTransformer<In, Arg1>, 
-            other2: ObservableTransformer<In, Arg2>, 
-            other3: ObservableTransformer<In, Arg3>, 
-            combinerBuilder: () => 
-                (arg1: Arg1, arg2: Arg2, arg3: Arg3) => Out
-        ): ObservableTransformer<In, Out> {
-        return new ObservableTransformer<In, Out>(
-            (upstream: Rx.Observable<In>) => {
-                return Rx.Observable.zip<Arg1, Arg2, Arg3, Out>(
-                    other1.attach(upstream),
-                    other2.attach(upstream), 
-                    other3.attach(upstream), 
-                    combinerBuilder());
-            }
-        );
-    }
-    
-    static merge4<In extends BaseTick, Arg1, Arg2, Arg3, Arg4, Out> (
-            other1: ObservableTransformer<In, Arg1>, 
-            other2: ObservableTransformer<In, Arg2>, 
-            other3: ObservableTransformer<In, Arg3>, 
-            other4: ObservableTransformer<In, Arg4>, 
-            combinerBuilder: () => 
-                (arg1: Arg1, arg2: Arg2, arg3: Arg3, arg4: Arg4) => Out
-        ): ObservableTransformer<In, Out> {
-        return new ObservableTransformer<In, Out>(
-            (upstream: Rx.Observable<In>) => {
-                return Rx.Observable.zip<Arg1, Arg2, Arg3, Arg4, Out>(
-                    other1.attach(upstream),
-                    other2.attach(upstream),
-                    other3.attach(upstream), 
-                    other4.attach(upstream),  
-                    combinerBuilder());
-            }
-        );
-    }
-   
     init(): (clock: number) => Out{throw new Error("depricated: remove this")}
 }
 
