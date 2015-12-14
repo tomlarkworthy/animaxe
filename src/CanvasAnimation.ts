@@ -23,9 +23,8 @@ export class CanvasTick extends OT.BaseTick{
     }
 }
 
-
 export class Animation extends OT.ChainableTransformer<CanvasTick>{
-    
+
     constructor(public attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>) {
         super(attach);
     }
@@ -38,8 +37,6 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         return <this> new Animation(attach);
     }
     
-
-        
     velocity(
         velocity: types.PointArg
     ): Animation {
