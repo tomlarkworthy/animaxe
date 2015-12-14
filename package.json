@@ -40,7 +40,7 @@
     "systemjs": "^0.19.6",
     "through2": "^2.0.0",
     "ts-loader": "^0.5.6",
-    "typescript": "^1.8.0-dev",
+    "typescript": "1.8.0-dev.20151124",
     "vinyl-transform": "^1.0.0",
     "webpack": "^1.12.2"
   }

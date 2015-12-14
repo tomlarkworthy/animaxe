@@ -38,19 +38,10 @@ gulp.task('clean', function(cb) {
 });
 
 
-var TS_SETTINGS = {
-  outDir: "dist",
-  module: "commonjs",
-//  sourcemap: true,
-  declarationFiles: true,
-  noEmitOnError: false,
-  typescript: require('typescript')
-};
-
 gulp.task('compile', function() {
     var tsResult = gulp.src(['./src/*.ts', './examples/example1*.ts'])
                     .pipe(sourcemaps.init())
-                    .pipe(ts(ts.createProject(TS_SETTINGS)));
+                    .pipe(ts('tsconfig.json'));
     return merge([ // Merge the two output streams, so this task is finished when the IO of both operations are done.
         tsResult.dts.pipe(gulp.dest('./dist')),
         tsResult.js
@@ -89,7 +80,7 @@ function createExampleTasksFor(exampleName) {
         return gulp.src('test/example.template.ts')
             .pipe(template({name: exampleName, content: content})) // pass it through a template
             .pipe(sourcemaps.init())
-            .pipe(ts(ts.createProject(TS_SETTINGS)))  // compile it
+            .pipe(ts('tsconfig.json'))  // compile it
             .js
               .pipe(rename("dist/test/" + exampleNameJS))//rename the js, and align with normal compile target
               .pipe(sourcemaps.write())

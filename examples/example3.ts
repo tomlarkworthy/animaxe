@@ -16,8 +16,12 @@ function permDot(size: number, css_color: Ax.ColorArg): Ax.Animation {
     return Ax.create().fillStyle(css_color).fillRect([-size/2, -size/2], [size, size]);
 }
 
-// TODO: how to do oneoff calls
-// Parameter.seedrnd("seed");
+// Reset seed once via sideeffect
+// this is a bit shitty we need an eval maybe?
+animator.play(Ax.create().take(1).affect1(
+    Parameter.seedrnd("seed"),
+    () => (tick, param1) => {}
+));
 
 // each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));

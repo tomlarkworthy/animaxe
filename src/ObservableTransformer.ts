@@ -34,6 +34,18 @@ export class ObservableTransformer<In extends BaseTick, Out> {
         return <this> new ObservableTransformer<In, Out>(attach);
     }
 
+
+    /**
+     * Creates an animation that is at most n frames from 'this'.
+     */
+    take(frames: number): this {
+        var self = this;
+        if (DEBUG) console.log("take: build");
+        return this.create(
+           (upstream: Rx.Observable<In>) => self.attach(upstream).take(frames)
+        )
+    }
+    
     /**
      * map the stream of values to a new parameter
      */
@@ -508,26 +520,6 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
     }
 
     /**
-     * Creates an animation that is at most n frames from 'this'.
-     */
-    take(frames: number): this {
-        var self = this;
-        if (DEBUG) console.log("take: build");
-        return this.create(
-            (upstream: Rx.Observable<Tick>) => {
-                if (DEBUG) console.log("take: attach");
-                return self.attach(upstream).take(frames)
-                    .tap(
-                        next => console.log("take: next"),
-                        error => console.log("take: error", error),
-                        () => console.log("take: completed")
-                    );
-            }
-        );
-        
-    }
-
-    /**
      * helper method for implementing simple animations (that don't fork the animation tree).
      * You just have to supply a function that does something with the draw tick.
      */
@@ -613,8 +605,8 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
  * Creates a new OT_API by piping the animation flow of A into B
  */
 //export function combine<Tick, A extends ObservableTransformer<Tick>, B extends ObservableTransformer<Tick>>(a: A, b: B): B {
-export function combine<Tick, A extends ChainableTransformer<any>, B extends ChainableTransformer<any>>(a: A, b: B): B {
-    return b.create(
+export function combine<Tick extends BaseTick, A extends ChainableTransformer<any>, B extends ChainableTransformer<any>>(a: A, b: B): B {
+    return <B>b.create(
         upstream => b.attach(a.attach(upstream))
     )
 }
@@ -650,7 +642,7 @@ export class If<Tick extends BaseTick, OT_API extends ChainableTransformer<any>>
     }
 
     else(otherwise: ChainableTransformer<Tick>): OT_API {
-        return this.preceeding.pipe(this.preceeding.create(
+        return this.preceeding.pipe(<OT_API>this.preceeding.create(
             (upstream: Rx.Observable<Tick>) => {
                 if (DEBUG_IF) console.log("If: attach");
                 var downstream = new Rx.Subject<Tick>();

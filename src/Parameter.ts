@@ -150,7 +150,7 @@ export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter
 export function first<T>(value: Parameter<T>): Parameter<T> {   
     if (DEBUG) console.log("first: build");
     return value.combine1(
-        value,
+        value, // TODO: we are evaluating this even though we don;t use the result
         () => {
             if (DEBUG) console.log("first: init");
             var first = true;
@@ -218,6 +218,7 @@ export function hsl(
 export function seedrnd(seed: types.StringArg): Parameter<void> {
     if (DEBUG) console.log("seedrnd: build");
     return from(seed).mapValue(seed => {
+        if (DEBUG) console.log("seedrnd: seeding", seed);
         seedrandom.xor4096(seed);
         return;
     });
