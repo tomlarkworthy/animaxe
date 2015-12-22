@@ -278,6 +278,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
             Parameter.from(width_height), 
             () => {
                 if (DEBUG) console.log("fillRect: attach");
+                console.log(types.stackTrace());
                 return (tick: CanvasTick, xy: types.Point, width_height: types.Point) => {
                     if (DEBUG) console.log("fillRect: tick", xy, width_height);
                     tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]);

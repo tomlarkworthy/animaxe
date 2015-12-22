@@ -64,25 +64,37 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     }
     
     /**
+     * combine with other transformers with a common type of input. 
+     * All are given the same input, and their simulataneous outputs are passed to a 
+     * combiner function, which compute the final output.
+     */
+    combine<CombinedOut> (
+        combinerBuilder: () => (thisValue: Out, ...args: any[]) => CombinedOut,
+        ...others: ObservableTransformer<In, any>[]
+    ) : ObservableTransformer<In, CombinedOut>  {
+        return new ObservableTransformer<In, CombinedOut>((upstream: Rx.Observable<In>) => {
+            // join upstream with parameter
+            console.log("combine: attach", others)
+            var fork = new Rx.Subject<In>()
+            upstream.subscribe(fork);
+            
+            var args: any[] = others.map(other => other.attach(fork)); // map inputs
+            args.unshift(this.attach(fork))
+            args.unshift(combinerBuilder()) // build effect handler for zip
+            return zip.zip.apply(null, args);
+        }); 
+    }
+    
+    /**
      * combine with another transformer with the same type of input. 
      * Both are given the same input, and their simulataneous outputs are passed to a 
      * combiner function, which compute the final output.
      */
     combine1<Arg1, CombinedOut> (
         other1: ObservableTransformer<In, Arg1>, 
-        combinerBuilder: () => (tick: Out, arg1: Arg1) => CombinedOut)
+        combinerBuilder: () => (thisValue: Out, arg1: Arg1) => CombinedOut)
             : ObservableTransformer<In, CombinedOut> {
-        return new ObservableTransformer<In, CombinedOut>((upstream: Rx.Observable<In>) => {
-            // join upstream with parameter
-            console.log("combine1: attach")
-            var fork = new Rx.Subject<In>()
-            upstream.subscribe(fork);
-            return zip.zip(
-                combinerBuilder(),
-                this.attach(fork).tapOnCompleted(() => console.log("combine1: inner this completed")),
-                other1.attach(fork).tapOnCompleted(() => console.log("combine1: inner other1 completed"))
-            )
-        });
+        return this.combine(combinerBuilder, other1);
     }
    
     /**
@@ -96,28 +108,7 @@ export class ObservableTransformer<In extends BaseTick, Out> {
             combinerBuilder: () => 
                 (tick: Out, arg1: Arg1, arg2: Arg2) => Combined
         ) : ObservableTransformer<In, Combined> {
-        if (DEBUG) console.log("combine2: build");
-        return new ObservableTransformer<In, Combined>(
-            (upstream: Rx.Observable<In>) => {
-                // TODO ALL THE ISSUES ARE HERE, COMBINE DOES NTO DELIVER onCompleted fast
-                // Should the onComplete call during the thread of execution of a dirrernt on Next?
-                // Is there a better way of arranging the merge, so that the onComplete 
-                // merges faster
-                // we need to push all the ticks through each pipe, collect the results
-                // and defer resolving onCompleted until immediately after
-                // this requires a new type of combinator
-                if (DEBUG) console.log("combine2: attach");
-                var fork = new Rx.Subject<In>()
-                upstream.subscribe(fork);
-                // join upstream with parameter
-                return zip.zip(
-                    combinerBuilder(),
-                    this.attach(fork).tapOnCompleted(() => console.log("combine2: inner this completed")),
-                    other1.attach(fork).tapOnCompleted(() => console.log("combine2: inner other1 completed")),
-                    other2.attach(fork).tapOnCompleted(() => console.log("combine2: inner other2 completed"))
-                )
-            }
-        );
+        return this.combine(combinerBuilder, other1, other2);
     }
     
     /**
@@ -132,22 +123,7 @@ export class ObservableTransformer<In extends BaseTick, Out> {
             combinerBuilder: () => 
                 (tick: Out, arg1: Arg1, arg2: Arg2, arg3: Arg3) => Combined
         ) : ObservableTransformer<In, Combined> {
-        return new ObservableTransformer<In, Combined>(
-            (upstream: Rx.Observable<In>) => {
-                // join upstream with parameter
-                if (DEBUG) console.log("combine3: attach");
-                var fork = new Rx.Subject<In>()
-                upstream.subscribe(fork);
-                // join upstream with parameter
-                return zip.zip(
-                    combinerBuilder(),
-                    this.attach(fork),
-                    other1.attach(fork),
-                    other2.attach(fork),
-                    other3.attach(fork)
-                )
-            }
-        );
+        return this.combine(combinerBuilder, other1, other2, other3);
     }
     init(): (clock: number) => Out{throw new Error("depricated: remove this")}
 }

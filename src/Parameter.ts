@@ -121,7 +121,10 @@ export function point(
         from(y), 
         () => {
             if (DEBUG) console.log("point: init");
-            return (x: number, y: number) => <types.Point>[x, y]   
+            return (x: number, y: number) => {
+                if (DEBUG) console.log("point: tick", x, y);
+                return <types.Point>[x, y]
+            }
         }
     );
 }
