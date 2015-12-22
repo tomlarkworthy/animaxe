@@ -163,55 +163,46 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for shadowOffsetX and shadowOffsetY in the canvas API.
      */
     shadowOffset(xy: types.PointArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("shadowOffset: attach");
-                    var xy_next = Parameter.from(xy).init();
-                    return function (tick: CanvasTick) {
-                        var xy = xy_next(tick.clock);
-                        if (DEBUG) console.log("shadowOffset: shadowOffset", xy);
-                        tick.ctx.shadowOffsetX = xy[0];
-                        tick.ctx.shadowOffsetY = xy[1];
-                    }
+        return this.affect1(
+            Parameter.from(xy),
+            () => {
+                if (DEBUG) console.log("shadowOffset: attach");
+                return function (tick: CanvasTick, xy: types.Point) {
+                    if (DEBUG) console.log("shadowOffset: shadowOffset", xy);
+                    tick.ctx.shadowOffsetX = xy[0];
+                    tick.ctx.shadowOffsetY = xy[1];
                 }
-            )
+            }
         );
     }
     /**
      * Dynamic chainable wrapper for lineCap in the canvas API.
      */
     lineCap(style: string): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("lineCap: attach");
-                    var arg_next = Parameter.from(style).init();
-                    return function (tick: CanvasTick) {
-                        var arg = arg_next(tick.clock);
-                        if (DEBUG) console.log("lineCap: lineCap", arg);
-                        tick.ctx.lineCap = arg;
-                    }
+        return this.affect1(
+            Parameter.from(style),
+            () => {
+                if (DEBUG) console.log("lineCap: attach");
+                return function (tick: CanvasTick, arg: string) {
+                    if (DEBUG) console.log("lineCap: lineCap", arg);
+                    tick.ctx.lineCap = arg;
                 }
-            )
+            }
         );
     }
     /**
      * Dynamic chainable wrapper for lineJoin in the canvas API.
      */
     lineJoin(style: string): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("lineJoin: attach");
-                    var arg_next = Parameter.from(style).init();
-                    return function (tick: CanvasTick) {
-                        var arg = arg_next(tick.clock);
-                        if (DEBUG) console.log("lineJoin: lineCap", arg);
-                        tick.ctx.lineJoin = arg;
-                    }
+        return this.affect1(
+            Parameter.from(style),
+            () => { 
+                if (DEBUG) console.log("lineJoin: attach");
+                return function (tick: CanvasTick, arg: string) {
+                    if (DEBUG) console.log("lineJoin: lineCap", arg);
+                    tick.ctx.lineJoin = arg;
                 }
-            )
+            }
         );
     }
     /**
@@ -233,39 +224,32 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for miterLimit in the canvas API.
      */
     miterLimit(limit: types.NumberArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("miterLimit: attach");
-                    var arg_next = Parameter.from(limit).init();
-                    return function (tick: CanvasTick) {
-                        var arg = arg_next(tick.clock);
-                        if (DEBUG) console.log("miterLimit: miterLimit", arg);
-                        tick.ctx.miterLimit = arg;
-                    }
+        return this.affect1(
+            Parameter.from(limit), 
+            () => {
+                if (DEBUG) console.log("miterLimit: attach");
+                return function (tick: CanvasTick, arg: number) {
+                    if (DEBUG) console.log("miterLimit: miterLimit", arg);
+                    tick.ctx.miterLimit = arg;
                 }
-            )
+            }
         );
     }
     /**
      * Dynamic chainable wrapper for rect in the canvas API.
      */
     rect(xy: types.PointArg, width_height: types.PointArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("rect: attach");
-                    var xy_next = Parameter.from(xy).init();
-                    var width_height_next = Parameter.from(width_height).init();
-        
-                    return function (tick: CanvasTick) {
-                        var xy: types.Point = xy_next(tick.clock);
-                        var width_height: types.Point = width_height_next(tick.clock);
-                        if (DEBUG) console.log("rect: rect", xy, width_height);
-                        tick.ctx.rect(xy[0], xy[1], width_height[0], width_height[1]);
-                    }
+        return this.affect2(
+            Parameter.from(xy), 
+            Parameter.from(width_height), 
+            () => {
+                if (DEBUG) console.log("rect: attach");
+                return (tick: CanvasTick, xy: types.Point, width_height: types.Point) => {
+                    if (DEBUG) console.log("rect: rect", xy, width_height);
+                    tick.ctx.rect(xy[0], xy[1], width_height[0], width_height[1]);
                 }
-            )
+            }
+            
         );
     }
     /**
