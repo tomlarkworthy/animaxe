@@ -78,9 +78,17 @@ export class ObservableTransformer<In extends BaseTick, Out> {
             var fork = new Rx.Subject<In>()
             upstream.subscribe(fork);
             
-            var args: any[] = others.map(other => other.attach(fork)); // map inputs
+            // we link all concurrent OTs in the others array to the fork, skipping null or undefined values
+            var args: any[] = others.reduce(
+                (acc: any[], val: ObservableTransformer<In, any>) => {
+                    if (val) acc.push(val.attach(fork))
+                    return acc;
+                }, []
+            );
+                
             args.unshift(this.attach(fork)) // put output of self as first param in combiner
             args.unshift(combinerBuilder()) // build effect handler for zip
+            
             return zip.zip.apply(null, args);
         }); 
     }
@@ -124,6 +132,22 @@ export class ObservableTransformer<In extends BaseTick, Out> {
                 (tick: Out, arg1: Arg1, arg2: Arg2, arg3: Arg3) => Combined
         ) : ObservableTransformer<In, Combined> {
         return this.combine(combinerBuilder, other1, other2, other3);
+    }
+    
+    /**
+     * Combine with another transformer with the same type of input. 
+     * Both are given the same input, and their simulataneous outputs are passed to a 
+     * combiner function, which compute the final output.
+     */
+    combineN<Combined, Arg1, Arg2, Arg3, Arg4> (
+            combinerBuilder: () => 
+                (tick: Out, arg1?: Arg1, arg2?: Arg2, arg3?: Arg3) => Combined,
+            other1?: ObservableTransformer<In, Arg1>, 
+            other2?: ObservableTransformer<In, Arg2>, 
+            other3?: ObservableTransformer<In, Arg3>,
+            other4?: ObservableTransformer<In, Arg4>       
+        ) : ObservableTransformer<In, Combined> {
+        return this.combine(combinerBuilder, other1, other2, other3, other4);
     }
     
     init(): (clock: number) => Out{throw new Error("depricated: remove this")}
@@ -414,6 +438,23 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
                     param2,
                     param3,
                     wrapEffectToReturnTick(effectBuilder)
+                ).attach
+            );
+    }
+    
+    affectN<P1, P2, P3, P4> ( 
+        effectBuilder: () => (tick: Tick, arg1: P1, arg2: P2, arg3: P3, arg4: P4) => void,
+        param1?: ObservableTransformer<Tick, P1>, 
+        param2?: ObservableTransformer<Tick, P2>,
+        param3?: ObservableTransformer<Tick, P3>,
+        param4?: ObservableTransformer<Tick, P4>): this {
+        return this.create(
+                this.combineN(
+                    wrapEffectToReturnTick(effectBuilder),
+                    param1,
+                    param2,
+                    param3,
+                    param4
                 ).attach
             );
     }
