@@ -25,16 +25,14 @@ export var rndGenerator = seedrandom.xor4096(Math.random() + "");
  */
 export function updateFrom<T>(initialValue: T, source: Rx.Observable<T>): Parameter<T> {
     if (DEBUG) console.log("updateFrom: build");
-    return new Parameter(
-        () => {
-            if (DEBUG) console.log("updateFrom: init")
+    return new OT.ObservableTransformer<OT.BaseTick, T>(
+        (upstream: Rx.Observable<OT.BaseTick>) => {
+            if (DEBUG) console.log("updateFrom: init");
             var value = initialValue;
             source.subscribe(x => value = x);
-            return (clock: number) => {
-                return value;
-            }
+            return upstream.map(_ => value)
         }
-    );
+    )
 }
 
 /**
@@ -43,16 +41,16 @@ export function updateFrom<T>(initialValue: T, source: Rx.Observable<T>): Parame
  */
 export function overwriteWith<T>(defaultValue: T, source: Rx.Observable<T>): Parameter<T> {
     if (DEBUG) console.log("overwriteWith: build");
-    return new Parameter(
-        () => {
+    return new OT.ObservableTransformer<OT.BaseTick, T>(
+        (upstream: Rx.Observable<OT.BaseTick>) => {
             if (DEBUG) console.log("overwriteWith: init")
             var value = defaultValue;
             source.subscribe(x => value = x);
-            return (clock: number) => {
+            return upstream.map(_ => {
                 var returnValue = value;
                 value = defaultValue; // reset value each time
                 return returnValue;
-            }
+            });
         }
     );
 }
@@ -225,10 +223,8 @@ export function seedrnd(seed: types.StringArg): Parameter<void> {
 
 export function rnd(): Parameter<number> {
     if (DEBUG) console.log("rnd: build");
-    return new Parameter(
-        () => function (t) {
-            return rndGenerator();
-        }
+    return new OT.ObservableTransformer<OT.BaseTick, number> (
+        upstream => upstream.map(_ => rndGenerator())
     );
 }
 
