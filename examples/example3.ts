@@ -18,9 +18,9 @@ function permDot(size: number, css_color: Ax.ColorArg): Ax.Animation {
 
 // Reset seed once via sideeffect
 // this is a bit shitty we need an eval maybe?
-animator.play(Ax.create().take(1).affect1(
-    Parameter.seedrnd("seed"),
-    () => (tick, param1) => {}
+animator.play(Ax.create().take(1).affect(
+    () => (tick, param1: void) => {},
+    Parameter.seedrnd("seed")
 ));
 
 // each frame, first draw black background to erase the previous contents

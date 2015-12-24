@@ -68,7 +68,7 @@ export class ObservableTransformer<In extends BaseTick, Out> {
      * All are given the same input, and their simulataneous outputs are passed to a 
      * combiner function, which compute the final output.
      */
-    combine<CombinedOut> (
+    combineMany<CombinedOut> (
         combinerBuilder: () => (thisValue: Out, ...args: any[]) => CombinedOut,
         ...others: ObservableTransformer<In, any>[]
     ) : ObservableTransformer<In, CombinedOut>  {
@@ -94,60 +94,19 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     }
     
     /**
-     * combine with another transformer with the same type of input. 
-     * Both are given the same input, and their simulataneous outputs are passed to a 
-     * combiner function, which compute the final output.
-     */
-    combine1<Arg1, CombinedOut> (
-        other1: ObservableTransformer<In, Arg1>, 
-        combinerBuilder: () => (thisValue: Out, arg1: Arg1) => CombinedOut)
-            : ObservableTransformer<In, CombinedOut> {
-        return this.combine(combinerBuilder, other1);
-    }
-   
-    /**
      * Combine with another transformer with the same type of input. 
      * Both are given the same input, and their simulataneous outputs are passed to a 
      * combiner function, which compute the final output.
      */
-    combine2<Arg1, Arg2, Combined> (
-            other1: ObservableTransformer<In, Arg1>, 
-            other2: ObservableTransformer<In, Arg2>, 
+    combine<Combined, Arg1, Arg2, Arg3, Arg4> (
             combinerBuilder: () => 
-                (tick: Out, arg1: Arg1, arg2: Arg2) => Combined
-        ) : ObservableTransformer<In, Combined> {
-        return this.combine(combinerBuilder, other1, other2);
-    }
-    
-    /**
-     * Combine with another transformer with the same type of input. 
-     * Both are given the same input, and their simulataneous outputs are passed to a 
-     * combiner function, which compute the final output.
-     */
-    combine3<Arg1, Arg2, Arg3, Combined> (
-            other1: ObservableTransformer<In, Arg1>, 
-            other2: ObservableTransformer<In, Arg2>, 
-            other3: ObservableTransformer<In, Arg3>, 
-            combinerBuilder: () => 
-                (tick: Out, arg1: Arg1, arg2: Arg2, arg3: Arg3) => Combined
-        ) : ObservableTransformer<In, Combined> {
-        return this.combine(combinerBuilder, other1, other2, other3);
-    }
-    
-    /**
-     * Combine with another transformer with the same type of input. 
-     * Both are given the same input, and their simulataneous outputs are passed to a 
-     * combiner function, which compute the final output.
-     */
-    combineN<Combined, Arg1, Arg2, Arg3, Arg4> (
-            combinerBuilder: () => 
-                (tick: Out, arg1?: Arg1, arg2?: Arg2, arg3?: Arg3) => Combined,
+                (thisValue: Out, arg1?: Arg1, arg2?: Arg2, arg3?: Arg3) => Combined,
             other1?: ObservableTransformer<In, Arg1>, 
             other2?: ObservableTransformer<In, Arg2>, 
             other3?: ObservableTransformer<In, Arg3>,
             other4?: ObservableTransformer<In, Arg4>       
         ) : ObservableTransformer<In, Combined> {
-        return this.combine(combinerBuilder, other1, other2, other3, other4);
+        return this.combineMany(combinerBuilder, other1, other2, other3, other4);
     }
     
     init(): (clock: number) => Out{throw new Error("depricated: remove this")}
@@ -396,60 +355,14 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
         return this.create((upstream) => upstream.tapOnNext(drawFactory()));
     }
     
-    affect(effectBuilder: () => ((tick: Tick) => void)): this {
-        return this.pipe(this.create((upstream) => upstream.tap(effectBuilder())));
-    }
-    
-    
-    affect1<Param1> (
-        param1: ObservableTransformer<Tick, Param1>, 
-        effectBuilder: () => (tick: Tick, param1: Param1) => void): this {
-        if (DEBUG) console.log("affect1: build");
-        return this.create(
-                this.combine1<Param1, Tick>(
-                    param1,
-                    wrapEffectToReturnTick(effectBuilder)
-                ).attach
-            );
-    }
-    
-    affect2<Param1, Param2> (
-        param1: ObservableTransformer<Tick, Param1>, 
-        param2: ObservableTransformer<Tick, Param2>, 
-        effectBuilder: () => (tick: Tick, param1: Param1, param2: Param2) => void): this {
-        if (DEBUG) console.log("affect2: build");
-        return this.create(
-                this.combine2(
-                    param1,
-                    param2,
-                    wrapEffectToReturnTick(effectBuilder)
-                ).attach
-            );
-    }
-    
-    affect3<Param1, Param2, Param3> (
-        param1: ObservableTransformer<Tick, Param1>, 
-        param2: ObservableTransformer<Tick, Param2>,
-        param3: ObservableTransformer<Tick, Param3>,  
-        effectBuilder: () => (tick: Tick, param1: Param1, param2: Param2, param3: Param3) => void): this {
-        return this.create(
-                this.combine3(
-                    param1,
-                    param2,
-                    param3,
-                    wrapEffectToReturnTick(effectBuilder)
-                ).attach
-            );
-    }
-    
-    affectN<P1, P2, P3, P4> ( 
+    affect<P1, P2, P3, P4> ( 
         effectBuilder: () => (tick: Tick, arg1: P1, arg2: P2, arg3: P3, arg4: P4) => void,
         param1?: ObservableTransformer<Tick, P1>, 
         param2?: ObservableTransformer<Tick, P2>,
         param3?: ObservableTransformer<Tick, P3>,
         param4?: ObservableTransformer<Tick, P4>): this {
         return this.create(
-                this.combineN(
+                this.combine(
                     wrapEffectToReturnTick(effectBuilder),
                     param1,
                     param2,

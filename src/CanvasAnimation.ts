@@ -38,7 +38,9 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
     }
     
     /**
-     * Adds debug messages around an effect (e.g. a mutation to the canvas) that depends on time varying or constant parameters
+     * Affect this with an effect to create combined animation.
+     * Debug messages are inserted around the effect (e.g. a mutation to the canvas).
+     * You can expose time varying or constant parameters to the inner effect using the optional params.
      */
     loggedAffect<P1, P2, P3, P4>(
         label: string, 
@@ -49,7 +51,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         param4?: P4 | Parameter.Parameter<P4>
     ): this {
         if (DEBUG) console.log(label + ": build");
-        return this.affectN(
+        return this.affect(
             () => {
                 if (DEBUG) console.log(label + ": attach");
                 var effect = effectBuilder()
@@ -76,8 +78,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         velocity: types.PointArg
     ): this {
         if (DEBUG) console.log("velocity: build");
-        return this.affect1(
-            Parameter.from(velocity), 
+        return this.affect(
             () => {
                 if (DEBUG) console.log("velocity: attach");
                 var pos: types.Point = [0.0,0.0];
@@ -87,7 +88,8 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                     pos[0] += velocity[0] * tick.dt;
                     pos[1] += velocity[1] * tick.dt;
                 }
-            }
+            },
+            Parameter.from(velocity)
         );
     }
     
@@ -97,10 +99,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         time: types.NumberArg
     ): this
     {
-        return this.affect3(
-            Parameter.from(from),
-            Parameter.from(to),
-            Parameter.from(time),
+        return this.affect(
             () => {
                 var t = 0;
                 if (DEBUG) console.log("tween: init");
@@ -113,7 +112,10 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                     if (DEBUG) console.log("tween: tick", x, y, t);
                     tick.ctx.transform(1, 0, 0, 1, x, y);
                 }
-            }
+            },
+            Parameter.from(from),
+            Parameter.from(to),
+            Parameter.from(time)
         ) 
     }
     

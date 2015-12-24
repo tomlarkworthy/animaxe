@@ -117,15 +117,15 @@ export function point(
 ): Parameter<types.Point>
 {
     if (DEBUG) console.log("point: build");
-    return from(x).combine1(
-        from(y), 
+    return from(x).combine(
         () => {
             if (DEBUG) console.log("point: init");
             return (x: number, y: number) => {
                 if (DEBUG) console.log("point: tick", x, y);
                 return <types.Point>[x, y]
             }
-        }
+        },
+        from(y)
     );
 }
 
@@ -151,14 +151,13 @@ export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter
 
 export function first<T>(value: Parameter<T>): Parameter<T> {   
     if (DEBUG) console.log("first: build");
-    return value.combine1(
-        value, // TODO: we are evaluating this even though we don;t use the result
+    return value.combine(
         () => {
             if (DEBUG) console.log("first: init");
             var first = true;
             var firstValue: T = null;
             
-            return (tick, value: T) => {
+            return (value: T) => {
                 if (first) {
                     first = false;
                     firstValue = value;
@@ -166,7 +165,7 @@ export function first<T>(value: Parameter<T>): Parameter<T> {
                 }
                 return firstValue;
             }
-        }
+        }    
     )
 }
 
@@ -182,18 +181,18 @@ export function rgba(
 ): Parameter<types.Color>
 {
     if (DEBUG) console.log("rgba: build");
-    return from(r).combine3(
-        from(g),
-        from(b),
-        from(a),
+    return from(r).combine(
         () => {
             if (DEBUG) console.log("rgba: init");
-            return (r,g,b,a) => {
+            return (r: number, g: number, b: number, a: number) => {
                 var val = "rgba(" + Math.floor(r) + "," + Math.floor(g) + "," + Math.floor(b) + "," + a + ")";
                 if (DEBUG) console.log("rgba: ", val);
                 return val; 
             }
-        }
+        },
+        from(g),
+        from(b),
+        from(a)
     )
 }
 
@@ -204,14 +203,14 @@ export function hsl(
 ): Parameter<types.Color>
 {
     if (DEBUG) console.log("hsl: build");
-    return from(h).combine2(
-        from(s),
-        from(l),
-        () => (h, s, l) => {
+    return from(h).combine(
+        () => (h: number, s: number, l: number) => {
             var val = "hsl(" + h + "," + s + "%," + l + "%)";
             // if (DEBUG) console.log("hsl: ", val);
             return val;
-        }
+        },
+        from(s),
+        from(l)
     );
 }
 
