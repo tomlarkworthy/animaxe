@@ -416,7 +416,7 @@ export class ConditionActionPair<Tick extends BaseTick> {
  * as many animations are infinite in length, this would only ever select a single animation path.
  * So rather, this block reevaluates the condition every message. If an action completes, the block passes on the completion,
  * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
- * Whenever the active clause changes, the new active animation is reinitialised.
+ * Whenever the active clause changes, a NEW active animation is reinitialised.
  */
 export class If<Tick extends BaseTick, OT_API extends ChainableTransformer<any>> {
     constructor(
@@ -435,50 +435,93 @@ export class If<Tick extends BaseTick, OT_API extends ChainableTransformer<any>>
     }
 
     else(otherwise: ChainableTransformer<Tick>): OT_API {
+        // the else is like a always true conditional with the otherwise action
+        this.conditions.push(new ConditionActionPair<Tick>(true, otherwise));
+        
         return this.preceeding.pipe(<OT_API>this.preceeding.create(
             (upstream: Rx.Observable<Tick>) => {
                 if (DEBUG_IF) console.log("If: attach");
                 var downstream = new Rx.Subject<Tick>();
-                var anchor = new Rx.Subject<Tick>();
+                
+                var activeTick = null;   // current tick being processed
+                var error = null;        // global error
+                var completed = false;   // global completion flag
+                var lastClauseFired: number = -1; // flag set when a condition or action fires or errors or completes
+                var actionTaken = false; // flag set when a condition or action fires or errors or completes
+                
+                
+                // error and completed handlers for conditions and actions
+                // error/completed propogates to downstream and recorded
+                var errorHandler = (err) => {
+                    actionTaken = true;
+                    error = true;
+                    downstream.onError(err);
+                }
+                var completedHandler = () => {
+                    completed = true;
+                    actionTaken = true;
+                    downstream.onCompleted();
+                }
+                
+                // upstream -> cond1 ?-> action1 -> downstream
+                //          -> cond2 ?-> action2 -> downstream
+                
 
-                var currentOT_API = otherwise;
-                var activeSubscription = otherwise.attach(anchor).subscribe(downstream);
+                var pairHandler = function(id: number, pair: ConditionActionPair<Tick>): Rx.Subject<Tick> {
+                    var action: ChainableTransformer<Tick> = pair.action;
+                    var preConditionAnchor = new Rx.Subject<Tick>();
+                    var postConditionAnchor = new Rx.Subject<Tick>();
+                    var currentActionSubscription = null;
+                    
+                    Parameter.from(pair.condition).attach(preConditionAnchor).subscribe(
+                        (next: boolean) => {
+                            if (next) {
+                                actionTaken = true;
+                                
+                                if (lastClauseFired != id || currentActionSubscription == null) {
+                                    if (currentActionSubscription) currentActionSubscription.dispose();
+                                    
+                                    currentActionSubscription = action.attach(postConditionAnchor).subscribe(
+                                        (next) => downstream.onNext(next),
+                                        errorHandler, completedHandler
+                                    );   
+                                }
+                                
+                                lastClauseFired = id;
+                                postConditionAnchor.onNext(activeTick);
+                            }
+                        },
+                        errorHandler, completedHandler
+                    )
+                    
+                    return preConditionAnchor;
+                }
 
                 // we initialise all the condition parameters
-                var conditions_next = this.conditions.map(
-                    (pair: ConditionActionPair<Tick>) => {
-                        return Parameter.from(pair.condition).init()
-                    }
+                // when a condition fires, it triggers the associated action
+                var preConditions: Rx.Subject<Tick>[] = this.conditions.map(
+                    (pair: ConditionActionPair<Tick>, index: number) => pairHandler(index, pair)
                 );
 
-                var fork = upstream.subscribe(
+                upstream.subscribe(
                     (tick: Tick) => {
                         if (DEBUG_IF) console.log("If: upstream tick");
-                        // first, we find which animation should active, by using the conditions array
-                        var nextActiveOT_API = null;
-                        // ideally we would use find, but that is not in TS yet..
-                        for (var i = 0 ;i < this.conditions.length && nextActiveOT_API == null; i++) {
-                            if (conditions_next[i](tick.clock)) {
-                                nextActiveOT_API = this.conditions[i].action;
+                        if (error || completed) return;
+                        
+                        activeTick = tick;
+                        actionTaken = false;
+                        
+                        preConditions.every(
+                            (preCondition: Rx.Subject<Tick>) => {
+                                preCondition.onNext(activeTick);
+                                return !actionTaken; // continue until something happens
                             }
-                        }
-                        if (nextActiveOT_API == null) nextActiveOT_API = otherwise;
-
-
-                        // second, we see if this is the same as the current animation, or whether we have switched
-                        if (nextActiveOT_API != currentOT_API) {
-                            // this is a new animation being sequenced, cancel the old one and add a new one
-                            if (DEBUG_IF) console.log("If: new subscription");
-                            if (activeSubscription != null) activeSubscription.dispose();
-                            activeSubscription = nextActiveOT_API.attach(anchor).subscribe(downstream);
-                            currentOT_API = nextActiveOT_API;
-                        } else {
-                            //we don't need to do anything becuase the subscription is already stream downstrem
-                        }
-                        anchor.onNext(tick);
+                        )
+                        
+                        types.assert(actionTaken == true, "If: nothing happened in if/else block, the default action did not do anything?")
                     },
-                    err => anchor.onError(err),
-                    () => anchor.onCompleted()
+                    err => downstream.onError(err),
+                    () => downstream.onCompleted()
                 );
 
                 return downstream.tap(x => {if (DEBUG_IF) console.log("If: downstream tick")});
