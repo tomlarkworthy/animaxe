@@ -25,8 +25,8 @@ function thickLine1tick(
 }
 
 /**
- * Three frame animation of a thinning line. Animations are displaced in time so even if the start and end streams move
- * The line doesn't
+ * Three frame animation of a thinning line. Animations are displaced in time so even if the start and end streams move,
+ * the line doesn't
  */
 function sparkLine(start: Ax.PointArg, end: Ax.PointArg, css_color: Ax.ColorArg): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
     return thickLine1tick(6, //thick line
@@ -53,20 +53,6 @@ var blue = 50;
 
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));
-
-// TEST:
-/*
-animator.play(
-    Ax.create()
-    .withinPath(Ax.create()
-        .moveTo(
-            Parameter.point(bigSin,bigCos)
-        ).lineTo(
-            Parameter.displaceT(-0.1, Parameter.point(bigSin,bigCos))
-        )
-    )
-)*/
-// TO DEBUG:
 
 animator.play(
     Ax.create().emit(

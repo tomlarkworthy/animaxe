@@ -5,13 +5,13 @@ import * as zip from "./zip"
 import * as Parameter from "./Parameter"
 export * from "./types"
 
-export var DEBUG_LOOP = true;
-export var DEBUG_THEN = true;
+export var DEBUG_LOOP = false;
+export var DEBUG_THEN = false;
 export var DEBUG_IF = false;
 export var DEBUG_EMIT = false;
 export var DEBUG_PARALLEL = false;
 export var DEBUG_EVENTS = false;
-export var DEBUG = true;
+export var DEBUG = false;
 
 export class BaseTick {
     constructor (
@@ -74,7 +74,6 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     ) : ObservableTransformer<In, CombinedOut>  {
         return new ObservableTransformer<In, CombinedOut>((upstream: Rx.Observable<In>) => {
             // join upstream with parameter
-            console.log("combine: attach", others)
             var fork = new Rx.Subject<In>()
             upstream.subscribe(fork);
             

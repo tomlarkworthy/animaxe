@@ -6,7 +6,7 @@ import * as seedrandom from "seedrandom";
 import * as OT from "./ObservableTransformer"
 import * as zip from "./zip"
 
-export var DEBUG = true;
+export var DEBUG = false;
 
 import * as types from "./types"
 export * from "./types"
@@ -56,6 +56,7 @@ export function overwriteWith<T>(defaultValue: T, source: Rx.Observable<T>): Par
 }
 
 /**
+ * OUT OF DATE DOCUMENTATION
  * A parameter is used for time varying values to animation functions.
  * Before a parameter is used, the enclosing animation must call init. This returns a function which
  * can be used to find the value of the function for specific values of time. Typically this is done within the
@@ -78,28 +79,6 @@ function moveTo(
  */
 
 export type Parameter<Value> = OT.ObservableTransformer<OT.BaseTick, Value>;
-
-/*
-first(): Parameter<Value> {
-        var self = this;
-        return new Parameter<Value>(
-            () => {
-                var generate = true;
-                var next = self.init();
-                var value = null;
-                return function (clock: number) {
-                    if (generate) {
-                        generate = false;
-                        value = next(clock);
-                    }
-                    // console.log("fixed: val from parameter", value);
-                    return value;
-                }
-            }
-        );
-    }
-    */
-
 
 export function from<T>(source: T | Parameter<T>): Parameter<T> {
     types.assert (source != undefined, "source is not defined");
@@ -135,7 +114,6 @@ export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter
         (upstream: Rx.Observable<OT.BaseTick>) => {
             var clockSkew = zip.zip(
                 (tick: OT.BaseTick, dt: number) => {
-                    console.log("displaceT", tick.clock, dt)
                     return new OT.BaseTick(tick.clock + dt, tick.dt, tick.ctx)    
                 },
                 upstream,

@@ -14,8 +14,8 @@ export * from "./CanvasAnimation";
 
 console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 
-export var DEBUG = true;
-export var DEBUG_EVENTS = true;
+export var DEBUG = false;
+export var DEBUG_EVENTS = false;
 
 
 
@@ -32,7 +32,7 @@ export var DEBUG_EVENTS = true;
  * When an animation is sequenced into the animation pipeline. Its attach method is called which atcually builds the
  * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
  */
-export class Animator{
+export class Animator {
     root: Rx.Subject<canvas.CanvasTick>;
     t: number = 0;
     events: events.Events = new events.Events();

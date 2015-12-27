@@ -4,6 +4,7 @@ import * as Animation from "./CanvasAnimation"
 import * as types from "./types"
 export * from "./types"
 
+var DEBUG = false;
 // foreground color used to define emmitter regions around the canvas
 //  the hue, is reused in the particles
 //  the lightness is use to describe the quantity (max lightness leads to total saturation)
@@ -43,10 +44,12 @@ export function glow(
     decay: types.NumberArg = 0.1
 ): Animation.Animation
 {
-    return previous.draw(
+    if (DEBUG) console.log("glow: build");
+    return previous.affect(
         () => {
-            var decay_next = Parameter.from(decay).init();
-            return function (tick: Animation.CanvasTick) {
+            if (DEBUG) console.log("glow: attach");
+            return function (tick: Animation.CanvasTick, decay: number) {
+                if (DEBUG) console.log("glow: tick", decay)
                 var ctx = tick.ctx;
 
                 // our src pixel data
@@ -55,8 +58,6 @@ export function glow(
                 var pixels = width * height;
                 var imgData = ctx.getImageData(0,0,width,height);
                 var data = imgData.data;
-                var decay = decay_next(tick.clock);
-
                 // console.log("original data", imgData.data)
 
                 // our target data
@@ -122,7 +123,7 @@ export function glow(
                                 var b_i = ((width * j) + i) * 4 + 2;
                                 var a_i = ((width * j) + i) * 4 + 3;
 
-                                // console.log("rgb", rgb);
+                                // if (DEBUG) console.log("rgb", rgb);
                                 // console.log("c", c);
 
 
@@ -216,7 +217,7 @@ export function glow(
 
                 // console.log("glow", glowData);
 
-                var buf = new ArrayBuffer(data.length);
+                var buf = new Uint8ClampedArray(data.length);
                 for(var y = 0; y < height; y++) {
                     for(var x = 0; x < width; x++) {
                         var r_i = ((width * y) + x) * 4;
@@ -235,12 +236,12 @@ export function glow(
                 // (todo) maybe we can speed boost some of this
                 // https://hacks.mozilla.org/2011/12/faster-canvas-pixel-manipulation-with-typed-arrays/
 
-                //finally overwrite the pixel data with the accumulator
-                (<any>imgData.data).set(new Uint8ClampedArray(buf));
+                (<any>imgData.data).set(buf);
 
                 ctx.putImageData(imgData, 0, 0);
             }
-        });
+        },
+        Parameter.from(decay));
 }
 
 

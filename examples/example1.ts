@@ -6,7 +6,6 @@ import * as Parameter from "../src/Parameter";
 
 var animator: Ax.Animator = helper.getExampleAnimator();
 
-Ax.DEBUG = true;
 //2 frame animated glow
 function spark(color: Ax.ColorArg): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
     return Ax.create()
@@ -42,7 +41,6 @@ animator.play(Ax.create()
 );
 
 // move the draw context to a coordinate determined by trig (i.e. in a circle)
-
 animator.play(Ax.create()
     .loop(Ax.create()
         .translate(Parameter.point(bigSin, bigCos))

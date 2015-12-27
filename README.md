@@ -34,7 +34,8 @@ ctx.fillRect(0,0, 10, 10)
 
 In Animaxe we use the Ax module as the entrace to an animation chain. We use the same identifiers as the Canvas API, so it becomes
 ```
-Ax.fillStyle("red")
+Ax.create()
+  .fillStyle("red")
   .translate([30, 45])
   .fillRect([0,0], [10,10]);
 ```
@@ -48,7 +49,8 @@ The Parameter module is the entrance to time varying functions, which can also b
 For example, a fading in an out example:
  
 ```
-Ax.fillStyle(Parameter.rgba(255, 255, 255, Parameter.sin(Parameter.t())))
+Ax.create()
+  .fillStyle(Parameter.rgba(255, 255, 255, Parameter.sin(Parameter.t())))
   .translate(Parameter.point(30, Parameter.sin(30).map(x => x * 50)))
   .fillRect([0,0], [10,10]); 
 ```
@@ -60,7 +62,7 @@ The composable building block of Animaxe is an Animation. An animation does some
 
 ```
  foreverRedSquare() {
-    return Ax 
+    return Ax.create() 
         .fillStyle = "red";
         .fillRect(0,0, 10, 10);
  }
@@ -168,7 +170,6 @@ Packaging
 - Test TS workflow (bower?)
 - Redo codepen examples with systemJS (?)
 
-
 Glow
 ----
 - different distance exponents are interesting
@@ -191,12 +192,9 @@ Engineering
 
 Refactors
 ----------
-- move canvas API into own module
-  - Key issue, its a subclass/implementor of tranformer functionality, but return types must keep the CanvasAPI
-- add AFRP typing modulue
-  - make parameters a special case of an ObservableTransformer
-    - combine2 is broken coz zip is broken, this breaks affect2 and other things
-  - Move the .pipe inside the .draw (rename draw), and remove lots of redundant pipes
+- make Animator sequence Parameters And Animation
+- change event propogation
+- Move the .pipe inside the .draw (rename draw), and remove lots of redundant pipes
 - change order of playExample parameters
 
 - (partial) do all of canvas API methods
@@ -204,11 +202,8 @@ Refactors
      - withinClip, withinTx, (done) withinPath
      - createLinearGradient, createPattern(), createRadialGradient(), addColorStop(), isPointInPath(), measureText(), drawImage()
      - save() restore()
-- consider hiding time from Animation? It should only be used in params
-- simplifying closure situation? Maybe handle params internally through DI?
 - the way the tick is passed on in Animator is ugly
-- All the complex methods are implemented badly, then, emit, parallel. Maybe state machines? (if else is quite good)
-
+- All the complex methods are implemented badly, then, emit, parallel. Maybe state machines?
 
 API documentation
 -------------------
