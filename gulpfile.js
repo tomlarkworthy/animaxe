@@ -52,18 +52,16 @@ gulp.task('compile', function() {
 
 var projects = {}; // each example has a set of ts projects to enable continuous compilation
 
+/**
+ * Wrap files in the examples directory, with html-<name>, test-<name> and watch-<name> tasks.
+ * html-<name> task generates a webpage with the example embedded in it.
+ * test-<name> task generates a mocha test around the example that ensure the images produced match a reference image.
+ * watch-<name> task watches the source code and live reloads the embedding webpage.
+ */
 function createExampleTasksFor(exampleName) {
     var exampleNameJS = exampleName + '.js';
     var exampleNameTS = exampleName + '.ts';
-
-    /*
-    gulp.task('compile-' + exampleName, ["compile"], function() {
-        var tsResult = gulp.src("examples/" + exampleNameTS)
-                        .pipe(sourcemaps.init())
-                        .pipe(ts(projects[exampleName]));
-        return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('dist'));
-    });*/
-
+    
     gulp.task('html-' + exampleName, ['compile'], function() {
         gulp.src('html/example.template.html')
           .pipe(rename("html/" + exampleName + ".html"))
@@ -117,7 +115,6 @@ gulp.task("doc", function() {
         }))
     ;
 });
-
 
 
 gulp.task("deploy", ["tests", "htmls", /*TODO: (not working) "doc"*/], function() {

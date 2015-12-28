@@ -5,7 +5,7 @@ import * as events from "./events";
 import * as Parameter from "./Parameter";
 import * as canvas from "./CanvasAnimation";
 import * as types from "./types";
-import * as OT from "./CanvasAnimation";
+import * as OT from "./ObservableTransformer";
 export * from "./types";
 
 
@@ -44,7 +44,9 @@ export class Animator {
         if (DEBUG) console.log("animator: tick", dt);
         var tick = new canvas.CanvasTick(this.t, dt, this.ctx, this.events);
         this.t += dt;
+        this.ctx.save();
         this.root.onNext(tick);
+        this.ctx.restore();
         this.events.clear();
     }
     ticker(dts: Rx.Observable<number>): void {
@@ -57,30 +59,19 @@ export class Animator {
     }
     // todo: play is really pain, it needs canvas chainables so it can inject and wipe the canvase state through the animation chain
     // maybe we should also include a more base
-    play(animation: canvas.Animation): Rx.IDisposable {
+    play(animation: OT.ObservableTransformer<canvas.CanvasTick, any>): Rx.IDisposable {
         var self = this;
-        var saved: boolean = false;
         if (DEBUG) console.log("animator: play animation");
-        var saveBeforeFrame = this.root.tapOnNext(
+        var rootWithStateRefresh = this.root.tapOnNext(
             (tick: canvas.CanvasTick) => {
-                if (DEBUG) console.log("animator: ctx save");
+                if (DEBUG) console.log("animator: ctx refresh");
+                tick.ctx.restore();
                 tick.ctx.save();
-                saved = true;
             }
         );
         return animation
-            .attach(saveBeforeFrame) // todo, it be nicer if we could chain attach
-            .tap(
-            function(tick){
-                if (DEBUG) console.log("animator: ctx next restore");
-                if (saved) {self.ctx.restore(); saved = false;}
-            },function(err){
-                if (DEBUG) console.log("animator: ctx err restore", err);
-                if (saved) {self.ctx.restore(); saved = false;}
-            },function(){
-                if (DEBUG) console.log("animator: ctx complete restore");
-                if (saved) {self.ctx.restore(); saved = false;}
-            }).subscribe();
+            .attach(rootWithStateRefresh)
+            .subscribe();
     }
 
     mousedown (x: number, y: number) {
