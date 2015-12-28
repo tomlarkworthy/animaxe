@@ -115,6 +115,8 @@ and browse to `http://localhost:8000/html/example1.html`, if you modify any TS s
 
 You can add your own examples to the `examples/` directory and a gulp watch-XXX task is created automagically!
 
+I highly recommend using `vscode` to edit/create examples, this repo is configured for `vscode` and `tsc`
+
 Examples
 -----------------------------------
 
@@ -152,9 +154,7 @@ Example 6 - UI Slider
 ![Example6](./images/example6.gif?raw=true)
 
 
-We have some examples in the test directory written in Typescript.
-You can use the babel preprocessor within Codepen quite well. Although it borks on some of the typescript syntax, 
-if anyone knows a good online Typescript editor that can read type definition files I would love to hear.
+We have some examples in the test directory written in Typescript. See 'Trying it out'.
 
 
 API
@@ -195,7 +195,6 @@ Engineering
 
 Refactors
 ----------
-- Move the .pipe inside the .draw (rename draw), and remove lots of redundant pipes
 - change event propogation
 - change order of playExample parameters
 

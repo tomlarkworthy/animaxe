@@ -22,8 +22,8 @@ export class CanvasTick extends OT.BaseTick{
         super(clock, dt)
     }
     
-    save() {this.ctx.save();}
-    restore() {this.ctx.restore();}
+    save() {super.save(); this.ctx.save();}
+    restore() {super.restore(); this.ctx.restore();}
     skew(dt: number): this {
         return <this> new CanvasTick(this.clock + dt, this.dt, this.ctx, this.events);
     }

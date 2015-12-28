@@ -14,6 +14,7 @@ export var DEBUG_EVENTS = false;
 export var DEBUG = false;
 
 export class BaseTick {
+    history: [number, number][] = [];
     constructor (
         public clock: number,
         public dt: number)
@@ -391,6 +392,13 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
 
     if(condition: types.BooleanArg, animation: ChainableTransformer<Tick>): If<Tick, this>{
         return new If<Tick, this>([new ConditionActionPair(condition, animation)], this);
+    }
+    
+    skewT<T>(displacement: types.NumberArg): this {
+        return this.affect(
+            () => (tick, displacement: number) => tick.skew(displacement),
+            Parameter.from(displacement)
+        )
     }
 }
 
