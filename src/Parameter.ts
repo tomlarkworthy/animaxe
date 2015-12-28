@@ -114,7 +114,7 @@ export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter
         (upstream: Rx.Observable<OT.BaseTick>) => {
             var clockSkew = zip.zip(
                 (tick: OT.BaseTick, dt: number) => {
-                    return new OT.BaseTick(tick.clock + dt, tick.dt, tick.ctx)    
+                    return tick.skew(dt)    
                 },
                 upstream,
                 from(displacement).attach(upstream)

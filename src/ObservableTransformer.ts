@@ -16,9 +16,14 @@ export var DEBUG = false;
 export class BaseTick {
     constructor (
         public clock: number,
-        public dt: number,
-        public ctx: CanvasRenderingContext2D) // TODO remove ctx from BaseTick
+        public dt: number)
     {
+    }
+    
+    save() {}
+    restore() {}
+    skew(dt: number): this {
+        return <this>new BaseTick(this.clock + dt, this.dt);
     }
 }
 
@@ -320,8 +325,8 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
     
                 animations.forEach(function(animation: ChainableTransformer<Tick>) {
                     activeOT_APIs++;
-                    animation.attach(attachPoint.tapOnNext(tick => tick.ctx.save())).subscribe(
-                            tick => tick.ctx.restore(),
+                    animation.attach(attachPoint.tapOnNext(tick => tick.save())).subscribe(
+                            tick => tick.restore(),
                         decrementActive,
                         decrementActive)
                 });

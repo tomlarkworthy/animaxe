@@ -11,8 +11,7 @@ function permDot(size, css_color) {
     return Ax.create().fillStyle(css_color).fillRect([-size / 2, -size / 2], [size, size]);
 }
 // Reset seed once via sideeffect
-// this is a bit shitty we need an eval maybe?
-animator.play(Ax.create().take(1).affect(function () { return function (tick, param1) { }; }, Parameter.seedrnd("seed")));
+animator.play(Parameter.seedrnd("seed").take(1));
 // each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0, 0], [100, 100]));
 // a ring of exploding particles that fade our

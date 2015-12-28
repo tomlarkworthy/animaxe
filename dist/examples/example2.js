@@ -14,8 +14,8 @@ function thickLine1tick(thickness, start, end, css_color) {
         .stroke();
 }
 /**
- * Three frame animation of a thinning line. Animations are displaced in time so even if the start and end streams move
- * The line doesn't
+ * Three frame animation of a thinning line. Animations are displaced in time so even if the start and end streams move,
+ * the line doesn't
  */
 function sparkLine(start, end, css_color) {
     return thickLine1tick(6, //thick line
@@ -34,18 +34,5 @@ var green = Parameter.sin(Parameter.t().mapValue(function (x) { return x * 2; })
 var blue = 50;
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0, 0], [100, 100]));
-// TEST:
-/*
-animator.play(
-    Ax.create()
-    .withinPath(Ax.create()
-        .moveTo(
-            Parameter.point(bigSin,bigCos)
-        ).lineTo(
-            Parameter.displaceT(-0.1, Parameter.point(bigSin,bigCos))
-        )
-    )
-)*/
-// TO DEBUG:
 animator.play(Ax.create().emit(sparkLine(Parameter.point(bigSin, bigCos), Parameter.displaceT(-0.1, Parameter.point(bigSin, bigCos)), Parameter.rgba(red, green, blue, 1))));
 helper.playExample("example2", 20, animator, 100, 100);

@@ -19,7 +19,13 @@ export class CanvasTick extends OT.BaseTick{
         public ctx: CanvasRenderingContext2D,
         public events: events.Events)
     {
-        super(clock, dt, ctx)
+        super(clock, dt)
+    }
+    
+    save() {this.ctx.save();}
+    restore() {this.ctx.restore();}
+    skew(dt: number): this {
+        return <this> new CanvasTick(this.clock + dt, this.dt, this.ctx, this.events);
     }
 }
 
