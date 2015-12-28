@@ -105,13 +105,15 @@ The dynamic dataflow operators, so far, in Animaxe are:-
 Trying it out
 ---------------
 
-Clone the repo, npm install, start a webserver, and browse to src/examples/example1.html
+Clone the repo
+```
+git clone git@github.com:tomlarkworthy/animaxe.git
+npm install
+python -m SimpleHTTPServer & gulp watch-example1
+```
+and browse to `http://localhost:8000/html/example1.html`, if you modify any TS sources, the page will refresh automatically.
 
-We use SystemJS to compile the Typescript within the webpage, so you can modify the source within chrome.
-
-The library is best consumed as a Typescript module to be directly compiled against. I am not sure how to best do this, so
-ideas welcome!
-
+You can add your own examples to the `examples/` directory and a gulp watch-XXX task is created automagically!
 
 Examples
 -----------------------------------
