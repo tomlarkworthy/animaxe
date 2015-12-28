@@ -143,7 +143,10 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      * ```Ax.move(...).pipe(myOT_API());```
      */
     pipe<OT_API extends ChainableTransformer<Tick>>(downstream: OT_API): OT_API {
-        return combine<Tick, ChainableTransformer<Tick>, OT_API>(this, downstream);
+        var self = this;
+        return <OT_API> downstream.create(
+            upstream => downstream.attach(self.attach(upstream))
+        )
     }
 
     /**
@@ -406,16 +409,6 @@ function wrapEffectToReturnTick<Tick>(
             return tick;
         }
     }
-}
-
-/**
- * Creates a new OT_API by piping the animation flow of A into B
- */
-//export function combine<Tick, A extends ObservableTransformer<Tick>, B extends ObservableTransformer<Tick>>(a: A, b: B): B {
-export function combine<Tick extends BaseTick, A extends ChainableTransformer<any>, B extends ChainableTransformer<any>>(a: A, b: B): B {
-    return <B>b.create(
-        upstream => b.attach(a.attach(upstream))
-    )
 }
 
 
