@@ -153,6 +153,11 @@ Example 6 - UI Slider
 
 ![Example6](./images/example6.gif?raw=true)
 
+Rainbow Sines - Demo
+([source](./test/rainbow-sines.ts))
+
+![Example6](./images/rainbow-sines.gif?raw=true)
+
 
 We have some examples in the test directory written in Typescript. See 'Trying it out'.
 
@@ -196,8 +201,8 @@ Engineering
 Refactors
 ----------
 - change event propogation
+- displaceT should be moved into Chainable, but it requires popping state on save and restore. We maybe should rethink those
 - change order of playExample parameters
-
 - (partial) do all of canvas API methods
      - finish that API!
      - withinClip, withinTx, (done) withinPath
