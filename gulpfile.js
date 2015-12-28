@@ -15,7 +15,7 @@ var webpack = require('webpack');
 var typedoc = require("gulp-typedoc");
 var extractExampleCode = require("./scripts/extractExampleCode");
 var ignore = new webpack.IgnorePlugin(new RegExp("^(canvas|mongoose|react)$"));
-
+var livereload = require('gulp-livereload');
 
 var npm_info = JSON.parse(fs.readFileSync("package.json").toString());
 
@@ -64,11 +64,12 @@ function createExampleTasksFor(exampleName) {
         return tsResult.js.pipe(sourcemaps.write()).pipe(gulp.dest('dist'));
     });*/
 
-    gulp.task('html-' + exampleName, function() {
+    gulp.task('html-' + exampleName, ['compile'], function() {
         gulp.src('html/example.template.html')
           .pipe(rename("html/" + exampleName + ".html"))
           .pipe(template({name: exampleName}))
           .pipe(gulp.dest('.'))
+          .pipe(livereload())
     });
 
     gulp.task('test-' + exampleName, ['compile'], function() {
@@ -86,6 +87,12 @@ function createExampleTasksFor(exampleName) {
               .pipe(sourcemaps.write())
               .pipe(gulp.dest("."))// we need a real copy of it to satisfy mocha
               .pipe(mocha({ reporter: 'list' })); // run it with mocha*/
+    });
+    
+    gulp.task('watch-' + exampleName, ['html-' + exampleName], function() {
+        // we take the example source code
+        livereload.listen();
+        gulp.watch(['src/*.ts', 'examples/' + exampleNameTS], ['html-' + exampleName]);
     });
 }
 

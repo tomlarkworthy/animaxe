@@ -166,9 +166,10 @@ TODOS
 
 Packaging
 -----------
+- instructions on using save As.. then map to network resource for example editing
 - Test npm workflow
 - Test TS workflow (bower?)
-- Redo codepen examples with systemJS (?)
+- Redo codepen examples with systemJS (SystemJS doesn't support inline script tags for transpilation)
 
 Glow
 ----
@@ -186,9 +187,9 @@ Features
 Engineering
 --------------
 - figure out why example3 cannot have move than 1000 particles without a stack overflow
-- remove randomness (example 3) with a random seed (seed random with animation seed?) for repeatabe tests
-- replace paralel with its own internal animator OR make parallel the only option
-- check for memory leaks from recursive closures.
+- replace parallel with its own internal animator OR make parallel the only option
+- check for memory leaks.
+- Time travelling debugger? http://elm-lang.org/blog/time-travel-made-easy uses snapshots and fast forwards, totally doable
 
 Refactors
 ----------
@@ -244,6 +245,7 @@ Random IDEAS
 - mouse input, tailing glow (remember to tween between rapid movements)
 - prerendering an animation for fast playback
 - SVG path parser for withinPath
+- Matrix esq. The rain
 
 
 
