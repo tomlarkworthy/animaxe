@@ -154,9 +154,9 @@ Example 6 - UI Slider
 ![Example6](./images/example6.gif?raw=true)
 
 Rainbow Sines - Demo
-([source](./test/rainbow-sines.ts))
+([source](./test/rainbow_sines.ts))
 
-![Example6](./images/rainbow-sines.gif?raw=true)
+![Rainbow Sines](./images/rainbow_sines.gif?raw=true)
 
 
 We have some examples in the test directory written in Typescript. See 'Trying it out'.
