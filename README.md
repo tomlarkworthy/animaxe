@@ -195,9 +195,8 @@ Engineering
 
 Refactors
 ----------
-- make Animator sequence Parameters And Animation
-- change event propogation
 - Move the .pipe inside the .draw (rename draw), and remove lots of redundant pipes
+- change event propogation
 - change order of playExample parameters
 
 - (partial) do all of canvas API methods

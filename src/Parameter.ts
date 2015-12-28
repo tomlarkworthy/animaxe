@@ -13,8 +13,6 @@ export * from "./types"
 
 if (DEBUG) console.log("Parameter: module loading...");
 
-
-//console.log("seed random", seedrandom)
 export var rndGenerator = seedrandom.xor4096(Math.random() + "");
 
 // Parameter is a transformer from (clock signals -> Value)

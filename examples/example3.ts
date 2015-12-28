@@ -16,7 +16,7 @@ function permDot(size: number, css_color: Ax.ColorArg): Ax.Animation {
     return Ax.create().fillStyle(css_color).fillRect([-size/2, -size/2], [size, size]);
 }
 
-// Reset seed once via sideeffect
+// Reset seed once via sideeffect (I feel this shouldn't typecheck :/)
 animator.play(Parameter.seedrnd("seed").take(1));
 
 // each frame, first draw black background to erase the previous contents

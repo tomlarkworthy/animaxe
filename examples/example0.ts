@@ -6,7 +6,6 @@ import * as Parameter from "../src/Parameter";
 
 var animator: Ax.Animator = helper.getExampleAnimator();
 
-Ax.DEBUG = true;
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#FF0000").fillRect([0,0],[100,100]));
 

@@ -10,7 +10,7 @@ var alpha = Parameter.t().mapValue(function (t) { return 0.1 / (t * 5 + 0.1); })
 function permDot(size, css_color) {
     return Ax.create().fillStyle(css_color).fillRect([-size / 2, -size / 2], [size, size]);
 }
-// Reset seed once via sideeffect
+// Reset seed once via sideeffect (I feel this shouldn't typecheck :/)
 animator.play(Parameter.seedrnd("seed").take(1));
 // each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0, 0], [100, 100]));

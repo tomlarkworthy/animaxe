@@ -98,7 +98,7 @@ export class ComponentMouseState {
  * occured over the source animation
  */
 export function ComponentMouseEventHandler(events: ComponentMouseState): canvas.Animation {
-    return canvas.create().draw(
+    return canvas.create().affect(
         () => {
             var mouseIsOver = false;
             return (tick: canvas.CanvasTick) => {
@@ -160,7 +160,7 @@ export function ComponentMouseEventHandler(events: ComponentMouseState): canvas.
  * AxMouseEvent raised globally have a null source field, and identical global and local coordinates
  */
 export function CanvasMouseEventHandler(events: ComponentMouseState): canvas.Animation {
-    return canvas.create().draw(
+    return canvas.create().affect(
         () => {
             return (tick: canvas.CanvasTick) => {
                 function processSystemMouseEvents(

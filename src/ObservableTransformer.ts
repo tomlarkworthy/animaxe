@@ -102,15 +102,20 @@ export class ObservableTransformer<In extends BaseTick, Out> {
      * Both are given the same input, and their simulataneous outputs are passed to a 
      * combiner function, which compute the final output.
      */
-    combine<Combined, Arg1, Arg2, Arg3, Arg4> (
+    combine<Combined, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8> (
             combinerBuilder: () => 
                 (thisValue: Out, arg1?: Arg1, arg2?: Arg2, arg3?: Arg3) => Combined,
             other1?: ObservableTransformer<In, Arg1>, 
             other2?: ObservableTransformer<In, Arg2>, 
             other3?: ObservableTransformer<In, Arg3>,
-            other4?: ObservableTransformer<In, Arg4>       
+            other4?: ObservableTransformer<In, Arg4>,
+            other5?: ObservableTransformer<In, Arg5>,
+            other6?: ObservableTransformer<In, Arg6>,
+            other7?: ObservableTransformer<In, Arg7>,
+            other8?: ObservableTransformer<In, Arg8>      
         ) : ObservableTransformer<In, Combined> {
-        return this.combineMany(combinerBuilder, other1, other2, other3, other4);
+        return this.combineMany(combinerBuilder, other1, other2, other3, other4, 
+                                                 other5, other6, other7, other8);
     }
     
     init(): (clock: number) => Out{throw new Error("depricated: remove this")}
@@ -353,25 +358,30 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
 
     /**
      * helper method for implementing simple animations (that don't fork the animation tree).
-     * You just have to supply a function that does something with the draw tick.
+     * Apply an effect to occur after 'this'.
      */
-    draw(drawFactory: () => ((tick: Tick) => void)): this {
-        return this.create((upstream) => upstream.tapOnNext(drawFactory()));
-    }
-    
-    affect<P1, P2, P3, P4> ( 
-        effectBuilder: () => (tick: Tick, arg1: P1, arg2: P2, arg3: P3, arg4: P4) => void,
+    affect<P1, P2, P3, P4, P5, P6, P7, P8> ( 
+        effectBuilder: () => (tick: Tick, arg1: P1, arg2: P2, arg3: P3, arg4: P4,
+                                          arg5: P5, arg6: P6, arg7: P7, arg8: P8) => void,
         param1?: ObservableTransformer<Tick, P1>, 
         param2?: ObservableTransformer<Tick, P2>,
         param3?: ObservableTransformer<Tick, P3>,
-        param4?: ObservableTransformer<Tick, P4>): this {
+        param4?: ObservableTransformer<Tick, P4>,
+        param5?: ObservableTransformer<Tick, P5>,
+        param6?: ObservableTransformer<Tick, P6>,
+        param7?: ObservableTransformer<Tick, P7>,
+        param8?: ObservableTransformer<Tick, P8>): this {
         return this.create(
                 this.combine(
                     wrapEffectToReturnTick(effectBuilder),
                     param1,
                     param2,
                     param3,
-                    param4
+                    param4,
+                    param5,
+                    param6,
+                    param7,
+                    param8
                 ).attach
             );
     }

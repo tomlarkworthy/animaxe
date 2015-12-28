@@ -48,35 +48,49 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      * Debug messages are inserted around the effect (e.g. a mutation to the canvas).
      * You can expose time varying or constant parameters to the inner effect using the optional params.
      */
-    loggedAffect<P1, P2, P3, P4>(
+    loggedAffect<P1, P2, P3, P4, P5, P6, P7, P8>(
         label: string, 
-        effectBuilder: () => (tick: CanvasTick, arg1?: P1, arg2?: P2, arg3?: P3, arg4?: P4) => void,
+        effectBuilder: () => (tick: CanvasTick, arg1?: P1, arg2?: P2, arg3?: P3, arg4?: P4,
+                                                arg5?: P5, arg6?: P6, arg7?: P7, arg8?: P8) => void,
         param1?: P1 | Parameter.Parameter<P1>,
         param2?: P2 | Parameter.Parameter<P2>,
         param3?: P3 | Parameter.Parameter<P3>,
-        param4?: P4 | Parameter.Parameter<P4>
+        param4?: P4 | Parameter.Parameter<P4>,
+        param5?: P5 | Parameter.Parameter<P5>,
+        param6?: P6 | Parameter.Parameter<P6>,
+        param7?: P7 | Parameter.Parameter<P7>,
+        param8?: P8 | Parameter.Parameter<P8>
     ): this {
         if (DEBUG) console.log(label + ": build");
         return this.affect(
             () => {
                 if (DEBUG) console.log(label + ": attach");
                 var effect = effectBuilder()
-                return (tick: CanvasTick, arg1?: P1, arg2?: P2, arg3?: P3, arg4?: P4) => {
+                return (tick: CanvasTick, arg1?: P1, arg2?: P2, arg3?: P3, arg4?: P4,
+                                          arg5?: P5, arg6?: P6, arg7?: P7, arg8?: P8) => {
                     if (DEBUG) {
                         var elements = [];
                         if (arg1) elements.push(arg1 + "");
                         if (arg2) elements.push(arg2 + "");
                         if (arg3) elements.push(arg3 + "");
                         if (arg4) elements.push(arg4 + "");
+                        if (arg5) elements.push(arg5 + "");
+                        if (arg6) elements.push(arg6 + "");
+                        if (arg7) elements.push(arg7 + "");
+                        if (arg8) elements.push(arg8 + "");
                         console.log(label + ": tick (" + elements.join(",") + ")");
                     }
-                    effect(tick, arg1, arg2, arg3, arg4)
+                    effect(tick, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
                 }
             },
             param1 ? Parameter.from(param1): undefined,
             param2 ? Parameter.from(param2): undefined,
             param3 ? Parameter.from(param3): undefined,
-            param4 ? Parameter.from(param4): undefined
+            param4 ? Parameter.from(param4): undefined,
+            param5 ? Parameter.from(param5): undefined,
+            param6 ? Parameter.from(param6): undefined,
+            param7 ? Parameter.from(param7): undefined,
+            param8 ? Parameter.from(param8): undefined
         )
     }
     
@@ -435,28 +449,12 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      */
     transform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
               d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("transform: attach");
-                    var arg1_next = Parameter.from(a).init();
-                    var arg2_next = Parameter.from(b).init();
-                    var arg3_next = Parameter.from(c).init();
-                    var arg4_next = Parameter.from(d).init();
-                    var arg5_next = Parameter.from(e).init();
-                    var arg6_next = Parameter.from(f).init();
-                    return function (tick: CanvasTick) {
-                        var arg1 = arg1_next(tick.clock);
-                        var arg2 = arg2_next(tick.clock);
-                        var arg3 = arg3_next(tick.clock);
-                        var arg4 = arg4_next(tick.clock);
-                        var arg5 = arg5_next(tick.clock);
-                        var arg6 = arg6_next(tick.clock);
-                        if (DEBUG) console.log("transform: transform", arg1, arg2, arg3, arg4, arg5, arg6);
-                        tick.ctx.transform(arg1, arg2, arg3, arg4, arg5, arg6);
-                    }
-                }
-            )
+        return this.loggedAffect(
+            "transform",
+            () => (tick: CanvasTick, arg1: number, arg2: number, arg3: number, 
+                                     arg4: number, arg5: number, arg6: number) =>
+                    tick.ctx.transform(arg1, arg2, arg3, arg4, arg5, arg6),
+            a,b,c,d,e,f
         );
     }
     /**
@@ -464,28 +462,12 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      */
     setTransform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
                  d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("setTransform: attach");
-                    var arg1_next = Parameter.from(a).init();
-                    var arg2_next = Parameter.from(b).init();
-                    var arg3_next = Parameter.from(c).init();
-                    var arg4_next = Parameter.from(d).init();
-                    var arg5_next = Parameter.from(e).init();
-                    var arg6_next = Parameter.from(f).init();
-                    return function (tick: CanvasTick) {
-                        var arg1 = arg1_next(tick.clock);
-                        var arg2 = arg2_next(tick.clock);
-                        var arg3 = arg3_next(tick.clock);
-                        var arg4 = arg4_next(tick.clock);
-                        var arg5 = arg5_next(tick.clock);
-                        var arg6 = arg6_next(tick.clock);
-                        if (DEBUG) console.log("setTransform: setTransform", arg1, arg2, arg3, arg4, arg5, arg6);
-                        tick.ctx.setTransform(arg1, arg2, arg3, arg4, arg5, arg6);
-                    }
-                }
-            )
+        return this.loggedAffect(
+            "setTransform",
+            () => (tick: CanvasTick, arg1: number, arg2: number, arg3: number, 
+                                     arg4: number, arg5: number, arg6: number) =>
+                    tick.ctx.setTransform(arg1, arg2, arg3, arg4, arg5, arg6),
+            a,b,c,d,e,f
         );
     }
     /**
@@ -548,19 +530,12 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
      * Dynamic chainable wrapper for drawImage in the canvas API.
      */
     drawImage(img, xy: types.PointArg): Animation {
-        return this.pipe(
-            this.draw(
-                () => {
-                    if (DEBUG) console.log("drawImage: attach");
-                    var arg1_next = Parameter.from(xy).init();
-                    return function (tick: CanvasTick) {
-                        var arg1 = arg1_next(tick.clock);
-                        if (DEBUG) console.log("drawImage: drawImage", arg1);
-                        tick.ctx.drawImage(img, arg1[0], arg1[1]);
-                    }
-                }
-            )
-        );
+        return this.loggedAffect(
+            "drawImage",
+            () => (tick: CanvasTick, img, xy: types.Point) => 
+                tick.ctx.drawImage(img, xy[0], xy[1]),
+            img, xy
+        )
     }
     /**
      * * Dynamic chainable wrapper for globalCompositeOperation in the canvas API.
@@ -576,23 +551,13 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
 
     arc(center: types.PointArg, radius: types.NumberArg,
         radStartAngle: types.NumberArg, radEndAngle: types.NumberArg,
-        counterclockwise?: boolean): this {
-        return this.draw(
-            () => {
-                if (DEBUG) console.log("arc: attach");
-                var arg1_next = Parameter.from(center).init();
-                var arg2_next = Parameter.from(radius).init();
-                var arg3_next = Parameter.from(radStartAngle).init();
-                var arg4_next = Parameter.from(radEndAngle).init();
-                return function (tick:CanvasTick) {
-                    var arg1 = arg1_next(tick.clock);
-                    var arg2 = arg2_next(tick.clock);
-                    var arg3 = arg3_next(tick.clock);
-                    var arg4 = arg4_next(tick.clock);
-                    if (DEBUG) console.log("arc: arc", arg1, arg2, arg3, arg4);
-                    tick.ctx.arc(arg1[0], arg1[1], arg2, arg3, arg4, counterclockwise);
-                }
-            }
+        counterclockwise: boolean = false): this {
+        return this.loggedAffect(
+            "arc",
+            () => (tick: CanvasTick, arg1: types.Point, arg2: number, arg3: number, 
+                                     arg4: number, counterclockwise: boolean) => 
+                tick.ctx.arc(arg1[0], arg1[1], arg2, arg3, arg4, counterclockwise),
+            center, radius, radStartAngle, radEndAngle, counterclockwise
         );
     }
 }
