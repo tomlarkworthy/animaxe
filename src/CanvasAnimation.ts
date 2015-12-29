@@ -17,16 +17,26 @@ export class CanvasTick extends OT.BaseTick{
         public clock: number,
         public dt: number,
         public ctx: CanvasRenderingContext2D,
-        public events: events.Events)
+        public events: events.Events,
+        public previous ?: CanvasTick)
     {
-        super(clock, dt)
+        super(clock, dt, previous)
+    }
+    copy(): this {
+        return <this>new CanvasTick(this.clock, this.dt, this.ctx, this.events, this.previous);
     }
     
-    save() {super.save(); this.ctx.save();}
-    restore() {super.restore(); this.ctx.restore();}
-    skew(dt: number): this {
-        return <this> new CanvasTick(this.clock + dt, this.dt, this.ctx, this.events);
+    save(): this {
+        var cp = <this>super.save();
+        cp.ctx.save();
+        return cp;
     }
+    restore(): this {
+        var cp = <this>super.restore();
+        cp.ctx.restore();
+        return cp;
+    }
+    
 }
 
 export class Animation extends OT.ChainableTransformer<CanvasTick>{
@@ -555,7 +565,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         return this.loggedAffect(
             "arc",
             () => (tick: CanvasTick, arg1: types.Point, arg2: number, arg3: number, 
-                                     arg4: number, counterclockwise: boolean) => 
+                                     arg4: number, counterclockwise) => 
                 tick.ctx.arc(arg1[0], arg1[1], arg2, arg3, arg4, counterclockwise),
             center, radius, radStartAngle, radEndAngle, counterclockwise
         );

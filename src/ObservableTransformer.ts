@@ -13,18 +13,38 @@ export var DEBUG_PARALLEL = false;
 export var DEBUG_EVENTS = false;
 export var DEBUG = false;
 
+/**
+ * The Tick runs through all the features of Animaxe, this base tick provides a clock signal to the transformers. 
+ * The CanvasTick subclass adds exposure to the canvas and event APIs. Ideally class would be immutable, but as we are wrapping the
+ * canvas API which is mutable, we only have an immutable-like interface. You must *always* balance the save() and restore()
+ * calls otherwise the state gets out of wack. However, users should not be mutating this anyway, you should simply be consuming the information.
+ */
 export class BaseTick {
-    history: [number, number][] = [];
-    constructor (
-        public clock: number,
-        public dt: number)
-    {
+    constructor (public clock: number, public dt: number, public previous?: BaseTick) {
     }
-    
-    save() {}
-    restore() {}
+    /**
+     * subclasses must implement this for their specialised type subclass
+     */
+    copy(): this {return <this> new BaseTick(this.clock, this.dt, this.previous);}
+    /**
+     * saves the state and returns a new instance, use restore on the returned instance to get back to the previous state
+     */
+    save(): this {
+        var cp = this.copy();
+        cp.previous = this;
+        return cp;
+    }
+    restore(): this {
+        types.assert(this.previous != null);
+        return <this>this.previous;
+    }
+    /**
+     * Mutates the clock by dt (use save and restore if you want to retreive it)
+     */
     skew(dt: number): this {
-        return <this>new BaseTick(this.clock + dt, this.dt);
+        var cp = this.copy();
+        cp.clock = this.clock + dt;
+        return cp;
     }
 }
 
@@ -143,7 +163,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      *
      * ```Ax.move(...).pipe(myOT_API());```
      */
-    pipe<OT_API extends ChainableTransformer<Tick>>(downstream: OT_API): OT_API {
+    pipe<OT_API extends ObservableTransformer<Tick, any>>(downstream: OT_API): OT_API {
         var self = this;
         return <OT_API> downstream.create(
             upstream => downstream.attach(self.attach(upstream))
@@ -334,15 +354,17 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
     
                 animations.forEach(function(animation: ChainableTransformer<Tick>) {
                     activeOT_APIs++;
-                    animation.attach(attachPoint.tapOnNext(tick => tick.save())).subscribe(
-                            tick => tick.restore(),
+                    animation.attach(attachPoint.map(tick => <Tick>tick.restore().save())).subscribe(
+                        _ => {},
                         decrementActive,
                         decrementActive)
                 });
     
                 return prev.takeWhile(() => activeOT_APIs > 0).tapOnNext(function(tick: Tick) {
                         if (DEBUG_PARALLEL) console.log("parallel: emitting, animations", tick);
-                        attachPoint.onNext(tick);
+                        var savedTick = tick.save();
+                        attachPoint.onNext(<Tick>savedTick);
+                        savedTick.restore();
                         if (DEBUG_PARALLEL) console.log("parallel: emitting finished");
                     }
                 );
@@ -395,9 +417,11 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
     }
     
     skewT<T>(displacement: types.NumberArg): this {
-        return this.affect(
-            () => (tick, displacement: number) => tick.skew(displacement),
-            Parameter.from(displacement)
+        return this.create(
+            this.combine(
+                () => (tick: Tick, displacement: number) => <Tick>tick.skew(displacement),
+                Parameter.from(displacement)    
+            ).attach
         )
     }
 }

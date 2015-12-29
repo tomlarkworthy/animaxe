@@ -104,25 +104,6 @@ export function point(
     );
 }
 
-
-export function displaceT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T> {
-    if (DEBUG) console.log("displaceT: build");
-    
-    return new OT.ObservableTransformer<OT.BaseTick, T>(
-        (upstream: Rx.Observable<OT.BaseTick>) => {
-            var clockSkew = zip.zip(
-                (tick: OT.BaseTick, dt: number) => {
-                    return tick.skew(dt)    
-                },
-                upstream,
-                from(displacement).attach(upstream)
-            )
-            
-            return from(value).attach(clockSkew)
-        }
-    )
-}
-
 export function first<T>(value: Parameter<T>): Parameter<T> {   
     if (DEBUG) console.log("first: build");
     return value.combine(
@@ -141,6 +122,10 @@ export function first<T>(value: Parameter<T>): Parameter<T> {
             }
         }    
     )
+}
+
+export function skewT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T> {
+    return new OT.ChainableTransformer<OT.BaseTick>(_ => _).skewT(displacement).pipe(from(value));
 }
 
 /*

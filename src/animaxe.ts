@@ -44,9 +44,9 @@ export class Animator {
         if (DEBUG) console.log("animator: tick", dt);
         var tick = new canvas.CanvasTick(this.t, dt, this.ctx, this.events);
         this.t += dt;
-        this.ctx.save();
-        this.root.onNext(tick);
-        this.ctx.restore();
+        var savedTick = tick.save();
+        this.root.onNext(savedTick);
+        savedTick.restore();
         this.events.clear();
     }
     ticker(dts: Rx.Observable<number>): void {
@@ -62,11 +62,10 @@ export class Animator {
     play(animation: OT.ObservableTransformer<canvas.CanvasTick, any>): Rx.IDisposable {
         var self = this;
         if (DEBUG) console.log("animator: play animation");
-        var rootWithStateRefresh = this.root.tapOnNext(
+        var rootWithStateRefresh = this.root.map(
             (tick: canvas.CanvasTick) => {
                 if (DEBUG) console.log("animator: ctx refresh");
-                tick.ctx.restore();
-                tick.ctx.save();
+                return tick.restore().save();
             }
         );
         return animation

@@ -33,12 +33,12 @@ function sparkLine(start: Ax.PointArg, end: Ax.PointArg, css_color: Ax.ColorArg)
             start,
             end, css_color)
         .then(thickLine1tick(2, //medium line
-            Parameter.displaceT(-0.1, start),
-            Parameter.displaceT(-0.1, end),
+            Parameter.skewT(-0.1, start),
+            Parameter.skewT(-0.1, end),
             css_color))
         .then(thickLine1tick(1, //thin line
-            Parameter.displaceT(-0.2, start),
-            Parameter.displaceT(-0.2, end),
+            Parameter.skewT(-0.2, start),
+            Parameter.skewT(-0.2, end),
             css_color));
 }
 
@@ -58,7 +58,7 @@ animator.play(
     Ax.create().emit(
         sparkLine(
             Parameter.point(bigSin,bigCos),
-            Parameter.displaceT(-0.1, Parameter.point(bigSin,bigCos)),
+            Parameter.skewT(-0.1, Parameter.point(bigSin,bigCos)),
             Parameter.rgba(red,green,blue,1)
         )
     )

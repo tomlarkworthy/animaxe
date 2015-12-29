@@ -193,6 +193,7 @@ Features
  
 Engineering
 --------------
+- Add a Number for adding a fluent interface to Number params
 - figure out why example3 cannot have move than 1000 particles without a stack overflow
 - replace parallel with its own internal animator OR make parallel the only option
 - check for memory leaks.
@@ -201,7 +202,7 @@ Engineering
 Refactors
 ----------
 - change event propogation
-- displaceT should be moved into Chainable, but it requires popping state on save and restore. We maybe should rethink those
+- displaceT should be moved into Chainable, but it requires popping state on save and restore. We maybe should rethink those to be "immutable"
 - change order of playExample parameters
 - (partial) do all of canvas API methods
      - finish that API!
@@ -246,6 +247,9 @@ UI controls
 Random IDEAS
 -------------
 
+- 2D Parametric line drawing from t = 0 ... t = 10 step 0.1 => x = sin(t), y = sin(t) WITH LINEAR INTORPOLATION
+   - 3D *segments* in time (need linear constraint solver for t = x cutting plane)
+   - Nd dots projected onto a plane (via n x 2 matrix)
 - PacMan
 - mouse input, tailing glow (remember to tween between rapid movements)
 - prerendering an animation for fast playback
