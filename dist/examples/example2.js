@@ -35,4 +35,4 @@ var blue = 50;
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0, 0], [100, 100]));
 animator.play(Ax.create().emit(sparkLine(Parameter.point(bigSin, bigCos), Parameter.skewT(-0.1, Parameter.point(bigSin, bigCos)), Parameter.rgba(red, green, blue, 1))));
-helper.playExample("example2", 20, animator, 100, 100);
+helper.playExample("@name", 20, animator, 100, 100);

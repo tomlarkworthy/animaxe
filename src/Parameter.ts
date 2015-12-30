@@ -229,7 +229,9 @@ export function cos(x: types.NumberArg): Parameter<number> {
 export function t(): Parameter<number> {   
     if (DEBUG) console.log("t: build");
     return new OT.ObservableTransformer(
-        (upstream: Rx.Observable<OT.BaseTick>) => upstream.map(tick => tick.clock)
+        (upstream: Rx.Observable<OT.BaseTick>) => upstream.map(tick => {
+            return tick.clock
+        })
     )
 }
 

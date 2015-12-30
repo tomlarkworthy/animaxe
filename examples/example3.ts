@@ -34,5 +34,5 @@ animator.play(Ax.create()
     )
 );
 
-helper.playExample("example3", 15, animator, 100, 100);
+helper.playExample("@name", 15, animator, 100, 100);
 

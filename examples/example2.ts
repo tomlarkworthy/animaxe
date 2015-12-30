@@ -65,4 +65,4 @@ animator.play(
 );
 
 
-helper.playExample("example2", 20, animator, 100, 100);
+helper.playExample("@name", 20, animator, 100, 100);

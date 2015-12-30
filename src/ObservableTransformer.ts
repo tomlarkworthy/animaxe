@@ -43,7 +43,7 @@ export class BaseTick {
      */
     skew(dt: number): this {
         var cp = this.copy();
-        cp.clock = this.clock + dt;
+        cp.clock += dt;
         return cp;
     }
 }
@@ -105,8 +105,8 @@ export class ObservableTransformer<In extends BaseTick, Out> {
             
             // we link all concurrent OTs in the others array to the fork, skipping null or undefined values
             var args: any[] = others.reduce(
-                (acc: any[], val: ObservableTransformer<In, any>) => {
-                    if (val) acc.push(val.attach(fork))
+                (acc: any[], other: ObservableTransformer<In, any>) => {
+                    if (other) acc.push(other.attach(fork))
                     return acc;
                 }, []
             );
@@ -397,26 +397,31 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
         param6?: ObservableTransformer<Tick, P6>,
         param7?: ObservableTransformer<Tick, P7>,
         param8?: ObservableTransformer<Tick, P8>): this {
-        return this.create(
-                this.combine(
-                    wrapEffectToReturnTick(effectBuilder),
-                    param1,
-                    param2,
-                    param3,
-                    param4,
-                    param5,
-                    param6,
-                    param7,
-                    param8
-                ).attach
-            );
+        
+        // combine the params with an empty instance
+        var combineParams = new ObservableTransformer(_ => _).combine( 
+            wrapEffectToReturnTick(effectBuilder),
+            param1,
+            param2,
+            param3,
+            param4,
+            param5,
+            param6,
+            param7,
+            param8
+        )
+                
+        // we want the tick output of the previous transform to be applied first (.pipe)
+        // then apply that output to all of the params and the combiner function
+        // and we want it with 'this' API, (.create)        
+        return this.create(this.pipe(combineParams).attach);
     }
 
     if(condition: types.BooleanArg, animation: ChainableTransformer<Tick>): If<Tick, this>{
         return new If<Tick, this>([new ConditionActionPair(condition, animation)], this);
     }
     
-    skewT<T>(displacement: types.NumberArg): this {
+    skewT(displacement: types.NumberArg): this {
         return this.create(
             this.combine(
                 () => (tick: Tick, displacement: number) => <Tick>tick.skew(displacement),

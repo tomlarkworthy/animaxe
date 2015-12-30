@@ -85,4 +85,4 @@ var value = new Rx.BehaviorSubject(0);
 animator.play(Ax.create().fillStyle(Parameter.rgba(Parameter.updateFrom(0, value).mapValue(function (x) { return x * 2.5; }), 0, 0, 1)).fillRect([0, 0], [100, 100]));
 animator.play(Ax.create()
     .pipe(Slider.rectangular(value)));
-helper.playExample("example6", 2, animator, 100, 100);
+helper.playExample("@name", 2, animator, 100, 100);

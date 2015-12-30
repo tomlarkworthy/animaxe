@@ -126,7 +126,7 @@ animator.play(Ax.create()
     .pipe(Slider.rectangular(value))
 );
 
-helper.playExample("example6", 2, animator, 100, 100);
+helper.playExample("@name", 2, animator, 100, 100);
 
 
 

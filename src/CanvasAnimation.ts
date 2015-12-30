@@ -446,8 +446,9 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
     translate(xy: types.PointArg): this {
         return this.loggedAffect(
             "translate",
-            () => (tick: CanvasTick, xy: types.Point) => 
-                tick.ctx.translate(xy[0], xy[1]),
+            () => (tick: CanvasTick, xy: types.Point) => {
+                tick.ctx.translate(xy[0], xy[1]);
+            },
             xy
         )
     }

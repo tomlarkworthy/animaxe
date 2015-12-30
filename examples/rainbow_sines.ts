@@ -15,21 +15,16 @@ var WIDTH = 100;
 var HEIGHT = 100;
 var SINS = 3;
 
-// todo promote to numberArg
-var range: (min: number, max: number) => number[] 
-    = (min: number, max: number) => 
-        Array.apply(null, Array(max - min)).map(function (_, i) {return i + min;});
-
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0,0],[100,100]));
 
 
 animator.play(
     Ax.create().parallel(
-        range(0, WIDTH).map(x => {
+        Ax.range(0, WIDTH).map(x => {
             // for each index we create a 10 sinwaves
             return Ax.create().parallel(
-                range(0, SINS).map(i => {
+                Ax.range(0, SINS).map(i => {
                     return Ax.create()
                         .translate(
                             Parameter.point(
@@ -56,4 +51,4 @@ animator.play(
 );
 
 
-helper.playExample("rainbow_sines", 32, animator, WIDTH, 100);
+helper.playExample("@name", 32, animator, WIDTH, 100);

@@ -132,7 +132,15 @@ export function assertClock(assertClock: number[]): canvas.Animation {
     });
 }
 
-
+export function range(min: number, max: number, step: number = 1): number[] {
+    var n = (max - min) / step;
+    var array = new Array(n);
+    for (var value = 0, index = 0; value < max; value += step, index++) {
+        array[index] = value;
+    }
+    types.assert(n === index)
+    return array;
+}
 
 
 

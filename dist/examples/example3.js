@@ -24,4 +24,4 @@ animator.play(Ax.create()
     permDot(1, Parameter.rgba(red, green, blue, alpha)),
     permDot(5, Parameter.rgba(red, green, blue, alpha)) // with a dimmer surround
 ])));
-helper.playExample("example3", 15, animator, 100, 100);
+helper.playExample("@name", 15, animator, 100, 100);
