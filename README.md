@@ -201,8 +201,8 @@ Engineering
 
 Refactors
 ----------
+- rainbow sines is ugly, Number and skewT should help.
 - change event propogation
-- displaceT should be moved into Chainable, but it requires popping state on save and restore. We maybe should rethink those to be "immutable"
 - change order of playExample parameters
 - (partial) do all of canvas API methods
      - finish that API!

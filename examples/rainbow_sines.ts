@@ -32,14 +32,23 @@ animator.play(
                 range(0, SINS).map(i => {
                     return Ax.create()
                         .translate(
-                        Parameter.point(
-                            x, 
-                            Parameter.sin(Parameter.t().mapValue(t => Math.sin(t + i*4 + x/ WIDTH) * 10 + t/2 + x / WIDTH * Math.PI + i/SINS * Math.PI * 2))
-                                .mapValue(s => HEIGHT * (0.45*s + 0.5))
-                            
-                        )
-                    )
-                    .pipe(foreverDot(3, Parameter.rgba(255, Parameter.sin(Parameter.t().mapValue(t => x / WIDTH + t*2 + i)).mapValue(s => s*125 + 125), 0,1)));  
+                            Parameter.point(
+                                x, 
+                                Parameter
+                                    .sin(
+                                        Parameter.t().mapValue(t => Math.sin(t + i * 4 + x/ WIDTH) * 10 + t / 2 + x / WIDTH * Math.PI + i / SINS * Math.PI * 2)
+                                    )
+                                    .mapValue(s => HEIGHT * (0.45 * s + 0.5))
+                                
+                                )
+                            )
+                        .pipe(foreverDot(3, Parameter.rgba(255, 
+                            Parameter
+                                .sin(
+                                    Parameter.t().mapValue(t => x / WIDTH + t * 2 + i)
+                                )
+                                .mapValue(s => s * 125 + 125),
+                            0,1)));  
                 })
             );   
         })

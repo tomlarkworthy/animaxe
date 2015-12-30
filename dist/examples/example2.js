@@ -21,9 +21,9 @@ function sparkLine(start, end, css_color) {
     return thickLine1tick(6, //thick line
     start, end, css_color)
         .then(thickLine1tick(2, //medium line
-    Parameter.displaceT(-0.1, start), Parameter.displaceT(-0.1, end), css_color))
+    Parameter.skewT(-0.1, start), Parameter.skewT(-0.1, end), css_color))
         .then(thickLine1tick(1, //thin line
-    Parameter.displaceT(-0.2, start), Parameter.displaceT(-0.2, end), css_color));
+    Parameter.skewT(-0.2, start), Parameter.skewT(-0.2, end), css_color));
 }
 //large circle funcitons
 var bigSin = Parameter.sin(Parameter.t().mapValue(function (x) { return Math.PI * x * 2; })).mapValue(function (x) { return x * 40 + 50; });
@@ -34,5 +34,5 @@ var green = Parameter.sin(Parameter.t().mapValue(function (x) { return x * 2; })
 var blue = 50;
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0, 0], [100, 100]));
-animator.play(Ax.create().emit(sparkLine(Parameter.point(bigSin, bigCos), Parameter.displaceT(-0.1, Parameter.point(bigSin, bigCos)), Parameter.rgba(red, green, blue, 1))));
+animator.play(Ax.create().emit(sparkLine(Parameter.point(bigSin, bigCos), Parameter.skewT(-0.1, Parameter.point(bigSin, bigCos)), Parameter.rgba(red, green, blue, 1))));
 helper.playExample("example2", 20, animator, 100, 100);

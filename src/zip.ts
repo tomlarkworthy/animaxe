@@ -47,6 +47,17 @@ class ZipObservable {
   }   
 }
 
+var errorObject = {value: null};
+function tryCatch(fn, ctx, args) {
+    try {
+        return fn.apply(ctx, args);
+    }
+    catch(e) {
+        errorObject.value = e;
+        return errorObject;
+    }
+}
+
 class ZipObserver {
     _o;
     _i;
@@ -66,18 +77,16 @@ class ZipObserver {
       this._q[this._i].push(x);
       if (this._q.every(notEmpty)) {
         var queuedValues = this._q.map(shiftEach);
-        try {
-          var res = this._p.resultSelector.apply(null, queuedValues);
-          this._o.onNext(res);
+        var res = tryCatch(this._p.resultSelector, null, queuedValues);
         
-          // Any done and empty => zip completed.
-          if (zipArrays([this._q, this._d]).some(emptyAndDone)) {
-            this._o.onCompleted();
-          }
-        
-        } catch (err) {
-          this._o.onError(err);
-          return;
+        if (res === errorObject) {
+            this._o.onError(res.value);
+        } else {
+            this._o.onNext(res);
+            // Any done and empty => zip completed.
+            if (zipArrays([this._q, this._d]).some(emptyAndDone)) {
+                this._o.onCompleted();
+            }
         }
       }
     };
