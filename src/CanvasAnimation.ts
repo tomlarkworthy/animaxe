@@ -328,7 +328,29 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         );
     }
     /**
-     * Dynamic chainable wrapper for fill in the canvas API. Use with withinPath.
+     * Dynamic chainable wrapper for fill in the canvas API. 
+     */
+    closePath(): this {
+        return this.loggedAffect(
+            "closePath",
+            () => (tick: CanvasTick) => 
+                tick.ctx.closePath()
+        )
+    }
+    
+    /**
+     * Dynamic chainable wrapper for fill in the canvas API. 
+     */
+    beginPath(): this {
+        return this.loggedAffect(
+            "beginPath",
+            () => (tick: CanvasTick) => 
+                tick.ctx.beginPath()
+        )
+    }
+    
+    /**
+     * Dynamic chainable wrapper for fill in the canvas API. 
      */
     fill(): this {
         return this.loggedAffect(
@@ -348,7 +370,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         )
     }
     /**
-     * Dynamic chainable wrapper for moveTo in the canvas API. Use with withinPath.
+     * Dynamic chainable wrapper for moveTo in the canvas API. 
      */
     moveTo(xy: types.PointArg): this {
         return this.loggedAffect(
@@ -359,7 +381,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         )
     }
     /**
-     * Dynamic chainable wrapper for lineTo in the canvas API. Use with withinPath.
+     * Dynamic chainable wrapper for lineTo in the canvas API. 
      */
     lineTo(xy: types.PointArg): this {
         return this.loggedAffect(
@@ -370,7 +392,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
         )
     }
     /**
-     * Dynamic chainable wrapper for clip in the canvas API. Use with withinPath.
+     * Dynamic chainable wrapper for clip in the canvas API. 
      */
     clip(): this {
         return this.loggedAffect(

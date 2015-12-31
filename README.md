@@ -247,7 +247,10 @@ UI controls
 Random IDEAS
 -------------
 
-- 2D Parametric line drawing from t = 0 ... t = 10 step 0.1 => x = sin(t), y = sin(t) WITH LINEAR INTORPOLATION
+- 2D Parametric line drawing from t = 0 ... t = 10 step 0.1 => x = sin(t), y = sin(t) WITH LINEAR INTORPOLATION:
+keep dividing the start end points untill the center is within a tolerance of (start + end) / 2
+- output is an Parameter<{point: array<[x y], t: number}>
+
    - 3D *segments* in time (need linear constraint solver for t = x cutting plane)
    - Nd dots projected onto a plane (via n x 2 matrix)
 - PacMan
