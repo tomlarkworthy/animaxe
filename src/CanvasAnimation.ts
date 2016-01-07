@@ -93,14 +93,14 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                     effect(tick, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
                 }
             },
-            param1 ? Parameter.from(param1): undefined,
-            param2 ? Parameter.from(param2): undefined,
-            param3 ? Parameter.from(param3): undefined,
-            param4 ? Parameter.from(param4): undefined,
-            param5 ? Parameter.from(param5): undefined,
-            param6 ? Parameter.from(param6): undefined,
-            param7 ? Parameter.from(param7): undefined,
-            param8 ? Parameter.from(param8): undefined
+            <OT.ObservableTransformer<CanvasTick, P1>> (param1 ? Parameter.from(param1): undefined),
+            <OT.ObservableTransformer<CanvasTick, P2>> (param2 ? Parameter.from(param2): undefined),
+            <OT.ObservableTransformer<CanvasTick, P3>> (param3 ? Parameter.from(param3): undefined),
+            <OT.ObservableTransformer<CanvasTick, P4>> (param4 ? Parameter.from(param4): undefined),
+            <OT.ObservableTransformer<CanvasTick, P5>> (param5 ? Parameter.from(param5): undefined),
+            <OT.ObservableTransformer<CanvasTick, P6>> (param6 ? Parameter.from(param6): undefined),
+            <OT.ObservableTransformer<CanvasTick, P7>> (param7 ? Parameter.from(param7): undefined),
+            <OT.ObservableTransformer<CanvasTick, P8>> (param8 ? Parameter.from(param8): undefined)
         )
     }
     
@@ -119,7 +119,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                     pos[1] += velocity[1] * tick.dt;
                 }
             },
-            Parameter.from(velocity)
+            <OT.ObservableTransformer<CanvasTick, types.Point>>Parameter.from(velocity)
         );
     }
     
@@ -143,9 +143,9 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                     tick.ctx.transform(1, 0, 0, 1, x, y);
                 }
             },
-            Parameter.from(from),
-            Parameter.from(to),
-            Parameter.from(time)
+            <OT.ObservableTransformer<CanvasTick, types.Point>>Parameter.from(from),
+            <OT.ObservableTransformer<CanvasTick, types.Point>>Parameter.from(to),
+            <OT.ObservableTransformer<CanvasTick, number>>Parameter.from(time)
         ) 
     }
     
@@ -598,6 +598,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
 export function create(attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick> = x => x): Animation {
     return new Animation(attach);
 }
+
 export class PathAnimation extends Animation {
 
 }

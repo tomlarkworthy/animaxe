@@ -90,6 +90,32 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     }
     
     /**
+     * combine the ouput of this into a downstream ObservableTransformer to create a new ObservableTransformer;
+     */
+    /*
+    map<NewOut>(downstream: ObservableTransformer<Out, NewOut>): ObservableTransformer<In, NewOut> {
+        var self = this;
+        return new ObservableTransformer<In, NewOut>(
+            upstream => downstream.attach(self.attach(upstream))    
+        );
+    }*/
+    p: number[];
+    
+    reduceValue<V>(
+        array: ObservableTransformer<In, V[]>,
+        fn: (previousValue: Out, out: V, index?: number, array?: V[]) => Out 
+        ): this {
+        return this.create(this.combine(
+            () => (thisOut: Out, array: V[]) => 
+                array.reduce(fn, thisOut)
+            ,
+            array
+        ).attach);
+    }
+    
+    // static inverse_reduce<V>(array_value: ObservableTransformer<In, V[]>): Rx.
+    
+    /**
      * combine with other transformers with a common type of input. 
      * All are given the same input, and their simulataneous outputs are passed to a 
      * combiner function, which compute the final output.
@@ -125,7 +151,8 @@ export class ObservableTransformer<In extends BaseTick, Out> {
      */
     combine<Combined, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8> (
             combinerBuilder: () => 
-                (thisValue: Out, arg1?: Arg1, arg2?: Arg2, arg3?: Arg3) => Combined,
+                (thisValue: Out, arg1?: Arg1, arg2?: Arg2, arg3?: Arg3,
+                                 arg4?: Arg4, arg5?: Arg5, arg6?: Arg6) => Combined,
             other1?: ObservableTransformer<In, Arg1>, 
             other2?: ObservableTransformer<In, Arg2>, 
             other3?: ObservableTransformer<In, Arg3>,
@@ -137,6 +164,13 @@ export class ObservableTransformer<In extends BaseTick, Out> {
         ) : ObservableTransformer<In, Combined> {
         return this.combineMany(combinerBuilder, other1, other2, other3, other4, 
                                                  other5, other6, other7, other8);
+    }
+    
+    mergeInput(): ObservableTransformer<In, {in: In, out: Out}> {
+        return this.combine(
+           () => (thisValue: Out, arg1: In) => {return {"in": arg1, "out": thisValue}},
+           new ObservableTransformer<In, In>(_ => _)
+        );
     }
     
     init(): (clock: number) => Out{throw new Error("depricated: remove this")}
@@ -158,9 +192,8 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
 
     /**
      * send the downstream context of 'this' animation, as the upstream context to supplied animation.
-     *
-     * This allows you to chain custom animations.
-     *
+     * The return type is what you supply as downstream, allowing you to splice in a custom API fluently
+     * 
      * ```Ax.move(...).pipe(myOT_API());```
      */
     pipe<OT_API extends ObservableTransformer<Tick, any>>(downstream: OT_API): OT_API {
@@ -169,6 +202,110 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
             upstream => downstream.attach(self.attach(upstream))
         )
     }
+    
+    /**
+     * Pipes an array of transformers together in succession.
+     */
+    pipeAll(downstreams: this[]): this {
+        var self = this;
+        return this.create(
+            (upstream: Rx.Observable<Tick>) => {
+                return downstreams.reduce(
+                    (upstream, transformer: this) => transformer.attach(upstream),
+                    self.attach(upstream)
+                )      
+            }
+        )
+    }
+    
+    /*
+    reduce<V>(
+        array: ObservableTransformer<Tick, V[]>,
+        fn: (previous: this, out: ObservableTransformer<Tick, V>, index?: number) => this 
+        ): this {
+        var acc = this;
+        
+        var newV = (index: number)
+        
+        // In -> Out forall i, if(V[i]) inner 
+        
+        // Using the fn, you are able to chain several ObservableTransformers calls to 'this'
+        // Each sub chain is pushed and popped from the call chain according to the number of V elements
+        // V becomes a time varying parameter
+        //
+        //          <----------v[n] --------------->        
+        //
+        // this -> join0 -> join1 -> join2  ... newJoinN()              
+        //           |        |        |           |
+        //           V        V        V           V
+        //         view0 -> view1 -> view2      fn(join2, viewN, n)    -> out
+        //
+        // each join observes the array elements, do decide how to manage the view.
+        //   if there is an element present at the join's index, the view is notified of a value
+        //   if there is no longer an element present, the current view subscription completes, the join is popped
+        //   if there in a new element, a new join must be created, so fn is called, a join is pushed
+        
+        // when a join is pushed or popped, the downstream result of the join chain is reconfigured
+        
+        // ObservableTransformer<In, V[]> is converted to n views of ObservableTransformer<In, V>[]
+        
+        return this.create(
+            (upstream: Rx.Observable<Tick>) => {
+                // downstream collects results, its logical position in the chain changes
+                var downstream = new Rx.Subject<Tick>(); 
+                var values: Rx.Observable<V[]> = array.attach(upstream);
+                var joins: this [];
+                var viewValues: Rx.Subject<V>[];
+                var joinOuts: Rx.Observable<V>[];
+                
+                var endSubscription: Rx.IDisposable;
+                var prevLength = 0;
+                
+                values.subscribe(
+                    (arrayValues: V[]) => {
+                        var i: number;
+                        
+                        for (var i = 0; i < arrayValues.length; i++) {
+                            if ( i >= prevLength) {
+                                // there are more array values than previously,
+                                // so we lazily create new views and joins for them
+                                var viewValue = new Rx.Subject<V>();
+                                viewValues.push(viewValue);
+                                
+                                var view = new ObservableTransformer<In, V>(upstream => viewValue)
+                                var join = fn(joins[i-1], view, i);
+                                joins.push(join);
+                                
+                                // the new join becomes the value of downstream
+                                var joinOut = join.attach(joinOuts[i - 1]);
+                                joinOuts.push(joinOut)
+                                
+                                if (endSubscription) endSubscription.dispose();
+                                endSubscription = joinOut.subscribe(downstream);
+                            }  
+                            
+                            // in all cases the value is pushed down the view
+                            viewValues[i].onNext(arrayValues[i]);
+                        }
+                            
+                           
+                    },
+                    err => downstream.onError(err),
+                    () => downstream.onCompleted()
+                )
+                
+                
+                return downstream;
+            }
+        )    
+            
+        return this.create(this.combine(
+            () => (thisOut: Out, array: V[]) => 
+                array.reduce(fn, thisOut)
+            ,
+            array
+        ).attach);
+    } */
 
     /**
      * delivers upstream events to 'this' first, then when 'this' animation is finished
@@ -319,17 +456,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      * can be playing at the same time (unlike loop)
      */
     emit(animation: ChainableTransformer<Tick>): this {
-        return this.pipe(this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
-            if (DEBUG_EMIT) console.log("emit: initializing");
-            var attachPoint = new Rx.Subject<Tick>();
-
-            return prev.tapOnNext(function(tick: Tick) {
-                    if (DEBUG_EMIT) console.log("emit: emmitting", animation);
-                    animation.attach(attachPoint).subscribe();
-                    attachPoint.onNext(tick);
-                }
-            );
-        }));
+        return this.playAll(<ObservableTransformer<Tick, this>>Parameter.constant(animation));
     }
 
     /**
@@ -371,6 +498,45 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
             })
         );
     }
+    
+    /**
+     * Plays all the inner animations, which are generated by a time varying paramater.
+     */
+    playAll(animations: ObservableTransformer<Tick, ObservableTransformer<Tick, any>>): this {
+        var self = this;
+        return this.create(
+            (upstream: Rx.Observable<Tick>) => {
+                var root = new Rx.Subject<Tick>();
+                // apply self first then connect to the root
+                self.attach(upstream.map(tick => {
+                    if (DEBUG) console.log("playAll: upstream tick@", tick.clock);
+                    return <Tick>tick.save()
+                })).subscribe(root);
+                // listen to animation parameter, and attach any inner animations to root
+                animations.mergeInput().attach(root).subscribe(
+                    (animation_tick: {in: Tick, out: ObservableTransformer<Tick, any>}) => {
+                        if (DEBUG) console.log("playAll: build inner");
+                        var innerRoot = new Rx.Subject<Tick>(); 
+                        root.subscribe(innerRoot);
+                        animation_tick.out.attach(innerRoot.map(tick => {
+                            if (DEBUG) console.log("playAll: innner tick@", tick.clock);
+                            return <Tick>tick.restore().save()
+                        })).subscribe();
+                        innerRoot.onNext(animation_tick.in);
+                    },
+                    err => root.onError(err), // pass errors downstream
+                    () => {if (DEBUG) console.log("playAll over")}  // doesn't affect anything when children complete
+                );
+                
+                return root.map(tick => {
+                    if (DEBUG) console.log("playAll: downstream tick@", tick.clock);
+                    return <Tick>tick.restore(); 
+                });
+            }
+        )
+    }
+    
+    
 
     /**
      * Sequences n copies of the inner animation. Clone completes when all inner animations are over.
@@ -399,8 +565,8 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
         param8?: ObservableTransformer<Tick, P8>): this {
         
         // combine the params with an empty instance
-        var combineParams = new ObservableTransformer(_ => _).combine( 
-            wrapEffectToReturnTick(effectBuilder),
+        var combineParams = new ObservableTransformer<Tick, Tick>(_ => _).combine( 
+            wrapEffectToReturnTick<Tick>(effectBuilder),
             param1,
             param2,
             param3,
@@ -414,7 +580,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
         // we want the tick output of the previous transform to be applied first (.pipe)
         // then apply that output to all of the params and the combiner function
         // and we want it with 'this' API, (.create)        
-        return this.create(this.pipe(combineParams).attach);
+        return this.create(upstream => combineParams.attach(this.attach(upstream)));
     }
 
     if(condition: types.BooleanArg, animation: ChainableTransformer<Tick>): If<Tick, this>{
@@ -425,7 +591,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
         return this.create(
             this.combine(
                 () => (tick: Tick, displacement: number) => <Tick>tick.skew(displacement),
-                Parameter.from(displacement)    
+                <ObservableTransformer<Tick, number>>Parameter.from(displacement)    
             ).attach
         )
     }

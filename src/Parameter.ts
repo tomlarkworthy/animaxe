@@ -5,6 +5,7 @@ import * as Rx from "rx";
 import * as seedrandom from "seedrandom";
 import * as OT from "./ObservableTransformer"
 import * as zip from "./zip"
+import * as parametric from "./parametric"
 
 export var DEBUG = false;
 
@@ -14,6 +15,10 @@ export * from "./types"
 if (DEBUG) console.log("Parameter: module loading...");
 
 export var rndGenerator = seedrandom.xor4096(Math.random() + "");
+
+
+
+export type Parameter<Value> = OT.ObservableTransformer<OT.BaseTick, Value>;
 
 // Parameter is a transformer from (clock signals -> Value)
 
@@ -76,7 +81,6 @@ function moveTo(
 ```
  */
 
-export type Parameter<Value> = OT.ObservableTransformer<OT.BaseTick, Value>;
 
 export function from<T>(source: T | Parameter<T>): Parameter<T> {
     types.assert (source != undefined, "source is not defined");
@@ -235,7 +239,19 @@ export function t(): Parameter<number> {
     )
 }
 
-
-
-if (DEBUG) console.log("Parameter: module loaded");
-
+export function trace(
+    equations: Parameter<((t: number) => number)[]>,
+    t_min: types.NumberArg,
+    t_max: types.NumberArg,
+    tolerance_px2: types.NumberArg = 1,
+    minimum_splits: types.NumberArg = 0): Parameter<{point: number[], t: number}[]> {
+    return equations.combine(
+        () => (equations: ((t: number) => number)[], t_min: number, t_max: number, tolerance_px2: number, minimum_splits: number) => {
+            return parametric.trace(equations, t_min, t_max, tolerance_px2, minimum_splits);
+        },
+        from(t_min),
+        from(t_max),
+        from(tolerance_px2),
+        from(minimum_splits)
+    )
+}

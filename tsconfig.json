@@ -23,6 +23,7 @@
         "./examples/example5.ts",
         "./examples/example6.ts",
         "./examples/rainbow_sines",
-        "./examples/skew.ts"
+        "./examples/skew.ts",
+        "./examples/parametric.ts"
     ]
 }

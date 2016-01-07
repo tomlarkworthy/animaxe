@@ -57,9 +57,8 @@ export class Animator {
             this.root.onCompleted.bind(this.root)
         );
     }
-    // todo: play is really pain, it needs canvas chainables so it can inject and wipe the canvase state through the animation chain
-    // maybe we should also include a more base
-    play(animation: OT.ObservableTransformer<canvas.CanvasTick, any>): Rx.IDisposable {
+    
+    play(animation: OT.ObservableTransformer<OT.BaseTick, any>): Rx.IDisposable {
         var self = this;
         if (DEBUG) console.log("animator: play animation");
         var rootWithStateRefresh = this.root.map(
