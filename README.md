@@ -121,40 +121,40 @@ Examples
 -----------------------------------
 
 Example 1 - Basic animation compositions
-([source](./test/example1.ts))
+([source](./examples/example1.ts))
 
 ![Example1](./images/example1.gif?raw=true)
 
 Example 2 - Skewing time and dynamic colors
-([source](./test/example2.ts))
+([source](./examples/example2.ts))
 
 ![Example2](./images/example2.gif?raw=true)
 
 Example 3 - Particles 
-([source](./test/example3.ts))
+([source](./examples/example3.ts))
 ([edit on Codepen](http://codepen.io/tomlarkworthy/pen/jbmVWO?editors=001))
 
 ![Example3](./images/example3.gif?raw=true)
 
 Example 4 - Glow filter
-([source](./test/example4.ts))
+([source](./examples/example4.ts))
 
 ![Example4](./images/example4.gif?raw=true)
 
 Example 5 - UI Button
-([source](./test/example5.ts))
+([source](./examples/example5.ts))
 ([edit on Codepen](http://codepen.io/tomlarkworthy/pen/yYxwga?editors=001))
 
 ![Example5](./images/example5.gif?raw=true)
 
 Example 6 - UI Slider
-([source](./test/example6.ts))
+([source](./examples/example6.ts))
 ([edit on Codepen](http://codepen.io/tomlarkworthy/pen/ojaGZz?editors=001))
 
 ![Example6](./images/example6.gif?raw=true)
 
 Rainbow Sines - Demo
-([source](./test/rainbow_sines.ts))
+([source](./examples/rainbow_sines.ts))
 
 ![Rainbow Sines](./images/rainbow_sines.gif?raw=true)
 
@@ -201,9 +201,11 @@ Engineering
 
 Refactors
 ----------
+- OT should not have in extend BaseTick, Params should be on BaseTick. How do we combine them? Intersection types? .combine is the sticking point
+    - how to we express some common ancesors exists. Can we upcast through generics?
 - rainbow sines is ugly, Number and skewT should help.
 - change event propogation
-- change order of playExample parameters
+- change order of playExample parameters, infact make the example helper a function that exposes an animator to a passed in closure
 - (partial) do all of canvas API methods
      - finish that API!
      - withinClip, withinTx, (done) withinPath
