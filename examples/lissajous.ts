@@ -82,5 +82,5 @@ animator.play(
     .stroke()
 );
 
-helper.playExample("@name", 20, animator, 100, 100);
+helper.playExample("@name", 64, animator, 100, 100);
 

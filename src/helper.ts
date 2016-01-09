@@ -51,7 +51,7 @@ export function playExample(name: string, frames: number, animator: Ax.Animator,
         console.log("error, so assuming we are in node environment", err);
         //node.js
         animator.play(canvas.save(width, height, "images/" + name + ".gif"));
-        animator.ticker(Rx.Observable.return(0.1).repeat(frames));
+        animator.ticker(Rx.Observable.return(0.1).repeat(Math.floor(frames)));
     }
 }
 
