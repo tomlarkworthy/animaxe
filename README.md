@@ -159,6 +159,12 @@ Rainbow Sines - Demo
 ![Rainbow Sines](./images/rainbow_sines.gif?raw=true)
 
 
+Lissajous Curves - Demo
+([source](./examples/lissajous.ts))
+
+![Rainbow Sines](./images/lissajous.gif?raw=true)
+
+
 We have some examples in the test directory written in Typescript. See 'Trying it out'.
 
 
@@ -224,6 +230,7 @@ API documentation
 - example of switching from the canvas API to a linear chain
 - how a new chain resets the context
 - using https://github.com/anthonydugois/svg-path-builder
+- the order of side effects is probably important and worth documenting (and testing).
 
 website
 -------
@@ -256,6 +263,7 @@ keep dividing the start end points untill the center is within a tolerance of (s
    - 3D *segments* in time (need linear constraint solver for t = x cutting plane)
    - Nd dots projected onto a plane (via n x 2 matrix)
 - PacMan
+- Write the documentation as animations!
 - mouse input, tailing glow (remember to tween between rapid movements)
 - prerendering an animation for fast playback
 - SVG path parser for withinPath
