@@ -20,10 +20,14 @@ export function trace(
     t_min: number,
     t_max: number,
     tolerance_px2: number = 1,
-    minimum_splits = 0,
+    minimum_splits = 4,
+    maximum_splits = 100,
     t_min_value ?: number[],
     t_max_value ?: number[]    
 ): {point: number[], t: number}[] {
+    
+    // console.log(minimum_splits, maximum_splits);
+    
     // figure out the start and end point if not provided
     var min = t_min_value || evaluate(equations, t_min);
     var max = t_max_value || evaluate(equations, t_max);
@@ -38,21 +42,21 @@ export function trace(
     var result = [];
     // if the caller did not specify the min_value, they will want to see it in the result set
     if (!t_min_value) result.push({point: min, t: t_min}); 
-    if (dist2 < tolerance_px2 && minimum_splits <= 0) {
+    if ((dist2 < tolerance_px2 && minimum_splits <= 0) || maximum_splits <= 0) {
         // low error,
         // our lines seem to be estimating the curve ok (on the midpoint at least)
     } else {
         // high error,
         // we recurse by dividing the problem into 2 smaller tracing problems
         minimum_splits = Math.ceil((minimum_splits - 1) / 2)
-        result = result.concat(trace(equations, t_min, t_mid, tolerance_px2, minimum_splits, min, mid_actual));
+        maximum_splits = Math.ceil((maximum_splits - 1) / 2)
+        result = result.concat(trace(equations, t_min, t_mid, tolerance_px2, minimum_splits, maximum_splits, min, mid_actual));
         result.push({point: mid_actual, t: t_mid});
-        result = result.concat(trace(equations, t_mid, t_max, tolerance_px2, minimum_splits, mid_actual, max));
+        result = result.concat(trace(equations, t_mid, t_max, tolerance_px2, minimum_splits, maximum_splits, mid_actual, max));
     }
     // if the caller did not specify the max_value, they will want to see it in the result set
     if (!t_max_value) result.push({point: max, t: t_max}); 
     
-    //console.log(min, max, mid_actual);
-    console.log(result);
+    // console.log(result);
     return result;
 }

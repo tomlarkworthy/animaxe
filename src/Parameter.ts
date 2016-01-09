@@ -244,14 +244,16 @@ export function trace(
     t_min: types.NumberArg,
     t_max: types.NumberArg,
     tolerance_px2: types.NumberArg = 1,
-    minimum_splits: types.NumberArg = 0): Parameter<{point: number[], t: number}[]> {
+    minimum_splits: types.NumberArg = 4,
+    maximum_splits: types.NumberArg = 100): Parameter<{point: number[], t: number}[]> {
     return equations.combine(
-        () => (equations: ((t: number) => number)[], t_min: number, t_max: number, tolerance_px2: number, minimum_splits: number) => {
-            return parametric.trace(equations, t_min, t_max, tolerance_px2, minimum_splits);
+        () => (equations: ((t: number) => number)[], t_min: number, t_max: number, tolerance_px2: number, minimum_splits: number, maximum_splits: number) => {
+            return parametric.trace(equations, t_min, t_max, tolerance_px2, minimum_splits, maximum_splits);
         },
         from(t_min),
         from(t_max),
         from(tolerance_px2),
-        from(minimum_splits)
+        from(minimum_splits),
+        from(maximum_splits)
     )
 }
