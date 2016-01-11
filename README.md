@@ -99,7 +99,29 @@ The dynamic dataflow operators, so far, in Animaxe are:-
 - loop (create an infinite duration animation by repeatedly resequencing)
 - .if .elif .else (switch an animation based on reevaluated conditionals)
 
-(This style is quite related to AFRP if your interested. Elm is about signals, whereas Animaxe and YAMPA are about signal transformer)
+
+Type System
+------------
+
+```Rx.Observable<V>```
+
+From ReactiveExtensions, this is a stream of values of type V. The stream may finish by sending an completed signal.
+
+```
+class SignalFn<In extends BaseTick, Out> {
+    constructor(attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>)
+```
+
+Our SignalFn wraps an attach function which transforms a
+Stream of type "In", into a stream of type "Out". For simplicity elsewhere, `In` is always some
+kind of clock tick. 
+
+```
+class BaseTick {
+    clock: number,
+    public dt: number
+}
+```
 
 
 Trying it out
@@ -209,6 +231,8 @@ Refactors
 ----------
 - OT should not have in extend BaseTick, Params should be on BaseTick. How do we combine them? Intersection types? .combine is the sticking point
     - how to we express some common ancesors exists. Can we upcast through generics?
+    
+- Move to vectors. So 6 dim lissajous curve sliced into RGBA and XY (RGB takes vector).
 - rainbow sines is ugly, Number and skewT should help.
 - change event propogation
 - change order of playExample parameters, infact make the example helper a function that exposes an animator to a passed in closure

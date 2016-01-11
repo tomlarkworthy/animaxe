@@ -3,9 +3,11 @@
 /// <reference path="../types/seedrandom.d.ts" />
 import * as Rx from "rx";
 import * as seedrandom from "seedrandom";
-import * as OT from "./ObservableTransformer"
+import * as OT from "./FRP"
 import * as zip from "./zip"
 import * as parametric from "./parametric"
+import * as list from "./List"
+export * from "./List"
 
 export var DEBUG = false;
 
@@ -18,7 +20,7 @@ export var rndGenerator = seedrandom.xor4096(Math.random() + "");
 
 
 
-export type Parameter<Value> = OT.ObservableTransformer<OT.BaseTick, Value>;
+export type Parameter<Value> = OT.SignalFn<OT.BaseTick, Value>;
 
 // Parameter is a transformer from (clock signals -> Value)
 
@@ -28,7 +30,7 @@ export type Parameter<Value> = OT.ObservableTransformer<OT.BaseTick, Value>;
  */
 export function updateFrom<T>(initialValue: T, source: Rx.Observable<T>): Parameter<T> {
     if (DEBUG) console.log("updateFrom: build");
-    return new OT.ObservableTransformer<OT.BaseTick, T>(
+    return new OT.SignalFn<OT.BaseTick, T>(
         (upstream: Rx.Observable<OT.BaseTick>) => {
             if (DEBUG) console.log("updateFrom: init");
             var value = initialValue;
@@ -44,7 +46,7 @@ export function updateFrom<T>(initialValue: T, source: Rx.Observable<T>): Parame
  */
 export function overwriteWith<T>(defaultValue: T, source: Rx.Observable<T>): Parameter<T> {
     if (DEBUG) console.log("overwriteWith: build");
-    return new OT.ObservableTransformer<OT.BaseTick, T>(
+    return new OT.SignalFn<OT.BaseTick, T>(
         (upstream: Rx.Observable<OT.BaseTick>) => {
             if (DEBUG) console.log("overwriteWith: init")
             var value = defaultValue;
@@ -129,7 +131,7 @@ export function first<T>(value: Parameter<T>): Parameter<T> {
 }
 
 export function skewT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T> {
-    return new OT.ChainableTransformer<OT.BaseTick>(_ => _).skewT(displacement).pipe(from(value));
+    return new OT.SignalPipe<OT.BaseTick>(_ => _).skewT(displacement).pipe(from(value));
 }
 
 /*
@@ -157,6 +159,13 @@ export function rgba(
         from(b),
         from(a)
     )
+}
+
+export function rgbaFromList(
+    list: list.List<number>
+): Parameter<types.Color>
+{
+    return list.mapValue(rgba => "rgba(" + Math.floor(rgba[0]) + "," + Math.floor(rgba[1]) + "," + Math.floor(rgba[2]) + "," + rgba[3] + ")");
 }
 
 export function hsl(
@@ -188,14 +197,14 @@ export function seedrnd(seed: types.StringArg): Parameter<void> {
 
 export function rnd(): Parameter<number> {
     if (DEBUG) console.log("rnd: build");
-    return new OT.ObservableTransformer<OT.BaseTick, number> (
+    return new OT.SignalFn<OT.BaseTick, number> (
         upstream => upstream.map(_ => rndGenerator())
     );
 }
 
 export function constant<T>(val: T): Parameter<T> {
     if (DEBUG) console.log("constant: build");
-    return new OT.ObservableTransformer<OT.BaseTick, T> (
+    return new OT.SignalFn<OT.BaseTick, T> (
         upstream => upstream.map(_ => val)
     );
 }
@@ -232,7 +241,7 @@ export function cos(x: types.NumberArg): Parameter<number> {
 
 export function t(): Parameter<number> {   
     if (DEBUG) console.log("t: build");
-    return new OT.ObservableTransformer(
+    return new OT.SignalFn(
         (upstream: Rx.Observable<OT.BaseTick>) => upstream.map(tick => {
             return tick.clock
         })

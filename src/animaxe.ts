@@ -5,7 +5,7 @@ import * as events from "./events";
 import * as Parameter from "./Parameter";
 import * as canvas from "./CanvasAnimation";
 import * as types from "./types";
-import * as OT from "./ObservableTransformer";
+import * as OT from "./FRP";
 export * from "./types";
 
 
@@ -58,7 +58,7 @@ export class Animator {
         );
     }
     
-    play(animation: OT.ObservableTransformer<OT.BaseTick, any>): Rx.IDisposable {
+    play(animation: OT.SignalFn<OT.BaseTick, any>): Rx.IDisposable {
         var self = this;
         if (DEBUG) console.log("animator: play animation");
         var rootWithStateRefresh = this.root.map(

@@ -3,7 +3,7 @@ import * as events from "./events"
 import * as Animation from "./CanvasAnimation"
 import * as types from "./types"
 export * from "./types"
-import * as OT from "./ObservableTransformer"
+import * as OT from "./FRP"
 
 var DEBUG = false;
 // foreground color used to define emmitter regions around the canvas
@@ -242,7 +242,7 @@ export function glow(
                 ctx.putImageData(imgData, 0, 0);
             }
         },
-        <OT.ObservableTransformer<Animation.CanvasTick, number>>Parameter.from(decay));
+        <OT.SignalFn<Animation.CanvasTick, number>>Parameter.from(decay));
 }
 
 

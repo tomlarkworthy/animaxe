@@ -1,6 +1,6 @@
 import * as Parameter from "../src/Parameter";
 import * as events from "./events"
-import * as OT from "./ObservableTransformer"
+import * as OT from "./FRP"
 import * as types from "./types"
 import * as glow from "./glow"
 export * from "./types"
@@ -39,7 +39,7 @@ export class CanvasTick extends OT.BaseTick{
     
 }
 
-export class Animation extends OT.ChainableTransformer<CanvasTick>{
+export class Animation extends OT.SignalPipe<CanvasTick>{
 
     constructor(public attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>) {
         super(attach);
@@ -93,14 +93,14 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                     effect(tick, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
                 }
             },
-            <OT.ObservableTransformer<CanvasTick, P1>> (param1 ? Parameter.from(param1): undefined),
-            <OT.ObservableTransformer<CanvasTick, P2>> (param2 ? Parameter.from(param2): undefined),
-            <OT.ObservableTransformer<CanvasTick, P3>> (param3 ? Parameter.from(param3): undefined),
-            <OT.ObservableTransformer<CanvasTick, P4>> (param4 ? Parameter.from(param4): undefined),
-            <OT.ObservableTransformer<CanvasTick, P5>> (param5 ? Parameter.from(param5): undefined),
-            <OT.ObservableTransformer<CanvasTick, P6>> (param6 ? Parameter.from(param6): undefined),
-            <OT.ObservableTransformer<CanvasTick, P7>> (param7 ? Parameter.from(param7): undefined),
-            <OT.ObservableTransformer<CanvasTick, P8>> (param8 ? Parameter.from(param8): undefined)
+            <OT.SignalFn<CanvasTick, P1>> (param1 ? Parameter.from(param1): undefined),
+            <OT.SignalFn<CanvasTick, P2>> (param2 ? Parameter.from(param2): undefined),
+            <OT.SignalFn<CanvasTick, P3>> (param3 ? Parameter.from(param3): undefined),
+            <OT.SignalFn<CanvasTick, P4>> (param4 ? Parameter.from(param4): undefined),
+            <OT.SignalFn<CanvasTick, P5>> (param5 ? Parameter.from(param5): undefined),
+            <OT.SignalFn<CanvasTick, P6>> (param6 ? Parameter.from(param6): undefined),
+            <OT.SignalFn<CanvasTick, P7>> (param7 ? Parameter.from(param7): undefined),
+            <OT.SignalFn<CanvasTick, P8>> (param8 ? Parameter.from(param8): undefined)
         )
     }
     
@@ -119,7 +119,7 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                     pos[1] += velocity[1] * tick.dt;
                 }
             },
-            <OT.ObservableTransformer<CanvasTick, types.Point>>Parameter.from(velocity)
+            <OT.SignalFn<CanvasTick, types.Point>>Parameter.from(velocity)
         );
     }
     
@@ -143,9 +143,9 @@ export class Animation extends OT.ChainableTransformer<CanvasTick>{
                     tick.ctx.transform(1, 0, 0, 1, x, y);
                 }
             },
-            <OT.ObservableTransformer<CanvasTick, types.Point>>Parameter.from(from),
-            <OT.ObservableTransformer<CanvasTick, types.Point>>Parameter.from(to),
-            <OT.ObservableTransformer<CanvasTick, number>>Parameter.from(time)
+            <OT.SignalFn<CanvasTick, types.Point>>Parameter.from(from),
+            <OT.SignalFn<CanvasTick, types.Point>>Parameter.from(to),
+            <OT.SignalFn<CanvasTick, number>>Parameter.from(time)
         ) 
     }
     

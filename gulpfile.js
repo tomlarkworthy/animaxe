@@ -117,9 +117,9 @@ gulp.task("doc", function() {
 });
 
 
-gulp.task("deploy", [/*"tests"*/, "htmls", /*TODO: (not working) "doc"*/], function() {
+gulp.task("deploy", [/*"tests"*/"htmls"/*TODO: (not working) "doc"*/], function() {
   console.log("deploying");
-  console.log(npm_info);
+  // console.log(npm_info);
   var imgs     = gulp.src('./images/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/master/images"));
   var lib_dist = gulp.src('./dist/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/libs"));
   var src      = gulp.src('./src/**').pipe(gulp.dest("/Users/larkworthy/dev/animaxe-web/site/src"));

@@ -48,7 +48,7 @@ export class BaseTick {
     }
 }
 
-export class ObservableTransformer<In extends BaseTick, Out> {
+export class SignalFn<In extends BaseTick, Out> {
     constructor(public attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>) {
     }
     
@@ -57,7 +57,7 @@ export class ObservableTransformer<In extends BaseTick, Out> {
      * @param attach
      */
     create(attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>): this {
-        return <this> new ObservableTransformer<In, Out>(attach);
+        return <this> new SignalFn<In, Out>(attach);
     }
 
 
@@ -75,9 +75,9 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     /**
      * map the stream of values to a new parameter
      */
-    mapObservable<V>(fn: (out: Rx.Observable<Out>) => Rx.Observable<V>): ObservableTransformer<In, V> {
+    mapObservable<V>(fn: (out: Rx.Observable<Out>) => Rx.Observable<V>): SignalFn<In, V> {
         var self = this;
-        return new ObservableTransformer<In, V>(
+        return new SignalFn<In, V>(
             (upstream: Rx.Observable<In>) => fn(self.attach(upstream))
         );
     }
@@ -85,7 +85,7 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     /**
      * map the value of 'this' to a new parameter
      */
-    mapValue<V>(fn: (out: Out) => V): ObservableTransformer<In, V> {
+    mapValue<V>(fn: (out: Out) => V): SignalFn<In, V> {
         return this.mapObservable(upstream => <Rx.Observable<V>>upstream.map(fn))
     }
     
@@ -102,7 +102,7 @@ export class ObservableTransformer<In extends BaseTick, Out> {
     p: number[];
     
     reduceValue<V>(
-        array: ObservableTransformer<In, V[]>,
+        array: SignalFn<In, V[]>,
         fn: (previousValue: Out, out: V, index?: number, array?: V[]) => Out 
         ): this {
         return this.create(this.combine(
@@ -122,16 +122,16 @@ export class ObservableTransformer<In extends BaseTick, Out> {
      */
     combineMany<CombinedOut> (
         combinerBuilder: () => (thisValue: Out, ...args: any[]) => CombinedOut,
-        ...others: ObservableTransformer<In, any>[]
-    ) : ObservableTransformer<In, CombinedOut>  {
-        return new ObservableTransformer<In, CombinedOut>((upstream: Rx.Observable<In>) => {
+        ...others: SignalFn<In, any>[]
+    ) : SignalFn<In, CombinedOut>  {
+        return new SignalFn<In, CombinedOut>((upstream: Rx.Observable<In>) => {
             // join upstream with parameter
             var fork = new Rx.Subject<In>()
             upstream.subscribe(fork);
             
             // we link all concurrent OTs in the others array to the fork, skipping null or undefined values
             var args: any[] = others.reduce(
-                (acc: any[], other: ObservableTransformer<In, any>) => {
+                (acc: any[], other: SignalFn<In, any>) => {
                     if (other) acc.push(other.attach(fork))
                     return acc;
                 }, []
@@ -153,30 +153,33 @@ export class ObservableTransformer<In extends BaseTick, Out> {
             combinerBuilder: () => 
                 (thisValue: Out, arg1?: Arg1, arg2?: Arg2, arg3?: Arg3,
                                  arg4?: Arg4, arg5?: Arg5, arg6?: Arg6) => Combined,
-            other1?: ObservableTransformer<In, Arg1>, 
-            other2?: ObservableTransformer<In, Arg2>, 
-            other3?: ObservableTransformer<In, Arg3>,
-            other4?: ObservableTransformer<In, Arg4>,
-            other5?: ObservableTransformer<In, Arg5>,
-            other6?: ObservableTransformer<In, Arg6>,
-            other7?: ObservableTransformer<In, Arg7>,
-            other8?: ObservableTransformer<In, Arg8>      
-        ) : ObservableTransformer<In, Combined> {
+            other1?: SignalFn<In, Arg1>, 
+            other2?: SignalFn<In, Arg2>, 
+            other3?: SignalFn<In, Arg3>,
+            other4?: SignalFn<In, Arg4>,
+            other5?: SignalFn<In, Arg5>,
+            other6?: SignalFn<In, Arg6>,
+            other7?: SignalFn<In, Arg7>,
+            other8?: SignalFn<In, Arg8>      
+        ) : SignalFn<In, Combined> {
         return this.combineMany(combinerBuilder, other1, other2, other3, other4, 
                                                  other5, other6, other7, other8);
     }
     
-    mergeInput(): ObservableTransformer<In, {in: In, out: Out}> {
+    mergeInput(): SignalFn<In, {in: In, out: Out}> {
         return this.combine(
            () => (thisValue: Out, arg1: In) => {return {"in": arg1, "out": thisValue}},
-           new ObservableTransformer<In, In>(_ => _)
+           new SignalFn<In, In>(_ => _)
         );
     }
     
     init(): (clock: number) => Out{throw new Error("depricated: remove this")}
 }
 
-export class ChainableTransformer<Tick extends BaseTick> extends ObservableTransformer<Tick, Tick>{
+/**
+ * A specialization of a signal where In is same type as Out
+ */
+export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
 
     constructor(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>) {
         super(attach)
@@ -187,7 +190,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      * @param attach
      */
     create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick> = nop => nop): this {
-        return <this> new ChainableTransformer<Tick>(attach);
+        return <this> new SignalPipe<Tick>(attach);
     }
 
     /**
@@ -196,7 +199,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      * 
      * ```Ax.move(...).pipe(myOT_API());```
      */
-    pipe<OT_API extends ObservableTransformer<Tick, any>>(downstream: OT_API): OT_API {
+    pipe<OT_API extends SignalFn<Tick, any>>(downstream: OT_API): OT_API {
         var self = this;
         return <OT_API> downstream.create(
             upstream => downstream.attach(self.attach(upstream))
@@ -315,7 +318,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      * frame1OT_API().then(frame2OT_API).then(frame3OT_API)
      */
     
-    then(follower: ChainableTransformer<Tick>): this {
+    then(follower: SignalPipe<Tick>): this {
         var self = this;
 
         return this.create((upstream: Rx.Observable<Tick>) => {
@@ -391,7 +394,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      * The resultant animation is always runs forever while upstream is live. Only a single inner animation
      * plays at a time (unlike emit())
      */
-    loop(animation: ChainableTransformer<Tick>): this {
+    loop(animation: SignalPipe<Tick>): this {
         return this.pipe(
             this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
                 if (DEBUG_LOOP) console.log("loop: initializing");
@@ -455,8 +458,8 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      * The resultant animation is always runs forever while upstream is live. Multiple inner animations
      * can be playing at the same time (unlike loop)
      */
-    emit(animation: ChainableTransformer<Tick>): this {
-        return this.playAll(<ObservableTransformer<Tick, this>>Parameter.constant(animation));
+    emit(animation: SignalPipe<Tick>): this {
+        return this.playAll(<SignalFn<Tick, this>>Parameter.constant(animation));
     }
 
     /**
@@ -465,7 +468,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
      * The canvas states are restored before each fork, so styling and transforms of different child animations do not
      * interact (although obsviously the pixel buffer is affected by each animation)
      */
-    parallel(animations: ChainableTransformer<Tick>[]): this {
+    parallel(animations: SignalPipe<Tick>[]): this {
         return this.pipe(
             this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
                 if (DEBUG_PARALLEL) console.log("parallel: initializing");
@@ -479,7 +482,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
                     activeOT_APIs --;
                 }
     
-                animations.forEach(function(animation: ChainableTransformer<Tick>) {
+                animations.forEach(function(animation: SignalPipe<Tick>) {
                     activeOT_APIs++;
                     animation.attach(attachPoint.map(tick => <Tick>tick.restore().save())).subscribe(
                         _ => {},
@@ -502,7 +505,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
     /**
      * Plays all the inner animations, which are generated by a time varying paramater.
      */
-    playAll(animations: ObservableTransformer<Tick, ObservableTransformer<Tick, any>>): this {
+    playAll(animations: SignalFn<Tick, SignalFn<Tick, any>>): this {
         var self = this;
         return this.create(
             (upstream: Rx.Observable<Tick>) => {
@@ -514,7 +517,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
                 })).subscribe(root);
                 // listen to animation parameter, and attach any inner animations to root
                 animations.mergeInput().attach(root).subscribe(
-                    (animation_tick: {in: Tick, out: ObservableTransformer<Tick, any>}) => {
+                    (animation_tick: {in: Tick, out: SignalFn<Tick, any>}) => {
                         if (DEBUG) console.log("playAll: build inner");
                         var innerRoot = new Rx.Subject<Tick>(); 
                         root.subscribe(innerRoot);
@@ -541,7 +544,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
     /**
      * Sequences n copies of the inner animation. Clone completes when all inner animations are over.
      */
-    clone(n: number, animation: ChainableTransformer<Tick>): this {
+    clone(n: number, animation: SignalPipe<Tick>): this {
         let array = new Array(n);
         for (let i=0; i<n; i++) array[i] = animation;
         return this.parallel(array);
@@ -555,17 +558,17 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
     affect<P1, P2, P3, P4, P5, P6, P7, P8> ( 
         effectBuilder: () => (tick: Tick, arg1: P1, arg2: P2, arg3: P3, arg4: P4,
                                           arg5: P5, arg6: P6, arg7: P7, arg8: P8) => void,
-        param1?: ObservableTransformer<Tick, P1>, 
-        param2?: ObservableTransformer<Tick, P2>,
-        param3?: ObservableTransformer<Tick, P3>,
-        param4?: ObservableTransformer<Tick, P4>,
-        param5?: ObservableTransformer<Tick, P5>,
-        param6?: ObservableTransformer<Tick, P6>,
-        param7?: ObservableTransformer<Tick, P7>,
-        param8?: ObservableTransformer<Tick, P8>): this {
+        param1?: SignalFn<Tick, P1>, 
+        param2?: SignalFn<Tick, P2>,
+        param3?: SignalFn<Tick, P3>,
+        param4?: SignalFn<Tick, P4>,
+        param5?: SignalFn<Tick, P5>,
+        param6?: SignalFn<Tick, P6>,
+        param7?: SignalFn<Tick, P7>,
+        param8?: SignalFn<Tick, P8>): this {
         
         // combine the params with an empty instance
-        var combineParams = new ObservableTransformer<Tick, Tick>(_ => _).combine( 
+        var combineParams = new SignalFn<Tick, Tick>(_ => _).combine( 
             wrapEffectToReturnTick<Tick>(effectBuilder),
             param1,
             param2,
@@ -583,7 +586,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
         return this.create(upstream => combineParams.attach(this.attach(upstream)));
     }
 
-    if(condition: types.BooleanArg, animation: ChainableTransformer<Tick>): If<Tick, this>{
+    if(condition: types.BooleanArg, animation: SignalPipe<Tick>): If<Tick, this>{
         return new If<Tick, this>([new ConditionActionPair(condition, animation)], this);
     }
     
@@ -591,7 +594,7 @@ export class ChainableTransformer<Tick extends BaseTick> extends ObservableTrans
         return this.create(
             this.combine(
                 () => (tick: Tick, displacement: number) => <Tick>tick.skew(displacement),
-                <ObservableTransformer<Tick, number>>Parameter.from(displacement)    
+                <SignalFn<Tick, number>>Parameter.from(displacement)    
             ).attach
         )
     }
@@ -616,7 +619,7 @@ function wrapEffectToReturnTick<Tick>(
 
 
 export class ConditionActionPair<Tick extends BaseTick> {
-    constructor(public condition: types.BooleanArg, public action: ChainableTransformer<Tick>){}
+    constructor(public condition: types.BooleanArg, public action: SignalPipe<Tick>){}
 };
 
 
@@ -628,13 +631,13 @@ export class ConditionActionPair<Tick extends BaseTick> {
  * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
  * Whenever the active clause changes, a NEW active animation is reinitialised.
  */
-export class If<Tick extends BaseTick, OT_API extends ChainableTransformer<any>> {
+export class If<Tick extends BaseTick, OT_API extends SignalPipe<any>> {
     constructor(
         public conditions: ConditionActionPair<Tick>[],
         public preceeding: OT_API) {
     }
 
-    elif(clause: types.BooleanArg, action: ChainableTransformer<Tick>): this {
+    elif(clause: types.BooleanArg, action: SignalPipe<Tick>): this {
         types.assert(clause != undefined && action != undefined)
         this.conditions.push(new ConditionActionPair<Tick>(clause, action));
         return this;
@@ -644,7 +647,7 @@ export class If<Tick extends BaseTick, OT_API extends ChainableTransformer<any>>
         return this.preceeding.pipe(this.else(this.preceeding.create()));
     }
 
-    else(otherwise: ChainableTransformer<Tick>): OT_API {
+    else(otherwise: SignalPipe<Tick>): OT_API {
         // the else is like a always true conditional with the otherwise action
         this.conditions.push(new ConditionActionPair<Tick>(true, otherwise));
         
@@ -678,7 +681,7 @@ export class If<Tick extends BaseTick, OT_API extends ChainableTransformer<any>>
                 
 
                 var pairHandler = function(id: number, pair: ConditionActionPair<Tick>): Rx.Subject<Tick> {
-                    var action: ChainableTransformer<Tick> = pair.action;
+                    var action: SignalPipe<Tick> = pair.action;
                     var preConditionAnchor = new Rx.Subject<Tick>();
                     var postConditionAnchor = new Rx.Subject<Tick>();
                     var currentActionSubscription = null;

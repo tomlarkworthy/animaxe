@@ -57,21 +57,21 @@ var BaseTick = (function () {
     return BaseTick;
 })();
 exports.BaseTick = BaseTick;
-var ObservableTransformer = (function () {
-    function ObservableTransformer(attach) {
+var SignalFn = (function () {
+    function SignalFn(attach) {
         this.attach = attach;
     }
     /**
      * subclasses should override this to create another animation of the same type
      * @param attach
      */
-    ObservableTransformer.prototype.create = function (attach) {
-        return new ObservableTransformer(attach);
+    SignalFn.prototype.create = function (attach) {
+        return new SignalFn(attach);
     };
     /**
      * Creates an animation that is at most n frames from 'this'.
      */
-    ObservableTransformer.prototype.take = function (frames) {
+    SignalFn.prototype.take = function (frames) {
         var self = this;
         if (exports.DEBUG)
             console.log("take: build");
@@ -80,17 +80,17 @@ var ObservableTransformer = (function () {
     /**
      * map the stream of values to a new parameter
      */
-    ObservableTransformer.prototype.mapObservable = function (fn) {
+    SignalFn.prototype.mapObservable = function (fn) {
         var self = this;
-        return new ObservableTransformer(function (upstream) { return fn(self.attach(upstream)); });
+        return new SignalFn(function (upstream) { return fn(self.attach(upstream)); });
     };
     /**
      * map the value of 'this' to a new parameter
      */
-    ObservableTransformer.prototype.mapValue = function (fn) {
+    SignalFn.prototype.mapValue = function (fn) {
         return this.mapObservable(function (upstream) { return upstream.map(fn); });
     };
-    ObservableTransformer.prototype.reduceValue = function (array, fn) {
+    SignalFn.prototype.reduceValue = function (array, fn) {
         return this.create(this.combine(function () { return function (thisOut, array) {
             return array.reduce(fn, thisOut);
         }; }, array).attach);
@@ -101,13 +101,13 @@ var ObservableTransformer = (function () {
      * All are given the same input, and their simulataneous outputs are passed to a
      * combiner function, which compute the final output.
      */
-    ObservableTransformer.prototype.combineMany = function (combinerBuilder) {
+    SignalFn.prototype.combineMany = function (combinerBuilder) {
         var _this = this;
         var others = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             others[_i - 1] = arguments[_i];
         }
-        return new ObservableTransformer(function (upstream) {
+        return new SignalFn(function (upstream) {
             // join upstream with parameter
             var fork = new Rx.Subject();
             upstream.subscribe(fork);
@@ -127,28 +127,31 @@ var ObservableTransformer = (function () {
      * Both are given the same input, and their simulataneous outputs are passed to a
      * combiner function, which compute the final output.
      */
-    ObservableTransformer.prototype.combine = function (combinerBuilder, other1, other2, other3, other4, other5, other6, other7, other8) {
+    SignalFn.prototype.combine = function (combinerBuilder, other1, other2, other3, other4, other5, other6, other7, other8) {
         return this.combineMany(combinerBuilder, other1, other2, other3, other4, other5, other6, other7, other8);
     };
-    ObservableTransformer.prototype.mergeInput = function () {
-        return this.combine(function () { return function (thisValue, arg1) { return { "in": arg1, "out": thisValue }; }; }, new ObservableTransformer(function (_) { return _; }));
+    SignalFn.prototype.mergeInput = function () {
+        return this.combine(function () { return function (thisValue, arg1) { return { "in": arg1, "out": thisValue }; }; }, new SignalFn(function (_) { return _; }));
     };
-    ObservableTransformer.prototype.init = function () { throw new Error("depricated: remove this"); };
-    return ObservableTransformer;
+    SignalFn.prototype.init = function () { throw new Error("depricated: remove this"); };
+    return SignalFn;
 })();
-exports.ObservableTransformer = ObservableTransformer;
-var ChainableTransformer = (function (_super) {
-    __extends(ChainableTransformer, _super);
-    function ChainableTransformer(attach) {
+exports.SignalFn = SignalFn;
+/**
+ * A specialization of a signal where In is same type as Out
+ */
+var SignalPipe = (function (_super) {
+    __extends(SignalPipe, _super);
+    function SignalPipe(attach) {
         _super.call(this, attach);
     }
     /**
      * subclasses should override this to create another animation of the same type
      * @param attach
      */
-    ChainableTransformer.prototype.create = function (attach) {
+    SignalPipe.prototype.create = function (attach) {
         if (attach === void 0) { attach = function (nop) { return nop; }; }
-        return new ChainableTransformer(attach);
+        return new SignalPipe(attach);
     };
     /**
      * send the downstream context of 'this' animation, as the upstream context to supplied animation.
@@ -156,14 +159,14 @@ var ChainableTransformer = (function (_super) {
      *
      * ```Ax.move(...).pipe(myOT_API());```
      */
-    ChainableTransformer.prototype.pipe = function (downstream) {
+    SignalPipe.prototype.pipe = function (downstream) {
         var self = this;
         return downstream.create(function (upstream) { return downstream.attach(self.attach(upstream)); });
     };
     /**
      * Pipes an array of transformers together in succession.
      */
-    ChainableTransformer.prototype.pipeAll = function (downstreams) {
+    SignalPipe.prototype.pipeAll = function (downstreams) {
         var self = this;
         return this.create(function (upstream) {
             return downstreams.reduce(function (upstream, transformer) { return transformer.attach(upstream); }, self.attach(upstream));
@@ -264,7 +267,7 @@ var ChainableTransformer = (function (_super) {
      * This allows you to sequence animations temporally.
      * frame1OT_API().then(frame2OT_API).then(frame3OT_API)
      */
-    ChainableTransformer.prototype.then = function (follower) {
+    SignalPipe.prototype.then = function (follower) {
         var self = this;
         return this.create(function (upstream) {
             return Rx.Observable.create(function (observer) {
@@ -336,7 +339,7 @@ var ChainableTransformer = (function (_super) {
      * The resultant animation is always runs forever while upstream is live. Only a single inner animation
      * plays at a time (unlike emit())
      */
-    ChainableTransformer.prototype.loop = function (animation) {
+    SignalPipe.prototype.loop = function (animation) {
         return this.pipe(this.create(function (prev) {
             if (exports.DEBUG_LOOP)
                 console.log("loop: initializing");
@@ -397,7 +400,7 @@ var ChainableTransformer = (function (_super) {
      * The resultant animation is always runs forever while upstream is live. Multiple inner animations
      * can be playing at the same time (unlike loop)
      */
-    ChainableTransformer.prototype.emit = function (animation) {
+    SignalPipe.prototype.emit = function (animation) {
         return this.playAll(Parameter.constant(animation));
     };
     /**
@@ -406,7 +409,7 @@ var ChainableTransformer = (function (_super) {
      * The canvas states are restored before each fork, so styling and transforms of different child animations do not
      * interact (although obsviously the pixel buffer is affected by each animation)
      */
-    ChainableTransformer.prototype.parallel = function (animations) {
+    SignalPipe.prototype.parallel = function (animations) {
         return this.pipe(this.create(function (prev) {
             if (exports.DEBUG_PARALLEL)
                 console.log("parallel: initializing");
@@ -437,7 +440,7 @@ var ChainableTransformer = (function (_super) {
     /**
      * Plays all the inner animations, which are generated by a time varying paramater.
      */
-    ChainableTransformer.prototype.playAll = function (animations) {
+    SignalPipe.prototype.playAll = function (animations) {
         var self = this;
         return this.create(function (upstream) {
             var root = new Rx.Subject();
@@ -474,7 +477,7 @@ var ChainableTransformer = (function (_super) {
     /**
      * Sequences n copies of the inner animation. Clone completes when all inner animations are over.
      */
-    ChainableTransformer.prototype.clone = function (n, animation) {
+    SignalPipe.prototype.clone = function (n, animation) {
         var array = new Array(n);
         for (var i = 0; i < n; i++)
             array[i] = animation;
@@ -484,24 +487,24 @@ var ChainableTransformer = (function (_super) {
      * helper method for implementing simple animations (that don't fork the animation tree).
      * Apply an effect to occur after 'this'.
      */
-    ChainableTransformer.prototype.affect = function (effectBuilder, param1, param2, param3, param4, param5, param6, param7, param8) {
+    SignalPipe.prototype.affect = function (effectBuilder, param1, param2, param3, param4, param5, param6, param7, param8) {
         var _this = this;
         // combine the params with an empty instance
-        var combineParams = new ObservableTransformer(function (_) { return _; }).combine(wrapEffectToReturnTick(effectBuilder), param1, param2, param3, param4, param5, param6, param7, param8);
+        var combineParams = new SignalFn(function (_) { return _; }).combine(wrapEffectToReturnTick(effectBuilder), param1, param2, param3, param4, param5, param6, param7, param8);
         // we want the tick output of the previous transform to be applied first (.pipe)
         // then apply that output to all of the params and the combiner function
         // and we want it with 'this' API, (.create)        
         return this.create(function (upstream) { return combineParams.attach(_this.attach(upstream)); });
     };
-    ChainableTransformer.prototype.if = function (condition, animation) {
+    SignalPipe.prototype.if = function (condition, animation) {
         return new If([new ConditionActionPair(condition, animation)], this);
     };
-    ChainableTransformer.prototype.skewT = function (displacement) {
+    SignalPipe.prototype.skewT = function (displacement) {
         return this.create(this.combine(function () { return function (tick, displacement) { return tick.skew(displacement); }; }, Parameter.from(displacement)).attach);
     };
-    return ChainableTransformer;
-})(ObservableTransformer);
-exports.ChainableTransformer = ChainableTransformer;
+    return SignalPipe;
+})(SignalFn);
+exports.SignalPipe = SignalPipe;
 /**
  * Convert an  side effect into a tick chainable
  */
