@@ -46,7 +46,7 @@ var Button = (function (_super) {
         return button;
     };
     return Button;
-})(Ax.Animation);
+})(Ax.Operation);
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle("#000000").fillRect([0, 0], [100, 100]));
 animator.play(Ax.create()

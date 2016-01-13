@@ -109,12 +109,16 @@ From ReactiveExtensions, this is a stream of values of type V. The stream may fi
 
 ```
 class SignalFn<In extends BaseTick, Out> {
-    constructor(attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>)
+    attach: (upstream: Rx.Observable<In>) => Rx.Observable<Out>
 ```
 
 Our SignalFn wraps an attach function which transforms a
 Stream of type "In", into a stream of type "Out". For simplicity elsewhere, `In` is always some
 kind of clock tick. 
+
+The SignalFn is an ability to transform one signal into another, but it is
+not a 'live' signal. The live Signals are the Rx.Observables which are often
+generated on demand. 
 
 ```
 class BaseTick {
@@ -122,6 +126,72 @@ class BaseTick {
     public dt: number
 }
 ```
+
+The BaseTick is a clock signal for driving animations. It holds the absolute time (clock),
+and the delta time passed since the last tick. The delta, dt, is particuarly useful for frame
+rate independant animations. Ticks should be considered immutable.
+
+
+```
+class SimpleSignalFn<V extends BaseTick> extends SignalFn<V, V> {
+```
+
+A SimpleSignalFn is a SignalFn where the 'In' and 'Out' types are the same type. This seemingly superfluous 
+type is called out becuase the API can be made more fluenty for this specialization.
+
+
+```
+class canvas.Operation extends SimpleSignalFn<canvas.Tick> {
+```
+
+A canvas operation is a signal function that inputs and outputs a canvas.Tick. A canvas tick is
+like the base tick (i.e. defines time) but also includes the Canvas2D drawing context and an event model.
+
+```
+class canvas.Tick {
+    clock: number,
+    public dt: number
+    ctx: CanvasRenderingContext2D,
+    events: events.Events
+}
+```
+
+The canvas.Tick wraps a few different aspects of the `ctx`. In the existing Canvas API, the contaxt object wraps mutable meta-state
+the current stroke style, the state of the transform stack, and the current path. In addition, the canvax object exposes
+a number of void drawing functions that mutate the canvas pixels via side effects. These two roles are treated differently in Animaxe.
+
+Meta-state changes are implemented as if they were immutable. That is, sebsequent animations downstream see meta-data mutations, 
+but animations upstream or siblings are not affected by.
+
+```
+Ax.create()  // begin an new animation tree
+  .strokeStyle("green") // top of animation tree the style is set to green
+  .parrallel([
+    Ax.create().stroke() // stroke green, downstream of parrallel
+    Ax.create().strokeStyle("red").stroke(), //stroke red
+    Ax.create().stroke() // stroke green, not affected by red sibling
+  ])
+  .stroke() // stroke green, downstream of parrallel which is downstream of top
+])
+```
+
+
+Pixel modifications, through drawing routines (or buffer manipulation), however,
+do mutate a shared pixel buffer across the animation graph. Conceptually, you can think of the pixels as
+a log of the dataflow. Thus, all animation branches are able to affect the final pixels.
+
+The consequence of this is that meta-state changes to the drawing context, like setting a style or
+changing the drawing transform, skewing the clock etc. affects only a subtree of the animation tree. 
+
+
+
+
+
+So a canvas.Operation is able to transform a canvas Tick signal into another Tick signal. An
+operation will typically mutate the canvas context. The canvas t
+
+
+ 
 
 
 Trying it out

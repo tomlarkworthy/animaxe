@@ -4,9 +4,9 @@ import * as helper from "../src/helper";
 import * as events from "../src/events";
 import * as Parameter from "../src/Parameter";
 import * as parametric from "../src/parametric";
-import * as OT from "../src/FRP"; // TODO this should be in Ax
+import * as OT from "../src/frp"; // TODO this should be in Ax
 import * as types from "../src/types"; // TODO this should be in Ax
-import * as canvas from "../src/CanvasAnimation"; // TODO this should be in Ax
+import * as canvas from "../src/canvas"; // TODO this should be in Ax
 
 var animator: Ax.Animator = helper.getExampleAnimator(100, 100);
 
@@ -44,7 +44,7 @@ var twoPi = 2 * Math.PI;
 // we pass them through lissajous to generate some parametric equations
 // we then trace that to turn it into a pointlist. 
 // So we have transformed the (arbitary) time varying parameters, to a time varying list of points 
-var timeVaryingPointList: /*Parameter.Parameter<number[][]>*/ OT.SignalFn<canvas.CanvasTick, number[][]> = 
+var timeVaryingPointList: /*Parameter.Parameter<number[][]>*/ OT.SignalFn<canvas.Tick, number[][]> = 
     (Parameter.trace(
         lissajous(45, Parameter.t().mapValue(t => 2 + Math.sin(t)), 45, Parameter.t().mapValue(t => 2 + Math.sin(t/2)), Parameter.t()),
         Parameter.t().mapValue(t => t % twoPi), Parameter.t().mapValue(t => (t % twoPi) + twoPi),

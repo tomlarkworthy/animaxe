@@ -3,7 +3,7 @@
 import * as Rx from "rx"
 import Observable = Rx.Observable;
 import * as types from "./types"
-import * as canvas from "./CanvasAnimation"
+import * as canvas from "./canvas"
 import * as parameter from "./Parameter"
 export * from "./types"
 
@@ -97,11 +97,11 @@ export class ComponentMouseState {
  * returns an animation that can be pipelined after a path, which used canvas isPointInPath to detect if a mouse event has
  * occured over the source animation
  */
-export function ComponentMouseEventHandler(events: ComponentMouseState): canvas.Animation {
+export function ComponentMouseEventHandler(events: ComponentMouseState): canvas.Operation {
     return canvas.create().affect(
         () => {
             var mouseIsOver = false;
-            return (tick: canvas.CanvasTick) => {
+            return (tick: canvas.Tick) => {
                 function processSystemMouseEvents(
                     sourceEvents: SystemMouseEvents,
                     componentEventStream: Rx.Subject<AxMouseEvent>
@@ -159,10 +159,10 @@ export function ComponentMouseEventHandler(events: ComponentMouseState): canvas.
  * returns an animation that can be pipelined anywhere, which listens for global mouse events over the entire canvas
  * AxMouseEvent raised globally have a null source field, and identical global and local coordinates
  */
-export function CanvasMouseEventHandler(events: ComponentMouseState): canvas.Animation {
+export function CanvasMouseEventHandler(events: ComponentMouseState): canvas.Operation {
     return canvas.create().affect(
         () => {
-            return (tick: canvas.CanvasTick) => {
+            return (tick: canvas.Tick) => {
                 function processSystemMouseEvents(
                     sourceEvents: SystemMouseEvents,
                     componentEventStream: Rx.Subject<AxMouseEvent>

@@ -9,7 +9,7 @@ var animator: Ax.Animator = helper.getExampleAnimator(100, 100);
 /**
  * A Button is an animation but with extra mouse state attached
  */
-class Button extends Ax.Animation {
+class Button extends Ax.Operation {
     /**
      * @param postprocessor hook to do things like attach listeners without breaking the animation chaining
      */
@@ -36,9 +36,9 @@ class Button extends Ax.Animation {
 
     constructor(public hotspot: Ax.PathAnimation, // Babel doesn't like public modifier
                 public mouseState: events.ComponentMouseState, // Babel doesn't like public modifier
-                onMouseDown: Ax.Animation,
-                onMouseOver: Ax.Animation,
-                onIdle: Ax.Animation
+                onMouseDown: Ax.Operation,
+                onMouseOver: Ax.Operation,
+                onIdle: Ax.Operation
     ) {
         // we build a grand animation pipeline either side of the hot spot,
         // then we use the total pipeline's attach function as the attach function for this animation

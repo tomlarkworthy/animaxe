@@ -3,7 +3,7 @@
 /// <reference path="../types/should.d.ts" />
 /// <reference path="../types/ctx-get-transform.d.ts" />
 import * as Rx from "rx";
-import * as canvas from "./CanvasAnimation";
+import * as canvas from "./canvas";
 import * as Ax from "./animaxe";
 export * from "./animaxe";
 import { monkeyPatchCtxToAddGetTransform as transform_fix} from "./ctx-get-transform";

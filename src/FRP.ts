@@ -179,7 +179,7 @@ export class SignalFn<In extends BaseTick, Out> {
 /**
  * A specialization of a signal where In is same type as Out
  */
-export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
+export class SimpleSignalFn<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
 
     constructor(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>) {
         super(attach)
@@ -190,7 +190,7 @@ export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
      * @param attach
      */
     create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick> = nop => nop): this {
-        return <this> new SignalPipe<Tick>(attach);
+        return <this> new SimpleSignalFn<Tick>(attach);
     }
 
     /**
@@ -318,7 +318,7 @@ export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
      * frame1OT_API().then(frame2OT_API).then(frame3OT_API)
      */
     
-    then(follower: SignalPipe<Tick>): this {
+    then(follower: SimpleSignalFn<Tick>): this {
         var self = this;
 
         return this.create((upstream: Rx.Observable<Tick>) => {
@@ -394,7 +394,7 @@ export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
      * The resultant animation is always runs forever while upstream is live. Only a single inner animation
      * plays at a time (unlike emit())
      */
-    loop(animation: SignalPipe<Tick>): this {
+    loop(animation: SimpleSignalFn<Tick>): this {
         return this.pipe(
             this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
                 if (DEBUG_LOOP) console.log("loop: initializing");
@@ -458,7 +458,7 @@ export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
      * The resultant animation is always runs forever while upstream is live. Multiple inner animations
      * can be playing at the same time (unlike loop)
      */
-    emit(animation: SignalPipe<Tick>): this {
+    emit(animation: SimpleSignalFn<Tick>): this {
         return this.playAll(<SignalFn<Tick, this>>Parameter.constant(animation));
     }
 
@@ -468,7 +468,7 @@ export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
      * The canvas states are restored before each fork, so styling and transforms of different child animations do not
      * interact (although obsviously the pixel buffer is affected by each animation)
      */
-    parallel(animations: SignalPipe<Tick>[]): this {
+    parallel(animations: SimpleSignalFn<Tick>[]): this {
         return this.pipe(
             this.create(function (prev: Rx.Observable<Tick>): Rx.Observable<Tick> {
                 if (DEBUG_PARALLEL) console.log("parallel: initializing");
@@ -482,7 +482,7 @@ export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
                     activeOT_APIs --;
                 }
     
-                animations.forEach(function(animation: SignalPipe<Tick>) {
+                animations.forEach(function(animation: SimpleSignalFn<Tick>) {
                     activeOT_APIs++;
                     animation.attach(attachPoint.map(tick => <Tick>tick.restore().save())).subscribe(
                         _ => {},
@@ -544,7 +544,7 @@ export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
     /**
      * Sequences n copies of the inner animation. Clone completes when all inner animations are over.
      */
-    clone(n: number, animation: SignalPipe<Tick>): this {
+    clone(n: number, animation: SimpleSignalFn<Tick>): this {
         let array = new Array(n);
         for (let i=0; i<n; i++) array[i] = animation;
         return this.parallel(array);
@@ -586,7 +586,7 @@ export class SignalPipe<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
         return this.create(upstream => combineParams.attach(this.attach(upstream)));
     }
 
-    if(condition: types.BooleanArg, animation: SignalPipe<Tick>): If<Tick, this>{
+    if(condition: types.BooleanArg, animation: SimpleSignalFn<Tick>): If<Tick, this>{
         return new If<Tick, this>([new ConditionActionPair(condition, animation)], this);
     }
     
@@ -619,7 +619,7 @@ function wrapEffectToReturnTick<Tick>(
 
 
 export class ConditionActionPair<Tick extends BaseTick> {
-    constructor(public condition: types.BooleanArg, public action: SignalPipe<Tick>){}
+    constructor(public condition: types.BooleanArg, public action: SimpleSignalFn<Tick>){}
 };
 
 
@@ -631,13 +631,13 @@ export class ConditionActionPair<Tick extends BaseTick> {
  * and the whole clause is over, so surround action animations with loop if you don't want that behaviour.
  * Whenever the active clause changes, a NEW active animation is reinitialised.
  */
-export class If<Tick extends BaseTick, OT_API extends SignalPipe<any>> {
+export class If<Tick extends BaseTick, OT_API extends SimpleSignalFn<any>> {
     constructor(
         public conditions: ConditionActionPair<Tick>[],
         public preceeding: OT_API) {
     }
 
-    elif(clause: types.BooleanArg, action: SignalPipe<Tick>): this {
+    elif(clause: types.BooleanArg, action: SimpleSignalFn<Tick>): this {
         types.assert(clause != undefined && action != undefined)
         this.conditions.push(new ConditionActionPair<Tick>(clause, action));
         return this;
@@ -647,7 +647,7 @@ export class If<Tick extends BaseTick, OT_API extends SignalPipe<any>> {
         return this.preceeding.pipe(this.else(this.preceeding.create()));
     }
 
-    else(otherwise: SignalPipe<Tick>): OT_API {
+    else(otherwise: SimpleSignalFn<Tick>): OT_API {
         // the else is like a always true conditional with the otherwise action
         this.conditions.push(new ConditionActionPair<Tick>(true, otherwise));
         
@@ -681,7 +681,7 @@ export class If<Tick extends BaseTick, OT_API extends SignalPipe<any>> {
                 
 
                 var pairHandler = function(id: number, pair: ConditionActionPair<Tick>): Rx.Subject<Tick> {
-                    var action: SignalPipe<Tick> = pair.action;
+                    var action: SimpleSignalFn<Tick> = pair.action;
                     var preConditionAnchor = new Rx.Subject<Tick>();
                     var postConditionAnchor = new Rx.Subject<Tick>();
                     var currentActionSubscription = null;

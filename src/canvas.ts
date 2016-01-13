@@ -1,6 +1,6 @@
 import * as Parameter from "../src/Parameter";
 import * as events from "./events"
-import * as OT from "./FRP"
+import * as OT from "./frp"
 import * as types from "./types"
 import * as glow from "./glow"
 export * from "./types"
@@ -12,18 +12,18 @@ var DEBUG = false;
  * time delta between the previous frame (dt) and the drawing context. Animators typically use the drawing context
  * directly, and pass the clock onto any time varying parameters.
  */
-export class CanvasTick extends OT.BaseTick{
+export class Tick extends OT.BaseTick{
     constructor (
         public clock: number,
         public dt: number,
         public ctx: CanvasRenderingContext2D,
         public events: events.Events,
-        public previous ?: CanvasTick)
+        public previous ?: Tick)
     {
         super(clock, dt, previous)
     }
     copy(): this {
-        return <this>new CanvasTick(this.clock, this.dt, this.ctx, this.events, this.previous);
+        return <this>new Tick(this.clock, this.dt, this.ctx, this.events, this.previous);
     }
     
     save(): this {
@@ -39,9 +39,9 @@ export class CanvasTick extends OT.BaseTick{
     
 }
 
-export class Animation extends OT.SignalPipe<CanvasTick>{
+export class Operation extends OT.SimpleSignalFn<Tick>{
 
-    constructor(public attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick>) {
+    constructor(public attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick>) {
         super(attach);
     }
     
@@ -49,8 +49,8 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
      * subclasses should override this to create another animation of the same type
      * @param attach
      */
-    create(attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick> = nop => nop): this {
-        return <this> new Animation(attach);
+    create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick> = nop => nop): this {
+        return <this> new Operation(attach);
     }
     
     /**
@@ -60,7 +60,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
      */
     loggedAffect<P1, P2, P3, P4, P5, P6, P7, P8>(
         label: string, 
-        effectBuilder: () => (tick: CanvasTick, arg1?: P1, arg2?: P2, arg3?: P3, arg4?: P4,
+        effectBuilder: () => (tick: Tick, arg1?: P1, arg2?: P2, arg3?: P3, arg4?: P4,
                                                 arg5?: P5, arg6?: P6, arg7?: P7, arg8?: P8) => void,
         param1?: P1 | Parameter.Parameter<P1>,
         param2?: P2 | Parameter.Parameter<P2>,
@@ -76,7 +76,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
             () => {
                 if (DEBUG) console.log(label + ": attach");
                 var effect = effectBuilder()
-                return (tick: CanvasTick, arg1?: P1, arg2?: P2, arg3?: P3, arg4?: P4,
+                return (tick: Tick, arg1?: P1, arg2?: P2, arg3?: P3, arg4?: P4,
                                           arg5?: P5, arg6?: P6, arg7?: P7, arg8?: P8) => {
                     if (DEBUG) {
                         var elements = [];
@@ -93,14 +93,14 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
                     effect(tick, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
                 }
             },
-            <OT.SignalFn<CanvasTick, P1>> (param1 ? Parameter.from(param1): undefined),
-            <OT.SignalFn<CanvasTick, P2>> (param2 ? Parameter.from(param2): undefined),
-            <OT.SignalFn<CanvasTick, P3>> (param3 ? Parameter.from(param3): undefined),
-            <OT.SignalFn<CanvasTick, P4>> (param4 ? Parameter.from(param4): undefined),
-            <OT.SignalFn<CanvasTick, P5>> (param5 ? Parameter.from(param5): undefined),
-            <OT.SignalFn<CanvasTick, P6>> (param6 ? Parameter.from(param6): undefined),
-            <OT.SignalFn<CanvasTick, P7>> (param7 ? Parameter.from(param7): undefined),
-            <OT.SignalFn<CanvasTick, P8>> (param8 ? Parameter.from(param8): undefined)
+            <OT.SignalFn<Tick, P1>> (param1 ? Parameter.from(param1): undefined),
+            <OT.SignalFn<Tick, P2>> (param2 ? Parameter.from(param2): undefined),
+            <OT.SignalFn<Tick, P3>> (param3 ? Parameter.from(param3): undefined),
+            <OT.SignalFn<Tick, P4>> (param4 ? Parameter.from(param4): undefined),
+            <OT.SignalFn<Tick, P5>> (param5 ? Parameter.from(param5): undefined),
+            <OT.SignalFn<Tick, P6>> (param6 ? Parameter.from(param6): undefined),
+            <OT.SignalFn<Tick, P7>> (param7 ? Parameter.from(param7): undefined),
+            <OT.SignalFn<Tick, P8>> (param8 ? Parameter.from(param8): undefined)
         )
     }
     
@@ -112,14 +112,14 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
             () => {
                 if (DEBUG) console.log("velocity: attach");
                 var pos: types.Point = [0.0,0.0];
-                return (tick: CanvasTick, velocity: types.Point) => {
+                return (tick: Tick, velocity: types.Point) => {
                     if (DEBUG) console.log("velocity: tick", velocity, pos);
                     tick.ctx.transform(1, 0, 0, 1, pos[0], pos[1]);
                     pos[0] += velocity[0] * tick.dt;
                     pos[1] += velocity[1] * tick.dt;
                 }
             },
-            <OT.SignalFn<CanvasTick, types.Point>>Parameter.from(velocity)
+            <OT.SignalFn<Tick, types.Point>>Parameter.from(velocity)
         );
     }
     
@@ -133,7 +133,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
             () => {
                 var t = 0;
                 if (DEBUG) console.log("tween: init");
-                return (tick: CanvasTick, from, to, time) => {
+                return (tick: Tick, from, to, time) => {
                     t = t + tick.dt;
                     if (t > time) t = time;
                     var x = from[0] + (to[0] - from[0]) * t / time;
@@ -143,15 +143,15 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
                     tick.ctx.transform(1, 0, 0, 1, x, y);
                 }
             },
-            <OT.SignalFn<CanvasTick, types.Point>>Parameter.from(from),
-            <OT.SignalFn<CanvasTick, types.Point>>Parameter.from(to),
-            <OT.SignalFn<CanvasTick, number>>Parameter.from(time)
+            <OT.SignalFn<Tick, types.Point>>Parameter.from(from),
+            <OT.SignalFn<Tick, types.Point>>Parameter.from(to),
+            <OT.SignalFn<Tick, number>>Parameter.from(time)
         ) 
     }
     
     glow(
         decay: types.NumberArg = 0.1
-    ): Animation {
+    ): Operation {
         return glow.glow(this, decay);
     }
     
@@ -164,7 +164,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     strokeStyle(color: types.ColorArg): this {
         return this.loggedAffect(
             "strokeStyle",
-            () => (tick: CanvasTick, color: types.Color) => 
+            () => (tick: Tick, color: types.Color) => 
                 tick.ctx.strokeStyle = color,
             color
         )
@@ -175,7 +175,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     fillStyle(color: types.ColorArg): this {
         return this.loggedAffect(
             "fillStyle",
-            () => (tick: CanvasTick, color: types.Color) => 
+            () => (tick: Tick, color: types.Color) => 
                 tick.ctx.fillStyle = color,
             color
         )
@@ -186,7 +186,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     shadowColor(color: types.ColorArg): this {
         return this.loggedAffect(
             "shadowColor",
-            () => (tick: CanvasTick, color: types.Color) => 
+            () => (tick: Tick, color: types.Color) => 
                 tick.ctx.shadowColor = color,
             color
         )
@@ -197,7 +197,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     shadowBlur(level: types.NumberArg): this {
         return this.loggedAffect(
             "shadowBlur",
-            () => (tick: CanvasTick, level: number) => 
+            () => (tick: Tick, level: number) => 
                 tick.ctx.shadowBlur = level,
             level
         )
@@ -208,7 +208,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     shadowOffset(xy: types.PointArg): this {
         return this.loggedAffect(
             "shadowOffset",
-            () => (tick: CanvasTick, xy: types.Point) => {
+            () => (tick: Tick, xy: types.Point) => {
                 tick.ctx.shadowOffsetX = xy[0];
                 tick.ctx.shadowOffsetY = xy[1];
             },
@@ -221,7 +221,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     lineCap(style: string): this {
         return this.loggedAffect(
             "lineCap",
-            () => (tick: CanvasTick, arg: string) => 
+            () => (tick: Tick, arg: string) => 
                 tick.ctx.lineCap = arg,
             style
         )
@@ -232,7 +232,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     lineJoin(style: string): this {
         return this.loggedAffect(
             "lineJoin",
-            () => (tick: CanvasTick, arg: string) => 
+            () => (tick: Tick, arg: string) => 
                 tick.ctx.lineJoin = arg,
             style
         )
@@ -243,7 +243,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     lineWidth(width: types.NumberArg): this {
         return this.loggedAffect(
             "lineWidth",
-            () => (tick: CanvasTick, arg: number) => 
+            () => (tick: Tick, arg: number) => 
                 tick.ctx.lineWidth = arg,
             width
         )
@@ -254,7 +254,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     miterLimit(limit: types.NumberArg): this {
         return this.loggedAffect(
             "miterLimit",
-            () => (tick: CanvasTick, arg: number) => 
+            () => (tick: Tick, arg: number) => 
                 tick.ctx.miterLimit = arg,
             limit
         )
@@ -265,7 +265,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     rect(xy: types.PointArg, width_height: types.PointArg): this {
         return this.loggedAffect(
             "rect",
-            () => (tick: CanvasTick, xy: types.Point, width_height: types.Point) => 
+            () => (tick: Tick, xy: types.Point, width_height: types.Point) => 
                 tick.ctx.rect(xy[0], xy[1], width_height[0], width_height[1]),
             xy,
             width_height
@@ -277,7 +277,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     fillRect(xy: types.PointArg, width_height: types.PointArg): this {
         return this.loggedAffect(
             "fillRect",
-            () => (tick: CanvasTick, xy: types.Point, width_height: types.Point) => 
+            () => (tick: Tick, xy: types.Point, width_height: types.Point) => 
                tick.ctx.fillRect(xy[0], xy[1], width_height[0], width_height[1]),
             xy,
             width_height
@@ -289,7 +289,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     strokeRect(xy: types.PointArg, width_height: types.PointArg): this {
         return this.loggedAffect(
             "strokeRect",
-            () => (tick: CanvasTick, xy: types.Point, width_height: types.Point) => 
+            () => (tick: Tick, xy: types.Point, width_height: types.Point) => 
                 tick.ctx.strokeRect(xy[0], xy[1], width_height[0], width_height[1]),
             xy,
             width_height
@@ -301,7 +301,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     clearRect(xy: types.PointArg, width_height: types.PointArg): this {
         return this.loggedAffect(
             "clearRect",
-            () => (tick: CanvasTick, xy: types.Point, width_height: types.Point) => 
+            () => (tick: Tick, xy: types.Point, width_height: types.Point) => 
                 tick.ctx.clearRect(xy[0], xy[1], width_height[0], width_height[1]),
             xy,
             width_height
@@ -312,16 +312,16 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
      *
      * This returns a path object which events can be subscribed to
      */
-    withinPath(inner: Animation): PathAnimation {
+    withinPath(inner: Operation): PathAnimation {
         return this.pipe(
             new PathAnimation(
-                (upstream: Rx.Observable<CanvasTick>) => {
+                (upstream: Rx.Observable<Tick>) => {
                     if (DEBUG) console.log("withinPath: attach");
                     var beginPathBeforeInner = upstream.tapOnNext(
-                        (tick: CanvasTick) => tick.ctx.beginPath()
+                        (tick: Tick) => tick.ctx.beginPath()
                     );
                     return inner.attach(beginPathBeforeInner).tapOnNext(
-                        (tick: CanvasTick) => tick.ctx.closePath()
+                        (tick: Tick) => tick.ctx.closePath()
                     )
                 }
             )
@@ -333,7 +333,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     closePath(): this {
         return this.loggedAffect(
             "closePath",
-            () => (tick: CanvasTick) => 
+            () => (tick: Tick) => 
                 tick.ctx.closePath()
         )
     }
@@ -344,7 +344,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     beginPath(): this {
         return this.loggedAffect(
             "beginPath",
-            () => (tick: CanvasTick) => 
+            () => (tick: Tick) => 
                 tick.ctx.beginPath()
         )
     }
@@ -355,7 +355,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     fill(): this {
         return this.loggedAffect(
             "fill",
-            () => (tick: CanvasTick) => 
+            () => (tick: Tick) => 
                 tick.ctx.fill()
         )
     }
@@ -365,7 +365,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     stroke(): this {
         return this.loggedAffect(
             "stroke",
-            () => (tick: CanvasTick) => 
+            () => (tick: Tick) => 
                 tick.ctx.stroke()
         )
     }
@@ -375,7 +375,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     moveTo(xy: types.PointArg): this {
         return this.loggedAffect(
             "moveTo",
-            () => (tick: CanvasTick, xy: types.Point) => 
+            () => (tick: Tick, xy: types.Point) => 
                 tick.ctx.moveTo(xy[0], xy[1]),
             xy
         )
@@ -386,7 +386,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     lineTo(xy: types.PointArg): this {
         return this.loggedAffect(
             "lineTo",
-            () => (tick: CanvasTick, xy: types.Point) => 
+            () => (tick: Tick, xy: types.Point) => 
                 tick.ctx.lineTo(xy[0], xy[1]),
             xy
         )
@@ -397,7 +397,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     clip(): this {
         return this.loggedAffect(
             "clip",
-            () => (tick: CanvasTick) => 
+            () => (tick: Tick) => 
                 tick.ctx.clip()
         )
     }
@@ -407,7 +407,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     quadraticCurveTo(control: types.PointArg, end: types.PointArg): this {
         return this.loggedAffect(
             "quadraticCurveTo",
-            () => (tick: CanvasTick, arg1: types.Point, arg2: types.Point) => 
+            () => (tick: Tick, arg1: types.Point, arg2: types.Point) => 
                 tick.ctx.quadraticCurveTo(arg1[0], arg1[1], arg2[0], arg2[1]),
             control,
             end
@@ -419,7 +419,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): this {
         return this.loggedAffect(
             "bezierCurveTo",
-            () => (tick: CanvasTick, arg1: types.Point, arg2: types.Point, arg3: types.Point) => 
+            () => (tick: Tick, arg1: types.Point, arg2: types.Point, arg3: types.Point) => 
                 tick.ctx.bezierCurveTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3[0], arg3[1]),
             control1,
             control2,
@@ -433,7 +433,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     arcTo(tangent1: types.PointArg, tangent2: types.PointArg, radius: types.NumberArg): this {
         return this.loggedAffect(
             "arcTo",
-            () => (tick: CanvasTick, arg1: types.Point, arg2: types.Point, arg3: number) => 
+            () => (tick: Tick, arg1: types.Point, arg2: types.Point, arg3: number) => 
                 tick.ctx.arcTo(arg1[0], arg1[1], arg2[0], arg2[1], arg3),
             tangent1,
             tangent2,
@@ -446,7 +446,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     scale(xy: types.PointArg): this {
         return this.loggedAffect(
             "scale",
-            () => (tick: CanvasTick, xy: types.Point) => 
+            () => (tick: Tick, xy: types.Point) => 
                 tick.ctx.scale(xy[0], xy[1]),
             xy
         )
@@ -457,7 +457,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     rotate(clockwiseRadians: types.NumberArg): this {
         return this.loggedAffect(
             "rotate",
-            () => (tick: CanvasTick, arg: number) => 
+            () => (tick: Tick, arg: number) => 
                 tick.ctx.rotate(arg),
             clockwiseRadians
         )
@@ -468,7 +468,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     translate(xy: types.PointArg): this {
         return this.loggedAffect(
             "translate",
-            () => (tick: CanvasTick, xy: types.Point) => {
+            () => (tick: Tick, xy: types.Point) => {
                 tick.ctx.translate(xy[0], xy[1]);
             },
             xy
@@ -481,10 +481,10 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
      *   0 0 1 ]
      */
     transform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
-              d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
+              d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Operation {
         return this.loggedAffect(
             "transform",
-            () => (tick: CanvasTick, arg1: number, arg2: number, arg3: number, 
+            () => (tick: Tick, arg1: number, arg2: number, arg3: number, 
                                      arg4: number, arg5: number, arg6: number) =>
                     tick.ctx.transform(arg1, arg2, arg3, arg4, arg5, arg6),
             a,b,c,d,e,f
@@ -494,10 +494,10 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
      * Dynamic chainable wrapper for setTransform in the canvas API.
      */
     setTransform(a: types.NumberArg, b: types.NumberArg, c: types.NumberArg,
-                 d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Animation {
+                 d: types.NumberArg, e: types.NumberArg, f: types.NumberArg): Operation {
         return this.loggedAffect(
             "setTransform",
-            () => (tick: CanvasTick, arg1: number, arg2: number, arg3: number, 
+            () => (tick: Tick, arg1: number, arg2: number, arg3: number, 
                                      arg4: number, arg5: number, arg6: number) =>
                     tick.ctx.setTransform(arg1, arg2, arg3, arg4, arg5, arg6),
             a,b,c,d,e,f
@@ -506,10 +506,10 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     /**
      * Dynamic chainable wrapper for font in the canvas API.
      */
-    font(style: string): Animation {
+    font(style: string): Operation {
         return this.loggedAffect(
             "font",
-            () => (tick: CanvasTick, arg: string) => 
+            () => (tick: Tick, arg: string) => 
                 tick.ctx.font = arg,
             style
         )
@@ -517,10 +517,10 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     /**
      * Dynamic chainable wrapper for textAlign in the canvas API.
      */
-    textAlign(style: string): Animation {
+    textAlign(style: string): Operation {
         return this.loggedAffect(
             "textAlign",
-            () => (tick: CanvasTick, arg: string) => 
+            () => (tick: Tick, arg: string) => 
                 tick.ctx.textAlign = arg,
             style
         )
@@ -528,10 +528,10 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     /**
      * Dynamic chainable wrapper for textBaseline in the canvas API.
      */
-    textBaseline(style: string): Animation {
+    textBaseline(style: string): Operation {
         return this.loggedAffect(
             "textBaseline",
-            () => (tick: CanvasTick, arg: string) => 
+            () => (tick: Tick, arg: string) => 
                 tick.ctx.textBaseline = arg,
             style
         )
@@ -539,11 +539,11 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     /**
      * Dynamic chainable wrapper for textBaseline in the canvas API.
      */
-    fillText(text: types.StringArg, xy: types.PointArg, maxWidth?: types.NumberArg): Animation {
+    fillText(text: types.StringArg, xy: types.PointArg, maxWidth?: types.NumberArg): Operation {
         if (maxWidth) {
             return this.loggedAffect(
                 "fillText",
-                () => (tick: CanvasTick, text: string, xy: types.Point, maxWidth: number) => 
+                () => (tick: Tick, text: string, xy: types.Point, maxWidth: number) => 
                     tick.ctx.fillText(text, xy[0], xy[1], maxWidth),
                 text,
                 xy,
@@ -552,7 +552,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
         } else {
             return this.loggedAffect(
                 "fillText",
-                () => (tick: CanvasTick, text: string, xy: types.Point, maxWidth: number) => 
+                () => (tick: Tick, text: string, xy: types.Point, maxWidth: number) => 
                     tick.ctx.fillText(text, xy[0], xy[1]),
                 text,
                 xy
@@ -562,10 +562,10 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     /**
      * Dynamic chainable wrapper for drawImage in the canvas API.
      */
-    drawImage(img, xy: types.PointArg): Animation {
+    drawImage(img, xy: types.PointArg): Operation {
         return this.loggedAffect(
             "drawImage",
-            () => (tick: CanvasTick, img, xy: types.Point) => 
+            () => (tick: Tick, img, xy: types.Point) => 
                 tick.ctx.drawImage(img, xy[0], xy[1]),
             img, xy
         )
@@ -573,10 +573,10 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     /**
      * * Dynamic chainable wrapper for globalCompositeOperation in the canvas API.
      */
-    globalCompositeOperation(operation: string): Animation {
+    globalCompositeOperation(operation: string): Operation {
         return this.loggedAffect(
             "globalCompositeOperation",
-            () => (tick: CanvasTick, arg: string) => 
+            () => (tick: Tick, arg: string) => 
                 tick.ctx.globalCompositeOperation = arg,
             operation
         )
@@ -587,7 +587,7 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
         counterclockwise: boolean = false): this {
         return this.loggedAffect(
             "arc",
-            () => (tick: CanvasTick, arg1: types.Point, arg2: number, arg3: number, 
+            () => (tick: Tick, arg1: types.Point, arg2: number, arg3: number, 
                                      arg4: number, counterclockwise) => 
                 tick.ctx.arc(arg1[0], arg1[1], arg2, arg3, arg4, counterclockwise),
             center, radius, radStartAngle, radEndAngle, counterclockwise
@@ -595,17 +595,17 @@ export class Animation extends OT.SignalPipe<CanvasTick>{
     }
 }
 
-export function create(attach: (upstream: Rx.Observable<CanvasTick>) => Rx.Observable<CanvasTick> = x => x): Animation {
-    return new Animation(attach);
+export function create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick> = x => x): Operation {
+    return new Operation(attach);
 }
 
-export class PathAnimation extends Animation {
+export class PathAnimation extends Operation {
 
 }
 
 
 
-export function save(width:number, height:number, path: string): Animation {
+export function save(width:number, height:number, path: string): Operation {
     var GIFEncoder = require('gifencoder');
     var fs = require('fs');
 
@@ -616,9 +616,9 @@ export function save(width:number, height:number, path: string): Animation {
       .pipe(fs.createWriteStream(path));
     encoder.start();
 
-    return new Animation(function (upstream: Rx.Observable<CanvasTick>): Rx.Observable<CanvasTick> {
+    return new Operation(function (upstream: Rx.Observable<Tick>): Rx.Observable<Tick> {
         return upstream.tap(
-            function(tick: CanvasTick) {
+            function(tick: Tick) {
                 if (DEBUG) console.log("save: wrote frame");
                 encoder.addFrame(tick.ctx);
             },

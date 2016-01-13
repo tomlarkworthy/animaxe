@@ -12,7 +12,7 @@ function thickLine1tick(
     start: Ax.PointArg,
     end: Ax.PointArg,
     css_color: string | Ax.ColorArg)
-: Ax.Animation {
+: Ax.Operation {
     return Ax.create()
         .take(1)
         .strokeStyle(css_color)
@@ -28,7 +28,7 @@ function thickLine1tick(
  * Three frame animation of a thinning line. Animations are displaced in time so even if the start and end streams move,
  * the line doesn't
  */
-function sparkLine(start: Ax.PointArg, end: Ax.PointArg, css_color: Ax.ColorArg): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
+function sparkLine(start: Ax.PointArg, end: Ax.PointArg, css_color: Ax.ColorArg): Ax.Operation { //we could be clever and let spark take a seq, but user functions should be simple
     return thickLine1tick(6, //thick line
             start,
             end, css_color)

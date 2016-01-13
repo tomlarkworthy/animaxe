@@ -6,7 +6,7 @@ import * as Parameter from "../src/Parameter";
 
 var animator: Ax.Animator = helper.getExampleAnimator();
 
-function foreverDot(size: number, css_color: Ax.ColorArg): Ax.Animation {
+function foreverDot(size: number, css_color: Ax.ColorArg): Ax.Operation {
     return Ax.create().fillStyle(css_color).fillRect([-size/2, -size/2], [size, size]);
 }
 

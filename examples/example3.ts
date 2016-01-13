@@ -12,7 +12,7 @@ var red = 255, green = 50, blue = 50;
 var alpha = Parameter.t().mapValue(t => 0.1 / (t*5 + 0.1));
 
 // our base particle is of variable size and color
-function permDot(size: number, css_color: Ax.ColorArg): Ax.Animation {
+function permDot(size: number, css_color: Ax.ColorArg): Ax.Operation {
     return Ax.create().fillStyle(css_color).fillRect([-size/2, -size/2], [size, size]);
 }
 

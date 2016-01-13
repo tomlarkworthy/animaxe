@@ -3,7 +3,7 @@
 /// <reference path="../types/seedrandom.d.ts" />
 import * as Rx from "rx";
 import * as seedrandom from "seedrandom";
-import * as OT from "./FRP"
+import * as OT from "./frp"
 import * as zip from "./zip"
 import * as parametric from "./parametric"
 import * as list from "./List"
@@ -131,7 +131,7 @@ export function first<T>(value: Parameter<T>): Parameter<T> {
 }
 
 export function skewT<T>(displacement: types.NumberArg, value: T | Parameter<T>): Parameter<T> {
-    return new OT.SignalPipe<OT.BaseTick>(_ => _).skewT(displacement).pipe(from(value));
+    return new OT.SimpleSignalFn<OT.BaseTick>(_ => _).skewT(displacement).pipe(from(value));
 }
 
 /*

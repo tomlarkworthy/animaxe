@@ -7,7 +7,7 @@ import * as Parameter from "../src/Parameter";
 var animator: Ax.Animator = helper.getExampleAnimator();
 
 //2 frame animated glow
-function spark(color: Ax.ColorArg): Ax.Animation { //we could be clever and let spark take a seq, but user functions should be simple
+function spark(color: Ax.ColorArg): Ax.Operation { //we could be clever and let spark take a seq, but user functions should be simple
     return Ax.create()
         .take(1)
         .fillStyle(color)

@@ -1,4 +1,4 @@
-import * as OT from "./FRP"
+import * as OT from "./frp"
 import * as types from "./types"
 export * from "./types"
 import * as Parameter from "./Parameter"

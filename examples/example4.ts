@@ -10,7 +10,7 @@ var red   = 255;
 var green = 50;
 var blue = 50;
 
-function foreverDot(size: number, css_color: Ax.ColorArg): Ax.Animation {
+function foreverDot(size: number, css_color: Ax.ColorArg): Ax.Operation {
     return Ax.create().fillStyle(css_color).fillRect([-size/2, -size/2], [size, size]);
 }
 

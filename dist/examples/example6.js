@@ -79,7 +79,7 @@ var Slider = (function (_super) {
         return slider;
     };
     return Slider;
-})(Ax.Animation);
+})(Ax.Operation);
 var value = new Rx.BehaviorSubject(0);
 //each frame, first draw black background to erase the previous contents
 animator.play(Ax.create().fillStyle(Parameter.rgba(Parameter.updateFrom(0, value).mapValue(function (x) { return x * 2.5; }), 0, 0, 1)).fillRect([0, 0], [100, 100]));

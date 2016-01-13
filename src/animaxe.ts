@@ -3,14 +3,14 @@
 import * as Rx from "rx";
 import * as events from "./events";
 import * as Parameter from "./Parameter";
-import * as canvas from "./CanvasAnimation";
+import * as canvas from "./canvas";
 import * as types from "./types";
-import * as OT from "./FRP";
+import * as OT from "./frp";
 export * from "./types";
 
 
 
-export * from "./CanvasAnimation";
+export * from "./canvas";
 
 console.log("Animaxe, https://github.com/tomlarkworthy/animaxe");
 
@@ -33,16 +33,16 @@ export var DEBUG_EVENTS = false;
  * RxJS pipeline. Thus an animation is not live, but really a factory for a RxJS configuration.
  */
 export class Animator {
-    root: Rx.Subject<canvas.CanvasTick>;
+    root: Rx.Subject<canvas.Tick>;
     t: number = 0;
     events: events.Events = new events.Events();
 
     constructor(public ctx: CanvasRenderingContext2D) {
-        this.root = new Rx.Subject<canvas.CanvasTick>()
+        this.root = new Rx.Subject<canvas.Tick>()
     }
     tick(dt: number) {
         if (DEBUG) console.log("animator: tick", dt);
-        var tick = new canvas.CanvasTick(this.t, dt, this.ctx, this.events);
+        var tick = new canvas.Tick(this.t, dt, this.ctx, this.events);
         this.t += dt;
         var savedTick = tick.save();
         this.root.onNext(savedTick);
@@ -62,7 +62,7 @@ export class Animator {
         var self = this;
         if (DEBUG) console.log("animator: play animation");
         var rootWithStateRefresh = this.root.map(
-            (tick: canvas.CanvasTick) => {
+            (tick: canvas.Tick) => {
                 if (DEBUG) console.log("animator: ctx refresh");
                 return tick.restore().save();
             }
@@ -104,9 +104,9 @@ export class Animator {
  * @param after
  * @returns {Animation}
  */
-export function assertDt(expectedDt: Rx.Observable<number>): canvas.Animation {
-    return new canvas.Animation(function(upstream) {
-        return upstream.zip(expectedDt, function(tick: canvas.CanvasTick, expectedDtValue: number) {
+export function assertDt(expectedDt: Rx.Observable<number>): canvas.Operation {
+    return new canvas.Operation(function(upstream) {
+        return upstream.zip(expectedDt, function(tick: canvas.Tick, expectedDtValue: number) {
             if (tick.dt != expectedDtValue) throw new Error("unexpected dt observed: " + tick.dt + ", expected:" + expectedDtValue);
             return tick;
         });
@@ -115,11 +115,11 @@ export function assertDt(expectedDt: Rx.Observable<number>): canvas.Animation {
 
 //todo would be nice if this took an iterable or some other type of simple pull stream
 // and used streamEquals
-export function assertClock(assertClock: number[]): canvas.Animation {
+export function assertClock(assertClock: number[]): canvas.Operation {
     var index = 0;
 
-    return new canvas.Animation(function(upstream) {
-        return upstream.tapOnNext(function(tick: canvas.CanvasTick) {
+    return new canvas.Operation(function(upstream) {
+        return upstream.tapOnNext(function(tick: canvas.Tick) {
             if (DEBUG) console.log("assertClock: ", tick);
             if (tick.clock < assertClock[index] - 0.00001 || tick.clock > assertClock[index] + 0.00001) {
                 var errorMsg = "unexpected clock observed: " + tick.clock + ", expected:" + assertClock[index]

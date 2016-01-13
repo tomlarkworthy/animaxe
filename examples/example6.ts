@@ -15,7 +15,7 @@ var animator: Ax.Animator = helper.getExampleAnimator(100, 100);
 /**
  * A Button is an animation but with extra mouse state attached
  */
-class Slider extends Ax.Animation {
+class Slider extends Ax.Operation {
     value: Rx.Subject<number>;
 
     /**
@@ -53,9 +53,9 @@ class Slider extends Ax.Animation {
                 public knobMouseState: events.ComponentMouseState, // Babel doesn't like public modifier
                 public canvasMouseState: events.ComponentMouseState, // Babel doesn't like public modifier
                 value: Rx.Subject<number>,
-                onMouseDownKnob: Ax.Animation,
-                onMouseOverKnob: Ax.Animation,
-                onIdleKnob: Ax.Animation
+                onMouseDownKnob: Ax.Operation,
+                onMouseOverKnob: Ax.Operation,
+                onIdleKnob: Ax.Operation
     ) {
         // we build a grand animation pipeline either side of the hot spot,
         // then we use the total pipeline's attach function as the attach function for this animation

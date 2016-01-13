@@ -1,6 +1,6 @@
 import * as Parameter from "../src/Parameter";
 import * as events from "./events"
-import * as Animation from "./CanvasAnimation"
+import * as Animation from "./canvas"
 import * as types from "./types"
 export * from "./types"
 import * as OT from "./FRP"
@@ -41,15 +41,15 @@ var DEBUG = false;
 
 
 export function glow(
-    previous: Animation.Animation,
+    previous: Animation.Operation,
     decay: types.NumberArg = 0.1
-): Animation.Animation
+): Animation.Operation
 {
     if (DEBUG) console.log("glow: build");
     return previous.affect(
         () => {
             if (DEBUG) console.log("glow: attach");
-            return function (tick: Animation.CanvasTick, decay: number) {
+            return function (tick: Animation.Tick, decay: number) {
                 if (DEBUG) console.log("glow: tick", decay)
                 var ctx = tick.ctx;
 
@@ -242,7 +242,7 @@ export function glow(
                 ctx.putImageData(imgData, 0, 0);
             }
         },
-        <OT.SignalFn<Animation.CanvasTick, number>>Parameter.from(decay));
+        <OT.SignalFn<Animation.Tick, number>>Parameter.from(decay));
 }
 
 
