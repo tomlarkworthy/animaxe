@@ -103,7 +103,9 @@ The dynamic dataflow operators, so far, in Animaxe are:-
 Type System
 ------------
 
-```Rx.Observable<V>```
+```
+Rx.Observable<V>
+```
 
 From ReactiveExtensions, this is a stream of values of type V. The stream may finish by sending an completed signal.
 

@@ -173,6 +173,84 @@ export class SignalFn<In extends BaseTick, Out> {
         );
     }
     
+    /**
+     * delivers upstream events to 'this' first, then when 'this' animation is finished
+     * the upstream is switched to the the follower animation.
+     *
+     * This allows you to sequence animations temporally.
+     * frame1OT_API().then(frame2OT_API).then(frame3OT_API)
+     */
+    
+    then(follower: this): this {
+        var self = this;
+
+        return this.create((upstream: Rx.Observable<In>) => {
+            return Rx.Observable.create<Out>(observer => {
+                if (DEBUG_THEN) console.log("then: attach");
+
+                var firstTurn = true;
+                var first  = new Rx.Subject<In>();
+                var second = new Rx.Subject<In>();
+                var firstAttach = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                    next => {
+                        if (DEBUG_THEN) console.log("then: first to downstream");
+                        observer.onNext(next);
+                    },
+                    error => {
+                        if (DEBUG_THEN) console.log("then: first error");
+                        observer.onError(error);    
+                    },
+                    () => {
+                        if (DEBUG_THEN) console.log("then: first complete");
+                        firstTurn = false; // note overall sequences is not notified
+                    }
+                );
+                
+                var secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                    next => {
+                        if (DEBUG_THEN) console.log("then: second to downstream");
+                        observer.onNext(next);
+                    },
+                    error => {
+                        if (DEBUG_THEN) console.log("then: second error");
+                        observer.onError(error);    
+                    },
+                    function(){
+                        if (DEBUG_THEN) console.log("then: second complete");
+                        observer.onCompleted() // note overall sequences finished
+                    }
+                );
+
+                var upstreamSubscription = upstream.subscribeOn(Rx.Scheduler.immediate).subscribeOn(Rx.Scheduler.immediate).subscribe(
+                    next => {
+                        if (firstTurn) {
+                            if (DEBUG_THEN) console.log("then: upstream to first");
+                            first.onNext(next);
+                        } else { // note this gets called if first completes and flips
+                            if (DEBUG_THEN) console.log("then: upstream to second");
+                            second.onNext(next);
+                        }
+                    },
+                    error => {
+                        if (DEBUG_THEN) console.log("then: upstream error");
+                        observer.onError(error);    
+                    },
+                    () => {
+                        if (DEBUG_THEN) console.log("then: upstream complete");
+                        observer.onCompleted();
+                    }
+                );
+                // on dispose
+                return () => {
+                    if (DEBUG_THEN) console.log("then: dispose");
+                    upstreamSubscription.dispose();
+                    firstAttach.dispose();
+                    secondAttach.dispose();
+                };
+            }); 
+        });
+    }
+    
     init(): (clock: number) => Out{throw new Error("depricated: remove this")}
 }
 
@@ -310,84 +388,7 @@ export class SimpleSignalFn<Tick extends BaseTick> extends SignalFn<Tick, Tick>{
         ).attach);
     } */
 
-    /**
-     * delivers upstream events to 'this' first, then when 'this' animation is finished
-     * the upstream is switched to the the follower animation.
-     *
-     * This allows you to sequence animations temporally.
-     * frame1OT_API().then(frame2OT_API).then(frame3OT_API)
-     */
     
-    then(follower: SimpleSignalFn<Tick>): this {
-        var self = this;
-
-        return this.create((upstream: Rx.Observable<Tick>) => {
-            return Rx.Observable.create<Tick>(observer => {
-                if (DEBUG_THEN) console.log("then: attach");
-
-                var firstTurn = true;
-                var first  = new Rx.Subject<Tick>();
-                var second = new Rx.Subject<Tick>();
-
-                var firstAttach = self.attach(first.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
-                    next => {
-                        if (DEBUG_THEN) console.log("then: first to downstream");
-                        observer.onNext(next);
-                    },
-                    error => {
-                        if (DEBUG_THEN) console.log("then: first error");
-                        observer.onError(error);    
-                    },
-                    () => {
-                        if (DEBUG_THEN) console.log("then: first complete");
-                        firstTurn = false; // note overall sequences is not notified
-                    }
-                );
-                
-                var secondAttach = follower.attach(second.subscribeOn(Rx.Scheduler.immediate)).subscribeOn(Rx.Scheduler.immediate).subscribe(
-                    next => {
-                        if (DEBUG_THEN) console.log("then: second to downstream");
-                        observer.onNext(next);
-                    },
-                    error => {
-                        if (DEBUG_THEN) console.log("then: second error");
-                        observer.onError(error);    
-                    },
-                    function(){
-                        if (DEBUG_THEN) console.log("then: second complete");
-                        observer.onCompleted() // note overall sequences finished
-                    }
-                );
-
-                var upstreamSubscription = upstream.subscribeOn(Rx.Scheduler.immediate).subscribeOn(Rx.Scheduler.immediate).subscribe(
-                    next => {
-                        if (firstTurn) {
-                            if (DEBUG_THEN) console.log("then: upstream to first");
-                            first.onNext(next);
-                        } else { // note this gets called if first completes and flips
-                            if (DEBUG_THEN) console.log("then: upstream to second");
-                            second.onNext(next);
-                        }
-                    },
-                    error => {
-                        if (DEBUG_THEN) console.log("then: upstream error");
-                        observer.onError(error);    
-                    },
-                    () => {
-                        if (DEBUG_THEN) console.log("then: upstream complete");
-                        observer.onCompleted();
-                    }
-                );
-                // on dispose
-                return () => {
-                    if (DEBUG_THEN) console.log("then: dispose");
-                    upstreamSubscription.dispose();
-                    firstAttach.dispose();
-                    secondAttach.dispose();
-                };
-            }); 
-        });
-    }
     /**
      * Creates an animation that replays the inner animation each time the inner animation completes.
      *

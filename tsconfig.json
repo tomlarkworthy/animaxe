@@ -25,6 +25,7 @@
         "./examples/example6.ts",
         "./examples/rainbow_sines",
         "./examples/skew.ts",
-        "./examples/lissajous"
+        "./examples/lissajous",
+        "./examples/readme_order.ts"
     ]
 }
