@@ -5,7 +5,7 @@ import * as types from "./types"
 import * as glow from "./glow"
 export * from "./types"
 
-var DEBUG = false;
+var DEBUG = true;
 
 /**
  * Each frame an animation is provided a CanvasTick. The tick exposes access to the local animation time, the
@@ -593,6 +593,27 @@ export class Operation extends OT.SimpleSignalFn<Tick>{
             center, radius, radStartAngle, radEndAngle, counterclockwise
         );
     }
+    
+    /**
+     * Dynamic chainable wrapper for save in the canvas API.
+     */
+    save(): this {
+        return this.loggedAffect(
+            "save",
+            () => (tick: Tick) => 
+                tick.ctx.save()
+        )
+    }
+    /**
+     * Dynamic chainable wrapper for restore in the canvas API.
+     */
+    restore(): this {
+        return this.loggedAffect(
+            "restore",
+            () => (tick: Tick) => 
+                tick.ctx.restore()
+        )
+    }
 }
 
 export function create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<Tick> = x => x): Operation {
@@ -602,8 +623,6 @@ export function create(attach: (upstream: Rx.Observable<Tick>) => Rx.Observable<
 export class PathAnimation extends Operation {
 
 }
-
-
 
 export function save(width:number, height:number, path: string): Operation {
     var GIFEncoder = require('gifencoder');

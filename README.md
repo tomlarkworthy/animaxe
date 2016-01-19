@@ -363,7 +363,11 @@ keep dividing the start end points untill the center is within a tolerance of (s
 - mouse input, tailing glow (remember to tween between rapid movements)
 - prerendering an animation for fast playback
 - SVG path parser for withinPath
+- State machine, 
+   objects like arrow should have easy to watch state changes (Rx level)
+   and also easy to configure animation transitions (and present the same programming interface)
 - Matrix esq. The rain
+- premultiply alpha images
 
 
 

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Animaxe Example - svg</title>
+<meta name="author" content="Tom Larkworthy">
+<link rel="image_src" href="/master/images/svg.gif" / >
+<meta name="description" content="Animaxe, reactive animations. Source code on github, this is examples/svg.ts" />
+<head>
+    <script src="//localhost:35729/livereload.js"></script>
+    <script src="../node_modules/systemjs/dist/system.js"></script>
+    <script>
+        System.config({
+            packages: {
+                '/node_modules/gl-mat3': {
+                    main: 'index',
+                    defaultExtension: 'js'
+                },
+                'src/': {
+                    defaultExtension: 'ts'
+                },
+                'node_modules/seedrandom': {
+                    defaultExtension: 'js'
+                }
+            },
+            map: {
+                typescript: 'node_modules/typescript/lib/typescript.js',
+                rx: 'node_modules/rx/dist/rx.all.js',
+                'seedrandom': 'node_modules/seedrandom/index.js',
+                'gl-mat3': 'node_modules/gl-mat3/index.js'
+            },
+            transpiler: 'typescript',
+            baseURL: '..'
+        });
+    </script>
+</head>
+
+<body>
+<canvas id="canvas" width="100" height="100"></canvas>
+<script>System.import('examples/svg.ts');</script>
+</body>
+</html>

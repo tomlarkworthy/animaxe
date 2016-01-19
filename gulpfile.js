@@ -6,6 +6,7 @@ var gutil = require('gulp-util');
 var replace = require('gulp-replace');
 var template = require('gulp-template');
 var rename = require('gulp-rename');
+var peg = require('gulp-peg');
 var sourcemaps = require('gulp-sourcemaps');
 var transform = require('vinyl-transform');
 var del = require('del');
@@ -37,7 +38,19 @@ gulp.task('clean', function(cb) {
   ], cb);
 });
 
-
+var paths = {
+  build: "dist/peg",
+  scripts: {peg: "peg/svg.peg"} 
+}
+  
+gulp.task ("peg:svg", function(cb) {
+    gulp
+        .src( paths.scripts.peg )
+        .pipe( peg( ).on( "error", gutil.log ) )
+        .pipe( gulp.dest( paths.build ) )
+        
+}); 
+    
 gulp.task('compile', function() {
     var tsResult = gulp.src(['./src/*.ts', './examples/example1*.ts'])
                     .pipe(sourcemaps.init())

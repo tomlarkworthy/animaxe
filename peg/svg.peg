@@ -1,0 +1,211 @@
+/*
+Copyright © 2014 Gavin Kistner
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
+{
+  function merge(first,more){
+    for (var a=[first],i=0,l=more.length;i<l;i++) a[i+1]=more[i][1];
+    return a;
+  }
+
+  var cmds = {m:'moveto',l:'lineto',h:'horizontal lineto',v:'vertical lineto',c:'curveto',s:'smooth curveto',q:'quadratic curveto',t:'smooth quadratic curveto',a:'elliptical arc',z:'closepath'};
+  for (var code in cmds) cmds[code.toUpperCase()]=cmds[code];
+  function commands(code,args){
+    if (!args) args=[{}];
+    for (var i=args.length;i--;){
+      var cmd={code:code,command:cmds[code]};
+      if (code==code.toLowerCase()) cmd.relative=true;
+      for (var k in args[i]) cmd[k]=args[i][k];
+      args[i] = cmd;
+    }
+    return args;
+  }
+}
+
+svg_path
+  = wsp* data:moveTo_drawTo_commandGroups? wsp*
+  {
+    for (var cmds=[],i=0;i<data.length;i++) cmds=cmds.concat.apply(cmds,data[i]);
+    var first=cmds[0];
+    if (first && first.code=='m'){ // Per spec, first moveto is never relative
+      delete first.relative;
+      first.code = 'M';
+    }
+    return cmds;
+  }
+
+moveTo_drawTo_commandGroups
+  = first:moveTo_drawTo_commandGroup more:(wsp* moveTo_drawTo_commandGroup)*
+  { return merge(first,more) }
+
+moveTo_drawTo_commandGroup
+  = first:moveto more:(wsp* drawto_command)*
+  { return merge(first,more) }
+
+drawto_command
+  = closepath
+    / lineto
+    / horizontal_lineto
+    / vertical_lineto
+    / curveto
+    / smooth_curveto
+    / quadratic_bezier_curveto
+    / smooth_quadratic_bezier_curveto
+    / elliptical_arc
+
+moveto
+  = c:[Mm] wsp* first:coordinate_pair more:(comma_wsp? lineto_argument_sequence)?
+  {
+    var move = commands(c,[first]);
+    if (more) move = move.concat(commands(c=='M' ? 'L' : 'l',more[1]));
+    return move;
+  }
+
+closepath
+  = [Zz]
+  { return commands('Z') }
+
+lineto
+  = c:[Ll] wsp* args:lineto_argument_sequence
+  { return commands(c,args) }
+
+lineto_argument_sequence
+  = first:coordinate_pair more:(comma_wsp? coordinate_pair)*
+  { return merge(first,more) }
+
+horizontal_lineto
+  = c:[Hh] wsp* args:coordinate_sequence
+  { return commands(c,args.map(function(x){ return {x:x}})) }
+
+coordinate_sequence
+  = first:number more:(comma_wsp? number)*
+  { return merge(first,more) }
+
+vertical_lineto
+  = c:[Vv] wsp* args:coordinate_sequence
+  { return commands(c,args.map(function(y){ return {y:y}})) }
+
+
+curveto
+  = c:[Cc] wsp* args:curveto_argument_sequence
+  { return commands(c,args) }
+
+curveto_argument_sequence
+  = first:curveto_argument more:(comma_wsp? curveto_argument)*
+  { return merge(first,more) }
+
+curveto_argument
+  = a:coordinate_pair comma_wsp? b:coordinate_pair comma_wsp? c:coordinate_pair
+  { return { x1:a.x, y1:a.y, x2:b.x, y2:b.y, x:c.x, y:c.y } }
+
+
+smooth_curveto
+  = c:[Ss] wsp* args:smooth_curveto_argument_sequence
+  { return commands(c,args) }
+
+smooth_curveto_argument_sequence
+  = first:smooth_curveto_argument more:(comma_wsp? smooth_curveto_argument)*
+  { return merge(first,more) }
+
+smooth_curveto_argument
+  = b:coordinate_pair comma_wsp? c:coordinate_pair
+  { return { x2:b.x, y2:b.y, x:c.x, y:c.y } }
+
+
+quadratic_bezier_curveto
+  = c:[Qq] wsp* args:quadratic_bezier_curveto_argument_sequence
+  { return commands(c,args) }
+
+quadratic_bezier_curveto_argument_sequence
+  = first:quadratic_bezier_curveto_argument more:(comma_wsp? quadratic_bezier_curveto_argument)*
+  { return merge(first,more) }
+
+quadratic_bezier_curveto_argument
+  = a:coordinate_pair comma_wsp? b:coordinate_pair
+  { return { x1:a.x, y1:a.y, x:b.x, y:b.y } }
+
+
+smooth_quadratic_bezier_curveto
+  = c:[Tt] wsp* args:smooth_quadratic_bezier_curveto_argument_sequence
+  { return commands(c,args) }
+
+smooth_quadratic_bezier_curveto_argument_sequence
+  = first:coordinate_pair more:(comma_wsp? coordinate_pair)*
+  { return merge(first,more) }
+
+elliptical_arc
+  = c:[Aa] wsp* args:elliptical_arc_argument_sequence
+  { return commands(c,args) }
+
+elliptical_arc_argument_sequence
+  = first:elliptical_arc_argument more:(comma_wsp? elliptical_arc_argument)*
+  { return merge(first,more) }
+
+elliptical_arc_argument
+  = rx:nonnegative_number comma_wsp? ry:nonnegative_number comma_wsp?
+        xrot:number comma_wsp large:flag comma_wsp? sweep:flag comma_wsp? xy:coordinate_pair
+  { return { rx:rx, ry:ry, xAxisRotation:xrot, largeArc:large, sweep:sweep, x:xy.x, y:xy.y } }
+
+coordinate_pair
+  = x:number comma_wsp? y:number
+  { return { x:x, y:y } }
+
+nonnegative_number
+  = n:(floating_point_constant / digit_sequence)
+  { return n*1 }
+
+number
+  = parts:(sign? floating_point_constant / sign? digit_sequence)
+  { return parts.join('')*1 }
+
+flag
+  = bit:[01]
+  { return bit=='1' }
+
+comma_wsp
+  = (wsp+ comma? wsp*) / (comma wsp*)
+  { return '' }
+
+comma
+  = ','
+
+floating_point_constant
+  = parts:(fractional_constant exponent? / digit_sequence exponent)
+  { return parts.join('') }
+
+fractional_constant
+  = parts:(digit_sequence? '.' digit_sequence / digit_sequence '.')
+  { return parts.join('') }
+
+exponent
+  = parts:([eE] sign? digit_sequence)
+  { return parts.join('') }
+
+sign
+  = [+-]
+
+digit_sequence
+  = digits:[0-9]+
+    { return digits.join('') }
+
+wsp
+  = [ \t\n\r]
+  { return '' }

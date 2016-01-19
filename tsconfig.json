@@ -6,6 +6,7 @@
     },
     "files": [
         "./src/zip.ts",
+        "./src/svg.ts",
         "./src/animaxe.ts",
         "./src/canvas.ts",
         "./src/ctx-get-transform.ts",
