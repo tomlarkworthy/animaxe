@@ -67,17 +67,19 @@ export function svgpath(
                 var y1_prime = -sin * (x1 - x2) / 2.0 + cos * (y1 - y2) / 2.0;   
                 
                 // step 2
-                var polarity = fs == fa ? -1 : 1; 
+                var polarity2 = fs == fa ? -1 : 1; 
                 var numerator = (rx * rx * ry * ry - rx * rx * y1_prime * y1_prime - ry * ry * x1_prime * x1_prime);
                 while (numerator < 0) { 
                     rx *= 2;
                     ry *= 2;
                     // scale up until we find a solution
                     numerator = (rx * rx * ry * ry - rx * rx * y1_prime * y1_prime - ry * ry * x1_prime * x1_prime);
+                    
+                    throw new Error("This needs to be scaled up without overshoot!");
                 }
                 
                 var denominator = (rx * rx * y1_prime * y1_prime + ry * ry * x1_prime * x1_prime);
-                var factor = polarity * Math.sqrt(numerator / denominator) 
+                var factor = polarity2 * Math.sqrt(numerator / denominator) 
                 var cx_prime =  factor * rx * y1_prime / ry;
                 var cy_prime = -factor * ry * x1_prime / rx;
                 
@@ -87,16 +89,16 @@ export function svgpath(
                 
                 // step 4
                 var angle = function(u: [number, number], v: [number, number]): number {
-                    var polarity = u[0] * v[1] - u[1] * v[0] > 0 ? 1 : -1;
+                    var polarity1 = u[0] * v[1] - u[1] * v[0] > 0 ? 1 : -1;
                     var u_length = Math.sqrt(u[0] * u[0] + u[1] * u[1]);
                     var v_length = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
                     
-                    if (DEBUG) {
+                    if (false && DEBUG) {
                         console.log("u, v", u, v);
                         console.log("angle numerator", (u[0] * v[0] + u[1] * v[1]));
                         console.log("angle denominator", u_length * v_length);
                     }
-                    return polarity * Math.acos(
+                    return polarity1 * Math.acos(
                         (u[0] * v[0] + u[1] * v[1]) / 
                         (u_length * v_length)
                     )
@@ -131,8 +133,9 @@ export function svgpath(
                     
                 }
                 
+                
                 op = acc.operation
-                    .arc([cx, cy], radius, (theta1 + thetaDelta), theta1) 
+                    .arc([cx, cy], radius, theta1, theta1 + thetaDelta, theta1 > theta1 + thetaDelta) 
                 end = [command.x, command.y]
             } else {
                 throw Error("unrecognised command: " + command.command + " in svg path " + svg)

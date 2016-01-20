@@ -5,7 +5,7 @@ import * as types from "./types"
 import * as glow from "./glow"
 export * from "./types"
 
-var DEBUG = true;
+var DEBUG = false;
 
 /**
  * Each frame an animation is provided a CanvasTick. The tick exposes access to the local animation time, the
