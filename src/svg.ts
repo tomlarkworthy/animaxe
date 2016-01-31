@@ -68,15 +68,36 @@ export function svgpath(
                 
                 // step 2
                 var polarity2 = fs == fa ? -1 : 1; 
-                var numerator = (rx * rx * ry * ry - rx * rx * y1_prime * y1_prime - ry * ry * x1_prime * x1_prime);
-                while (numerator < 0) { 
-                    rx *= 2;
-                    ry *= 2;
-                    // scale up until we find a solution
-                    numerator = (rx * rx * ry * ry - rx * rx * y1_prime * y1_prime - ry * ry * x1_prime * x1_prime);
+                var numerator; // = (rx * rx * ry * ry - rx * rx * y1_prime * y1_prime - ry * ry * x1_prime * x1_prime);
+                // we worry about if the numerator is too small, we scale up rx and ry by unknown 's'
+                // we want the numerator to be positive, so we find when the numerator crosses the 0 line
+                // 0 = (rx * rx * ry * ry - rx * rx * y1_prime * y1_prime - ry * ry * x1_prime * x1_prime)
+                // we know most of these values, so we can simplify to
+                // 0 = s * s * s * s * a - s * s * b - s * s * c
+                // where a = rx * rx * ry * ry
+                //       b = rx * rx * y1_prime * y1_prime
+                //       c = ry * ry * x1_prime * x1_prime
+                // or if s * s = t 
+                // 0 = a * t * t  - b * t - c * t
+                // 0 = t(at - b - c), trivial solution at t = 0
+                // interesting solution at 
+                // 0 = at - b - c
+                // t = (b + c) / a
+                // s = sqrt((b + c) / a)
+                var a = rx * rx * ry * ry;
+                var b = rx * rx * y1_prime * y1_prime;
+                var c = ry * ry * x1_prime * x1_prime;
+                
+                var scaleToInflection = (b + c) / a;       
                     
-                    throw new Error("This needs to be scaled up without overshoot!");
+                if (scaleToInflection < 1) {
+                } else {
+                    // SHOULD BE 0
+                    rx *= Math.sqrt(scaleToInflection)
+                    ry *= Math.sqrt(scaleToInflection)
                 }
+                // TODO overwrite value while scaling is not working
+                numerator = (rx * rx * ry * ry - rx * rx * y1_prime * y1_prime - ry * ry * x1_prime * x1_prime);
                 
                 var denominator = (rx * rx * y1_prime * y1_prime + ry * ry * x1_prime * x1_prime);
                 var factor = polarity2 * Math.sqrt(numerator / denominator) 
@@ -115,6 +136,9 @@ export function svgpath(
                 
                 var radius = Math.sqrt((cx - x1) * (cx - x1) + (cy - y1) * (cy - y1))
                 
+                var startAngle = theta1;
+                var endAngle = theta1 + thetaDelta;
+                
                 if (DEBUG) {
                     console.log("psi", psi)
                     console.log("rx, ry", rx, ry)
@@ -122,6 +146,8 @@ export function svgpath(
                     console.log("x2, y2", x2, y2)
                     console.log("cos, sin", cos, sin)
                     console.log("x1_prime, y1_prime", x1_prime, y1_prime)
+                    console.log("a, b, c", a, b, c)
+                    console.log("scaleToInflection", scaleToInflection)
                     console.log("numerator", (rx * rx * ry * ry - rx * rx * y1_prime * y1_prime - ry * ry * x1_prime * x1_prime))
                     console.log("denominator", (rx * rx * y1_prime * y1_prime + ry * ry * x1_prime * x1_prime))
                     console.log("factor", factor)
@@ -130,12 +156,12 @@ export function svgpath(
                     console.log("v[0] ... v[2]", v0, v1, v2)
                     console.log("theta1, thetaDelta", theta1, thetaDelta)
                     console.log("radius", radius)
-                    
+                    console.log("startAngle, endAngle", startAngle, endAngle)
                 }
                 
-                
                 op = acc.operation
-                    .arc([cx, cy], radius, theta1, theta1 + thetaDelta, theta1 > theta1 + thetaDelta) 
+                    .arc([cx, cy], radius, startAngle, endAngle, thetaDelta > 0)
+                     
                 end = [command.x, command.y]
             } else {
                 throw Error("unrecognised command: " + command.command + " in svg path " + svg)

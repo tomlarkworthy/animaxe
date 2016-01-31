@@ -38,12 +38,13 @@ gulp.task('clean', function(cb) {
   ], cb);
 });
 
-var paths = {
-  build: "dist/peg",
-  scripts: {peg: "peg/svg.peg"} 
-}
+
   
 gulp.task ("peg:svg", function(cb) {
+    var paths = {
+        build: "dist/peg",
+        scripts: {peg: "peg/svg.peg"} 
+    };
     gulp
         .src( paths.scripts.peg )
         .pipe( peg( ).on( "error", gutil.log ) )

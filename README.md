@@ -303,6 +303,7 @@ Refactors
 ----------
 - OT should not have in extend BaseTick, Params should be on BaseTick. How do we combine them? Intersection types? .combine is the sticking point
     - how to we express some common ancesors exists. Can we upcast through generics?
+    - Possibly we can do it through & intersection types. See AFRP. Maybe we need & as well. Combine inner vs combine outer.
     
 - Move to vectors. So 6 dim lissajous curve sliced into RGBA and XY (RGB takes vector).
 - rainbow sines is ugly, Number and skewT should help.

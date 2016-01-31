@@ -5,7 +5,7 @@ import * as types from "./types"
 import * as glow from "./glow"
 export * from "./types"
 
-var DEBUG = false;
+var DEBUG = true;
 
 /**
  * Each frame an animation is provided a CanvasTick. The tick exposes access to the local animation time, the
@@ -71,7 +71,18 @@ export class Operation extends OT.SimpleSignalFn<Tick>{
         param7?: P7 | Parameter.Parameter<P7>,
         param8?: P8 | Parameter.Parameter<P8>
     ): this {
-        if (DEBUG) console.log(label + ": build");
+        if (DEBUG) {
+            var elements = [];
+            if (param1 !== undefined) elements.push(param1 + "");
+            if (param2 !== undefined) elements.push(param2 + "");
+            if (param3 !== undefined) elements.push(param3 + "");
+            if (param4 !== undefined) elements.push(param4 + "");
+            if (param5 !== undefined) elements.push(param5 + "");
+            if (param6 !== undefined) elements.push(param6 + "");
+            if (param7 !== undefined) elements.push(param7 + "");
+            if (param8 !== undefined) elements.push(param8 + "");
+            console.log(label + ": build (" + elements.join(",") + ")");
+        }
         return this.affect(
             () => {
                 if (DEBUG) console.log(label + ": attach");
@@ -80,27 +91,27 @@ export class Operation extends OT.SimpleSignalFn<Tick>{
                                           arg5?: P5, arg6?: P6, arg7?: P7, arg8?: P8) => {
                     if (DEBUG) {
                         var elements = [];
-                        if (arg1) elements.push(arg1 + "");
-                        if (arg2) elements.push(arg2 + "");
-                        if (arg3) elements.push(arg3 + "");
-                        if (arg4) elements.push(arg4 + "");
-                        if (arg5) elements.push(arg5 + "");
-                        if (arg6) elements.push(arg6 + "");
-                        if (arg7) elements.push(arg7 + "");
-                        if (arg8) elements.push(arg8 + "");
+                        if (arg1 !== undefined) elements.push(arg1 + "");
+                        if (arg2 !== undefined) elements.push(arg2 + "");
+                        if (arg3 !== undefined) elements.push(arg3 + "");
+                        if (arg4 !== undefined) elements.push(arg4 + "");
+                        if (arg5 !== undefined) elements.push(arg5 + "");
+                        if (arg6 !== undefined) elements.push(arg6 + "");
+                        if (arg7 !== undefined) elements.push(arg7 + "");
+                        if (arg8 !== undefined) elements.push(arg8 + "");
                         console.log(label + ": tick (" + elements.join(",") + ")");
                     }
                     effect(tick, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
                 }
             },
-            <OT.SignalFn<Tick, P1>> (param1 ? Parameter.from(param1): undefined),
-            <OT.SignalFn<Tick, P2>> (param2 ? Parameter.from(param2): undefined),
-            <OT.SignalFn<Tick, P3>> (param3 ? Parameter.from(param3): undefined),
-            <OT.SignalFn<Tick, P4>> (param4 ? Parameter.from(param4): undefined),
-            <OT.SignalFn<Tick, P5>> (param5 ? Parameter.from(param5): undefined),
-            <OT.SignalFn<Tick, P6>> (param6 ? Parameter.from(param6): undefined),
-            <OT.SignalFn<Tick, P7>> (param7 ? Parameter.from(param7): undefined),
-            <OT.SignalFn<Tick, P8>> (param8 ? Parameter.from(param8): undefined)
+            <OT.SignalFn<Tick, P1>> (param1 !== undefined ? Parameter.from(param1): undefined),
+            <OT.SignalFn<Tick, P2>> (param2 !== undefined ? Parameter.from(param2): undefined),
+            <OT.SignalFn<Tick, P3>> (param3 !== undefined ? Parameter.from(param3): undefined),
+            <OT.SignalFn<Tick, P4>> (param4 !== undefined ? Parameter.from(param4): undefined),
+            <OT.SignalFn<Tick, P5>> (param5 !== undefined ? Parameter.from(param5): undefined),
+            <OT.SignalFn<Tick, P6>> (param6 !== undefined ? Parameter.from(param6): undefined),
+            <OT.SignalFn<Tick, P7>> (param7 !== undefined ? Parameter.from(param7): undefined),
+            <OT.SignalFn<Tick, P8>> (param8 !== undefined ? Parameter.from(param8): undefined)
         )
     }
     
@@ -584,11 +595,12 @@ export class Operation extends OT.SimpleSignalFn<Tick>{
 
     arc(center: types.PointArg, radius: types.NumberArg,
         radStartAngle: types.NumberArg, radEndAngle: types.NumberArg,
-        counterclockwise: boolean = false): this {
+        counterclockwise: types.BooleanArg): this {
+        console.log("arc: radStart, radEnd", radStartAngle, radEndAngle);
         return this.loggedAffect(
             "arc",
             () => (tick: Tick, arg1: types.Point, arg2: number, arg3: number, 
-                                     arg4: number, counterclockwise) => 
+                                     arg4: number, counterclockwise: boolean) => 
                 tick.ctx.arc(arg1[0], arg1[1], arg2, arg3, arg4, counterclockwise),
             center, radius, radStartAngle, radEndAngle, counterclockwise
         );

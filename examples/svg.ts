@@ -26,16 +26,14 @@ animator.play(svg.svgpath(Ax.create().beginPath().strokeStyle("blue"),
   ).stroke()
 );
 
-
+*/
 
 // Using http://anthonydugois.com/svg-path-builder/
 
-animator.play(svg.svgpath(Ax.create().beginPath().strokeStyle("yellow").scale([0.5, 0.5]),
-  'M150 100 A50 50 0 1 0 0 100 C0 200 150 100 150 200 A50 50 0 1 1 0 200').stroke()
+animator.play(svg.svgpath(Ax.create().beginPath().strokeStyle("yellow").scale([0.1, 0.1]),
+  'M350 300 A50 50 0 1 0 150 300' // TODO: fix scaling on undersized r values
+  ).stroke()
 );
-*/
-animator.play(svg.svgpath(Ax.create().beginPath().strokeStyle("yellow"),
-  'M25 50 A30 30 0 1 0 75 50').stroke()
-);
+
  
 helper.playExample("@name", 1, animator, 100, 100);

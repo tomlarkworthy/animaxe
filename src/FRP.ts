@@ -132,10 +132,12 @@ export class SignalFn<In extends BaseTick, Out> {
             // we link all concurrent OTs in the others array to the fork, skipping null or undefined values
             var args: any[] = others.reduce(
                 (acc: any[], other: SignalFn<In, any>) => {
-                    if (other) acc.push(other.attach(fork))
+                    if (other !== undefined) acc.push(other.attach(fork))
                     return acc;
                 }, []
             );
+            console.log("combineMany others", others);
+            console.log("combineMany args", args);
                 
             args.unshift(this.attach(fork)) // put output of self as first param in combiner
             args.unshift(combinerBuilder()) // build effect handler for zip
