@@ -428,6 +428,7 @@ export class Operation extends OT.SimpleSignalFn<Tick>{
      * Dynamic chainable wrapper for bezierCurveTo in the canvas API. Use with withinPath.
      */
     bezierCurveTo(control1: types.PointArg, control2: types.PointArg, end: types.PointArg): this {
+        console.log("bezierCurveTo", control1, control2, end);
         return this.loggedAffect(
             "bezierCurveTo",
             () => (tick: Tick, arg1: types.Point, arg2: types.Point, arg3: types.Point) => 

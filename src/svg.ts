@@ -15,29 +15,63 @@ export function svgpath(
         operation: Ax.Operation
     }
     
+    type Command = {
+        command: string
+        x?: number
+        y?: number
+        x1?: number
+        y1?: number
+        x2?: number
+        y2?: number
+        relative?: boolean
+        rx?: number
+        ry?: number
+        largeArc?: number
+        sweep?: number
+        xAxisRotation?: number
+    }
+    
     console.log(ast);
     // vertical lineto
     // turn the array of commands into a list of chainable animation functions
-    var commands: ((acc: SvgState) => SvgState)[] = ast.map(command => {
-        if (command.relative) throw new Error("Does not support relative mode yet, we should use state.end");
-        
+    var commands: ((acc: SvgState) => SvgState)[] = ast.map((command: Command) => {    
         return (acc: SvgState) => {
             var op: Ax.Operation;
             var end: Ax.Point;
+            var x: number, y: number, 
+                x1: number, y1: number, 
+                x2: number, y2: number;
+            
+            if (command.relative) {
+                x = command.x + acc.end[0];  
+                y = command.y + acc.end[1]; 
+                if (command.x1 != undefined) x1 = command.x1 + acc.end[0];
+                if (command.y1 != undefined) y1 = command.y1 + acc.end[1];
+                if (command.x2 != undefined) x2 = command.x2 + acc.end[0];
+                if (command.y2 != undefined) y2 = command.y2 + acc.end[1];  
+            } else {
+                x = command.x;
+                y = command.y;
+                if (command.x1 != undefined) x1 = command.x1;
+                if (command.y1 != undefined) y1 = command.y1;
+                if (command.x2 != undefined) x2 = command.x2;
+                if (command.y2 != undefined) y2 = command.y2;
+            }
             if (command.command == 'moveto') {
-                op = acc.operation.moveTo([command.x, command.y]);
-                end = [command.x, command.y]
+                op = acc.operation.moveTo([x, y]);
+                end = [x, y]
             } else if (command.command == 'lineto') {
-                op = acc.operation.lineTo([command.x, command.y]);
-                end = [command.x, command.y]
+                op = acc.operation.lineTo([x, y]);
+                end = [x, y]
             } else if (command.command == 'closepath') {
                 op = acc.operation.closePath();
+                // end ???
             } else if (command.command == 'curveto') {
-                op =  acc.operation.bezierCurveTo([command.x, command.y], [command.x1, command.y1], [command.x2, command.y2]);
-                end = [command.x, command.y]
+                op =  acc.operation.bezierCurveTo([x1, y1], [x2, y2], [x, y]);
+                end = [x, y]
             } else if (command.command == 'quadratic curveto') {
-                op = acc.operation.quadraticCurveTo([command.x, command.y], [command.x1, command.y1]);
-                end = [command.x, command.y]
+                op = acc.operation.quadraticCurveTo([x1, y1], [x, y]);
+                end = [x, y]
             } else if (command.command == 'elliptical arc') {
                 // 50 50 0 1 1 0 200
                 // we only have arcTo and arc to draw an ellipse
@@ -51,8 +85,8 @@ export function svgpath(
                 // F.6.5 Conversion from endpoint to center parameterization
                 var x1 = acc.end[0],
                     y1 = acc.end[1],
-                    x2 = command.x,
-                    y2 = command.y,
+                    x2 = x,
+                    y2 = y,
                     fa = command.largeArc,
                     fs = command.sweep,
                     rx = command.rx,
@@ -160,9 +194,9 @@ export function svgpath(
                 }
                 
                 op = acc.operation
-                    .arc([cx, cy], radius, startAngle, endAngle, thetaDelta > 0)
+                    .arc([cx, cy], radius, startAngle, endAngle, thetaDelta < 0)
                      
-                end = [command.x, command.y]
+                end = [x, y]
             } else {
                 throw Error("unrecognised command: " + command.command + " in svg path " + svg)
             } 
