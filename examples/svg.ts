@@ -31,9 +31,9 @@ animator.play(svg.svgpath(Ax.create().beginPath().strokeStyle("blue"),
 // Using http://anthonydugois.com/svg-path-builder/
 
 animator.play(svg.svgpath(Ax.create().beginPath().strokeStyle("yellow").scale([0.1, 0.1]),
-  'M350 300 a50 50 0 1 0 -200 0 c0 100 200 0 200 100 a50 50 0 1 1 -200 0 ' 
-  // 'M400 250 V400 L500 500 L600 400 V250 ' todo vertical lineTo
-  // 'M850 300 A50 50 0 1 0 650 300 V400 A50 50 0 1 0 850 400 V350 H750'
+  'M350 300 a50 50 0 1 0 -200 0 c0 100 200 0 200 100 a50 50 0 1 1 -200 0 ' + 
+  'M400 250 V400 L500 500 L600 400 V250 ' +
+  'M850 300 A50 50 0 1 0 650 300 V400 A50 50 0 1 0 850 400 V350 H750'
   ).stroke()
 );
 

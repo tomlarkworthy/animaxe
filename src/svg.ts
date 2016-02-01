@@ -43,15 +43,15 @@ export function svgpath(
                 x2: number, y2: number;
             
             if (command.relative) {
-                x = command.x + acc.end[0];  
-                y = command.y + acc.end[1]; 
+                if (command.x != undefined) x = command.x + acc.end[0];  
+                if (command.y != undefined) y = command.y + acc.end[1]; 
                 if (command.x1 != undefined) x1 = command.x1 + acc.end[0];
                 if (command.y1 != undefined) y1 = command.y1 + acc.end[1];
                 if (command.x2 != undefined) x2 = command.x2 + acc.end[0];
                 if (command.y2 != undefined) y2 = command.y2 + acc.end[1];  
             } else {
-                x = command.x;
-                y = command.y;
+                if (command.x != undefined) x = command.x;
+                if (command.y != undefined) y = command.y;
                 if (command.x1 != undefined) x1 = command.x1;
                 if (command.y1 != undefined) y1 = command.y1;
                 if (command.x2 != undefined) x2 = command.x2;
@@ -63,6 +63,12 @@ export function svgpath(
             } else if (command.command == 'lineto') {
                 op = acc.operation.lineTo([x, y]);
                 end = [x, y]
+            } else if (command.command == 'vertical lineto') {
+                op = acc.operation.lineTo([acc.end[0], y]);
+                end = [acc.end[0], y]
+            } else if (command.command == 'horizontal lineto') {
+                op = acc.operation.lineTo([x, acc.end[1]]);
+                end = [x, acc.end[1]]
             } else if (command.command == 'closepath') {
                 op = acc.operation.closePath();
                 // end ???
