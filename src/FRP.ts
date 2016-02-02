@@ -136,8 +136,6 @@ export class SignalFn<In extends BaseTick, Out> {
                     return acc;
                 }, []
             );
-            console.log("combineMany others", others);
-            console.log("combineMany args", args);
                 
             args.unshift(this.attach(fork)) // put output of self as first param in combiner
             args.unshift(combinerBuilder()) // build effect handler for zip

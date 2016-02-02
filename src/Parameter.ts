@@ -9,7 +9,7 @@ import * as parametric from "./parametric"
 import * as list from "./List"
 export * from "./List"
 
-export var DEBUG = false;
+export var DEBUG = true;
 
 import * as types from "./types"
 export * from "./types"
@@ -83,14 +83,12 @@ function moveTo(
 ```
  */
 
-
 export function from<T>(source: T | Parameter<T>): Parameter<T> {
     types.assert (source != undefined, "source is not defined");
     if (DEBUG) console.log("from: build");
     if (typeof (<any>source).attach == 'function') return <Parameter<T>>source;
     else return constant(<T> source)
 }
-
 
 export function point(
     x: types.NumberArg,

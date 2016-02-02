@@ -38,17 +38,12 @@ gulp.task('clean', function(cb) {
   ], cb);
 });
 
-
-  
 gulp.task ("peg:svg", function(cb) {
-    var paths = {
-        build: "dist/peg",
-        scripts: {peg: "peg/svg.peg"} 
-    };
     gulp
-        .src( paths.scripts.peg )
+        .src( "peg/svg.peg" )
         .pipe( peg( ).on( "error", gutil.log ) )
-        .pipe( gulp.dest( paths.build ) )
+        .pipe( gulp.dest( "dist/peg" ) ) // for mocha tests
+        .pipe( gulp.dest( "peg" ) ) // for html examples
         
 }); 
     

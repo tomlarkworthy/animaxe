@@ -173,8 +173,12 @@ nonnegative_number
   { return n*1 }
 
 number
-  = parts:(sign? floating_point_constant / sign? digit_sequence)
-  { return parts.join('')*1 }
+  = parts:(sign? floating_point_constant / sign? digit_sequence / '%' digit_sequence)
+  { 
+    var value = parts.join('')*1;
+    if (isNaN(value)) return parts.join(''); // for %1 arg
+    else return value;
+  }
 
 flag
   = bit:[01]

@@ -271,6 +271,9 @@ Its in constant flux changed, but you can try it here [here](https://animaxe.fir
 TODOS
 =====
 
+Bugs
+------
+
 Packaging
 -----------
 - instructions on using save As.. then map to network resource for example editing
@@ -286,6 +289,8 @@ Glow
 
 Features
 --------
+- SVG paths so we can use other tooling for art. 
+  - bind to parameters to make them reactive svg('M %1 50', param) 
 - Reflection
 - L-systems (fold?)
 - Perlin noise
