@@ -9,7 +9,7 @@ import * as parametric from "./parametric"
 import * as list from "./List"
 export * from "./List"
 
-export var DEBUG = true;
+export var DEBUG = false;
 
 import * as types from "./types"
 export * from "./types"

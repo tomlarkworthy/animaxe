@@ -5,7 +5,7 @@ import * as types from "./types"
 import * as glow from "./glow"
 export * from "./types"
 
-var DEBUG = true;
+var DEBUG = false;
 
 /**
  * Each frame an animation is provided a CanvasTick. The tick exposes access to the local animation time, the
@@ -464,7 +464,6 @@ export class Operation extends OT.SimpleSignalFn<Tick>{
             "ellipticArcTo",
             () => (tick: Tick, X1: [number, number], R: [number, number],
              psi: number, fa: boolean, fs: boolean, X2: [number, number]) => {
-                console.log("elliptical R", R);
                 var x1 = X1[0],
                     y1 = X1[1],
                     x2 = X2[0],

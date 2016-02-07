@@ -2,7 +2,7 @@ import parser = require('../peg/svg');
 import * as Ax from './animaxe';
 import * as Parameter from './Parameter';
 
-var DEBUG = true;
+var DEBUG = false;
 
 export function svgpath(
     before: Ax.Operation,
