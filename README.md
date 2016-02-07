@@ -289,8 +289,6 @@ Glow
 
 Features
 --------
-- SVG paths so we can use other tooling for art. 
-  - bind to parameters to make them reactive svg('M %1 50', param) 
 - Reflection
 - L-systems (fold?)
 - Perlin noise
@@ -309,7 +307,7 @@ Refactors
 - OT should not have in extend BaseTick, Params should be on BaseTick. How do we combine them? Intersection types? .combine is the sticking point
     - how to we express some common ancesors exists. Can we upcast through generics?
     - Possibly we can do it through & intersection types. See AFRP. Maybe we need & as well. Combine inner vs combine outer.
-    
+- Finish SVG spec (smooth curves)
 - Move to vectors. So 6 dim lissajous curve sliced into RGBA and XY (RGB takes vector).
 - rainbow sines is ugly, Number and skewT should help.
 - change event propogation
@@ -374,6 +372,8 @@ keep dividing the start end points untill the center is within a tolerance of (s
    and also easy to configure animation transitions (and present the same programming interface)
 - Matrix esq. The rain
 - premultiply alpha images
+- many snakes winding in arcing figure of 8s 
+- simulate a double pendulum on a conic manifold and print the visualization onto a lampshade
 
 
 

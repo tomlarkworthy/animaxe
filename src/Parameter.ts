@@ -246,6 +246,17 @@ export function t(): Parameter<number> {
     )
 }
 
+
+export function dt(): Parameter<number> {   
+    if (DEBUG) console.log("dt: build");
+    return new OT.SignalFn(
+        (upstream: Rx.Observable<OT.BaseTick>) => upstream.map(tick => {
+            return tick.dt
+        })
+    )
+}
+
+
 export function trace(
     equations: Parameter<((t: number) => number)[]>,
     t_min: types.NumberArg,

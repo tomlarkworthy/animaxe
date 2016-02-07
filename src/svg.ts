@@ -51,8 +51,13 @@ export function svgpath(
                     if (command[0] == '%') {
                         var index = parseFloat(command.slice(1)) - 1; // %1 means arg 0
                         var arg = args[index];
-                        if (args === undefined) throw new Error("Index out of bounds");
+                        if (arg === undefined) throw new Error("Index out of bounds" + command);
                         return arg;
+                    } else if (command[0] == '-' && command[1] == '%') {
+                        var index = parseFloat(command.slice(2)) - 1; // %1 means arg 0
+                        var arg = args[index];
+                        if (arg === undefined) throw new Error("Index out of bounds " + command);
+                        return Parameter.from(arg).mapValue(x => -x);
                     } else {
                         throw new Error(command);
                     }

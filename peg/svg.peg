@@ -173,7 +173,7 @@ nonnegative_number
   { return n*1 }
 
 number
-  = parts:(sign? floating_point_constant / sign? digit_sequence / '%' digit_sequence)
+  = parts:(sign? floating_point_constant / sign? digit_sequence / sign? '%' digit_sequence)
   { 
     var value = parts.join('')*1;
     if (isNaN(value)) return parts.join(''); // for %1 arg

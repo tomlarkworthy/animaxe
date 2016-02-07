@@ -1588,7 +1588,7 @@ module.exports = (function() {
     }
 
     function peg$parsenumber() {
-      var s0, s1, s2, s3;
+      var s0, s1, s2, s3, s4;
 
       s0 = peg$currPos;
       s1 = peg$currPos;
@@ -1630,18 +1630,27 @@ module.exports = (function() {
         }
         if (s1 === peg$FAILED) {
           s1 = peg$currPos;
-          if (input.charCodeAt(peg$currPos) === 37) {
-            s2 = peg$c33;
-            peg$currPos++;
-          } else {
-            s2 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c34); }
+          s2 = peg$parsesign();
+          if (s2 === peg$FAILED) {
+            s2 = null;
           }
           if (s2 !== peg$FAILED) {
-            s3 = peg$parsedigit_sequence();
+            if (input.charCodeAt(peg$currPos) === 37) {
+              s3 = peg$c33;
+              peg$currPos++;
+            } else {
+              s3 = peg$FAILED;
+              if (peg$silentFails === 0) { peg$fail(peg$c34); }
+            }
             if (s3 !== peg$FAILED) {
-              s2 = [s2, s3];
-              s1 = s2;
+              s4 = peg$parsedigit_sequence();
+              if (s4 !== peg$FAILED) {
+                s2 = [s2, s3, s4];
+                s1 = s2;
+              } else {
+                peg$currPos = s1;
+                s1 = peg$FAILED;
+              }
             } else {
               peg$currPos = s1;
               s1 = peg$FAILED;
