@@ -24,9 +24,9 @@ var twoPi = 2 * Math.PI;
 // we pass them through lissajous to generate some parametric equations
 // we then trace that to turn it into a pointlist. 
 // So we have transformed the (arbitary) time varying parameters, to a time varying list of points 
-var timeVaryingPointList = (Parameter.trace(lissajous(45, Parameter.t().mapValue(function (t) { return 2 + Math.sin(t); }), 45, Parameter.t().mapValue(function (t) { return 2 + Math.sin(t / 2); }), Parameter.t()), Parameter.t().mapValue(function (t) { return t % twoPi; }), Parameter.t().mapValue(function (t) { return (t % twoPi) + twoPi; }), 10, 4, 100000).mapValue(function (array) {
+var timeVaryingPointList = Parameter.trace(lissajous(45, Parameter.t().mapValue(function (t) { return 2 + Math.sin(t); }), 45, Parameter.t().mapValue(function (t) { return 2 + Math.sin(t / 2); }), Parameter.t()), Parameter.t().mapValue(function (t) { return t % twoPi; }), Parameter.t().mapValue(function (t) { return (t % twoPi) + twoPi; }), 10, 4, 100000).mapValue(function (array) {
     return array.map(function (segment) { return segment.point; });
-}));
+});
 // To render a time varying list of points as a joined up line, each frame we chain a moveTo and many lineTo animations together.
 // As canvas animation persist over time forever, we have to use take(1) to limit the length of the animations to one frame.
 // playAll is able to play a new animation generated from a time varying stream of animations.

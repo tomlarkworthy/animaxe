@@ -44,16 +44,18 @@ var twoPi = 2 * Math.PI;
 // we pass them through lissajous to generate some parametric equations
 // we then trace that to turn it into a pointlist. 
 // So we have transformed the (arbitary) time varying parameters, to a time varying list of points 
-var timeVaryingPointList: /*Parameter.Parameter<number[][]>*/ OT.SignalFn<canvas.Tick, number[][]> = 
-    (Parameter.trace(
+var timeVaryingPointList: Parameter.Parameter<number[][]> = 
+    Parameter.trace(
         lissajous(45, Parameter.t().mapValue(t => 2 + Math.sin(t)), 45, Parameter.t().mapValue(t => 2 + Math.sin(t/2)), Parameter.t()),
         Parameter.t().mapValue(t => t % twoPi), Parameter.t().mapValue(t => (t % twoPi) + twoPi),
         10,
         4,
         100000
-    ).mapValue((array: {point: number[], t: number}[]) => {
-        return array.map(segment => segment.point);
-    }));
+    ).mapValue(
+        (array: {point: number[], t: number}[]) => {
+            return array.map(segment => segment.point);
+        }
+    );
            
            
 // To render a time varying list of points as a joined up line, each frame we chain a moveTo and many lineTo animations together.

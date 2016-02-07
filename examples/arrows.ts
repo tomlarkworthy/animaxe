@@ -183,7 +183,7 @@ function simpleArrow(
 animator.play(
     Ax.create().translate([50, 50]).fillStyle("white").pipe(
         simpleArrow(
-            3, 25, 5, 25,
+            3, 20, 5, 25,
             2    
         )
     )
