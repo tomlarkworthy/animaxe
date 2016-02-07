@@ -58,21 +58,6 @@ function simpleArrow(
     // some point we will have a tick -> command parameter
     var command: Parameter.Parameter<ArrowSignal> = Parameter.constant(<ArrowSignal>"OPEN");
     
-    // this gets merged with everything in order to update the various
-    // linearControl signals
-    // one change in state should change the target for several linearControl's
-    // those controls are then piped into the SVG command.
-    // KILL -1
-    // CLOSE  0
-    // .
-    //  .
-    //   .
-    //   -
-    //  --
-    // ---
-    // -->
-    // OPEN    1
-    
     // The intermediate representation is a number from 0 - 1
     // Its current state is moved in the direction of OPEN or CLOSE
     // at a linear speed

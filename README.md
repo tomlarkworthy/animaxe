@@ -252,11 +252,15 @@ Rainbow Sines - Demo
 
 ![Rainbow Sines](./images/rainbow_sines.gif?raw=true)
 
-
 Lissajous Curves - Demo
 ([source](./examples/lissajous.ts))
 
 ![Rainbow Sines](./images/lissajous.gif?raw=true)
+
+Arrowa - SVG bound to time varying variables
+([source](./examples/arrows.ts))
+
+![Arrows](./images/arrows.gif?raw=true)
 
 
 We have some examples in the test directory written in Typescript. See 'Trying it out'.
@@ -375,6 +379,7 @@ keep dividing the start end points untill the center is within a tolerance of (s
 - many snakes winding in arcing figure of 8s 
 - simulate a double pendulum on a conic manifold and print the visualization onto a lampshade
 
+- checkout http://ravichugh.github.io/sketch-n-sketch/
 
 
 
